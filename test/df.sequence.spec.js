@@ -25,7 +25,7 @@ describe("df", function () {
                 },
                 initial: 0
             });
-            var wrapper = sequence.wrapper();
+            var wrapper = sequence.wrap();
             expect(wrapper()).toBe(1);
             expect(wrapper()).toBe(2);
             expect(wrapper()).toBe(3);
@@ -39,7 +39,7 @@ describe("df", function () {
                 },
                 initial: 0
             });
-            var wrapper = sequence.wrapper();
+            var wrapper = sequence.wrap();
             expect(sequence.next(1)).toBe(1);
             expect(sequence.next(2)).toBe(3);
             expect(wrapper(5)).toBe(8);
@@ -52,7 +52,7 @@ describe("df", function () {
                 },
                 initial: 0
             });
-            var wrapper = sequence.wrapper(10);
+            var wrapper = sequence.wrap(10);
             expect(wrapper(5)).toBe(15);
             expect(sequence.next(1, 2)).toBe(18);
             expect(wrapper(2)).toBe(30);

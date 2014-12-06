@@ -3,7 +3,7 @@ var df = require("../df"),
 
 describe("df", function () {
 
-    describe("Class", function () {
+    describe("Object", function () {
 
         describe("extend(Object properties = null)", function () {
 

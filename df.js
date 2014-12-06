@@ -32,7 +32,7 @@ var Sequence = Obj.extend({
         this.state = this.generator.apply(this, args);
         return this.get();
     },
-    wrapper: function () {
+    wrap: function () {
         var store = [];
         store.push.apply(store, arguments);
         return function () {
@@ -49,78 +49,113 @@ var uniqueId = new Sequence({
         return ++previousId;
     },
     initial: 0
-}).wrapper();
+}).wrap();
 
 var Link = Obj.extend({
+    id: null,
+    publisher: null,
+    subscriber: null,
     init: function (publisher, subscriber) {
         this.id = uniqueId();
         this.publisher = publisher;
         this.subscriber = subscriber;
     },
     relay: function () {
-        this.subscriber.apply(null, arguments);
+        this.subscriber.notify.apply(this.subscriber, arguments);
     },
     connect: function () {
-        this.publisher.links[this.id] = this;
+        this.publisher.attach(this);
         return this;
     },
     disconnect: function () {
-        delete(this.publisher.links[this.id]);
+        this.publisher.detach(this);
         return this;
     }
 });
 
-var createLink = function (publisher, subscriber) {
-    var link = new Link(publisher, subscriber);
-    link.connect();
-    return link;
-};
-
-var createPublisher = function (component) {
-    var links = {};
-    var publisher = function () {
-        for (var id in links) {
-            var link = links[id];
+var Publisher = Obj.extend({
+    id: null,
+    links: null,
+    wrapper: null,
+    init: function () {
+        this.id = uniqueId();
+        this.links = {};
+    },
+    wrap: function () {
+        if (this.wrapper)
+            return this.wrapper;
+        this.wrapper = this.publish.bind(this);
+        this.wrapper.component = this;
+        return this.wrapper;
+    },
+    publish: function () {
+        for (var id in this.links) {
+            var link = this.links[id];
             link.relay.apply(link, arguments);
         }
-    };
-    publisher.links = links;
-    return publisher;
-};
-
-var createSubscriber = function (callback, component) {
-    var subscriber = function () {
-        callback.apply(component, arguments);
-    };
-    return subscriber;
-};
-
-var createComponent = function (config) {
-    var component = {};
-    for (var key in config) {
-        var options = config[key];
-        var value;
-        if (options === createPublisher)
-            value = createPublisher(component);
-        else if (options instanceof Function)
-            value = createSubscriber(options, component);
-        else
-            value = options;
-        component[key] = value;
+    },
+    attach: function (link) {
+        this.links[link.id] = link;
+    },
+    detach: function (link) {
+        delete(this.links[link.id]);
     }
-    return component;
+});
+
+var Subscriber = Obj.extend({
+    id: null,
+    callback: null,
+    wrapper: null,
+    init: function (callback, context) {
+        this.id = uniqueId();
+        this.callback = callback;
+        this.context = context;
+    },
+    wrap: function () {
+        if (this.wrapper)
+            return this.wrapper;
+        this.wrapper = this.notify.bind(this);
+        this.wrapper.component = this;
+        return this.wrapper;
+    },
+    notify: function () {
+        this.callback.apply(this.context, arguments);
+    }
+});
+
+var Component = Obj.extend({
+    init: function (config) {
+        for (var key in config) {
+            var value = config[key];
+            if (value === df.publisher)
+                value = df.publisher();
+            else if (value instanceof Function)
+                value = df.subscriber(value, this);
+            this[key] = value;
+        }
+    }
+});
+
+var df = {
+    Object: Obj,
+    Sequence: Sequence,
+    Link: Link,
+    Publisher: Publisher,
+    Subscriber: Subscriber,
+    Component: Component,
+    uniqueId: uniqueId,
+    link: function (publisher, subscriber) {
+        return new Link(publisher.component, subscriber.component).connect();
+    },
+    publisher: function () {
+        return new Publisher().wrap();
+    },
+    subscriber: function (callback, context) {
+        return new Subscriber(callback, context).wrap();
+    },
+    component: function (config) {
+        return new Component(config);
+    }
 };
-
-var df = function () {
-
-};
-
-df.Object = Obj;
-df.Sequence = Sequence;
-df.uniqueId = uniqueId;
-df.link = createLink;
-df.publisher = createPublisher;
-df.subscriber = createSubscriber;
-df.component = createComponent;
 
 module.exports = df;
