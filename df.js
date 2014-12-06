@@ -51,12 +51,68 @@ var uniqueId = new Sequence({
     initial: 0
 }).wrapper();
 
-var df = function (){
+var createLink = function (publisher, subscriber) {
+    var link = function () {
+        subscriber.apply(null, arguments);
+    };
+    link.id = uniqueId();
+    link.connect = function () {
+        publisher.links[link.id] = link;
+        return link;
+    };
+    link.disconnect = function () {
+        delete(publisher.links[link.id]);
+        return link;
+    };
+    link.connect();
+    return link;
+};
+
+var createPublisher = function (component) {
+    var links = {};
+    var publisher = function () {
+        for (var id in links) {
+            var link = links[id];
+            link.apply(component, arguments);
+        }
+    };
+    publisher.links = links;
+    return publisher;
+};
+
+var createSubscriber = function (callback, component) {
+    var subscriber = function () {
+        callback.apply(component, arguments);
+    };
+    return subscriber;
+};
+
+var createComponent = function (config) {
+    var component = {};
+    for (var key in config) {
+        var options = config[key];
+        var value;
+        if (options === createPublisher)
+            value = createPublisher(component);
+        else if (options instanceof Function)
+            value = createSubscriber(options, component);
+        else
+            value = options;
+        component[key] = value;
+    }
+    return component;
+};
+
+var df = function () {
 
 };
 
 df.Class = Class;
 df.Sequence = Sequence;
 df.uniqueId = uniqueId;
+df.link = createLink;
+df.publisher = createPublisher;
+df.subscriber = createSubscriber;
+df.component = createComponent;
 
 module.exports = df;
