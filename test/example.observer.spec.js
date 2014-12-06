@@ -1,17 +1,12 @@
-var df = require("../df"),
-    Obj = df.Object,
-    publisher = df.publisher,
-    subscriber = df.subscriber,
-    link = df.link,
-    uniqueId = df.uniqueId;
+var df = require("../df");
 
 describe("examples", function () {
 
     describe("Observer pattern", function () {
 
-        var Subject = Obj.extend({
+        var Subject = df.Object.extend({
             init: function (state) {
-                this.publisher = publisher();
+                this.publisher = df.publisher();
                 this.state = state;
                 this.links = {};
             },
@@ -21,7 +16,7 @@ describe("examples", function () {
             },
             registerObserver: function (observer) {
                 if (!this.links[observer.id])
-                    this.links[observer.id] = link(this.publisher, observer.subscriber);
+                    this.links[observer.id] = df.link(this.publisher, observer.subscriber);
             },
             unregisterObserver: function (observer) {
                 if (this.links[observer.id]) {
@@ -34,10 +29,10 @@ describe("examples", function () {
             }
         });
 
-        var Observer = Obj.extend({
+        var Observer = df.Object.extend({
             init: function () {
-                this.id = uniqueId();
-                this.subscriber = subscriber(this.notify.bind(this));
+                this.id = df.uniqueId();
+                this.subscriber = df.subscriber(this.notify, this);
             },
             notify: function (state) {
                 this.state = state;

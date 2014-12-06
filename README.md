@@ -44,10 +44,11 @@ should be solved with dataflow-based code islands.
     var Observer = df.Object.extend({
         init: function () {
             this.id = df.uniqueId();
-            this.subscriber = df.subscriber(this.notify.bind(this));
+            this.subscriber = df.subscriber(this.notify, this);
         },
         notify: function (state) {
             this.state = state;
+            console.log("change:state", "#"+this.id, this.state);
         }
     });
 
@@ -56,8 +57,10 @@ should be solved with dataflow-based code islands.
     var observer2 = new Observer();
     subject.registerObserver(observer1);
     subject.registerObserver(observer2);
-    var newState = {};
-    subject.changeState(newState); //the state of both observers changed
+    var newState = {a:1};
+    subject.changeState(newState);
+    //change:state #11 {a:1}
+    //change:state #12 {a:1}
 ```
 
 [The example code is available here as a jasmine test.](test/example.observer.spec.js)
