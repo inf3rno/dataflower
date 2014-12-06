@@ -1,5 +1,5 @@
 var df = require("../df"),
-    Class = df.Class,
+    Obj = df.Object,
     publisher = df.publisher,
     subscriber = df.subscriber,
     link = df.link,
@@ -9,7 +9,7 @@ describe("examples", function () {
 
     describe("Observer pattern", function () {
 
-        var Subject = Class.extend({
+        var Subject = Obj.extend({
             init: function (state) {
                 this.publisher = publisher();
                 this.state = state;
@@ -34,7 +34,7 @@ describe("examples", function () {
             }
         });
 
-        var Observer = Class.extend({
+        var Observer = Obj.extend({
             init: function () {
                 this.id = uniqueId();
                 this.subscriber = subscriber(this.notify.bind(this));

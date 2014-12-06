@@ -1,5 +1,5 @@
 var df = require("../df"),
-    Class = df.Class;
+    Obj = df.Object;
 
 describe("df", function () {
 
@@ -8,7 +8,7 @@ describe("df", function () {
         describe("extend(Object properties = null)", function () {
 
             it("does not keep the abstract init if it is overridden", function () {
-                var Descendant = Class.extend({
+                var Descendant = Obj.extend({
                     init: function () {
                     }
                 });
@@ -19,7 +19,7 @@ describe("df", function () {
 
             it("calls the init of the descendant if it is overridden", function () {
                 var mockInit = jasmine.createSpy();
-                var Descendant = Class.extend({
+                var Descendant = Obj.extend({
                     init: mockInit
                 });
                 new Descendant();
@@ -33,7 +33,7 @@ describe("df", function () {
                     ancestor: jasmine.createSpy(),
                     descendant: jasmine.createSpy()
                 };
-                var Descendant = Class
+                var Descendant = Obj
                     .extend({
                         init: mockInits.ancestor
                     })
@@ -53,7 +53,7 @@ describe("df", function () {
                     b: "b",
                     c: {}
                 };
-                var Descendant = Class.extend(properties);
+                var Descendant = Obj.extend(properties);
                 expect(Descendant.prototype).not.toBe(properties);
                 for (var property in properties)
                     expect(Descendant.prototype[property]).toBe(properties[property]);
@@ -61,14 +61,14 @@ describe("df", function () {
 
             it("uses prototypal inheritance, so by the instances the instanceOf works on both of the ancestor and descendant", function () {
 
-                var Ancestor = Class.extend({
+                var Ancestor = Obj.extend({
                     init: function () {
                     }
                 });
                 var Descendant = Ancestor.extend();
                 var instance = new Descendant();
 
-                expect(instance instanceof Class).toBe(true);
+                expect(instance instanceof Obj).toBe(true);
                 expect(instance instanceof Ancestor).toBe(true);
                 expect(instance instanceof Descendant).toBe(true);
             });

@@ -16,7 +16,7 @@ should be solved with dataflow-based code islands.
 
 ```js
 
-    var Subject = df.Class.extend({
+    var Subject = df.Object.extend({
         init: function (state) {
             this.publisher = df.publisher();
             this.state = state;
@@ -41,7 +41,7 @@ should be solved with dataflow-based code islands.
         }
     });
 
-    var Observer = df.Class.extend({
+    var Observer = df.Object.extend({
         init: function () {
             this.id = df.uniqueId();
             this.subscriber = df.subscriber(this.notify.bind(this));

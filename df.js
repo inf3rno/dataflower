@@ -14,8 +14,8 @@ var extend = function (Ancestor, properties) {
     return Descendant;
 };
 
-var Class = extend(Object);
-var Sequence = Class.extend({
+var Obj = extend(Object);
+var Sequence = Obj.extend({
     initial: undefined,
     state: undefined,
     generator: undefined,
@@ -51,19 +51,27 @@ var uniqueId = new Sequence({
     initial: 0
 }).wrapper();
 
+var Link = Obj.extend({
+    init: function (publisher, subscriber) {
+        this.id = uniqueId();
+        this.publisher = publisher;
+        this.subscriber = subscriber;
+    },
+    relay: function () {
+        this.subscriber.apply(null, arguments);
+    },
+    connect: function () {
+        this.publisher.links[this.id] = this;
+        return this;
+    },
+    disconnect: function () {
+        delete(this.publisher.links[this.id]);
+        return this;
+    }
+});
+
 var createLink = function (publisher, subscriber) {
-    var link = function () {
-        subscriber.apply(null, arguments);
-    };
-    link.id = uniqueId();
-    link.connect = function () {
-        publisher.links[link.id] = link;
-        return link;
-    };
-    link.disconnect = function () {
-        delete(publisher.links[link.id]);
-        return link;
-    };
+    var link = new Link(publisher, subscriber);
     link.connect();
     return link;
 };
@@ -73,7 +81,7 @@ var createPublisher = function (component) {
     var publisher = function () {
         for (var id in links) {
             var link = links[id];
-            link.apply(component, arguments);
+            link.relay.apply(link, arguments);
         }
     };
     publisher.links = links;
@@ -107,7 +115,7 @@ var df = function () {
 
 };
 
-df.Class = Class;
+df.Object = Obj;
 df.Sequence = Sequence;
 df.uniqueId = uniqueId;
 df.link = createLink;
