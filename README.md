@@ -12,58 +12,7 @@ should be solved with dataflow-based code islands.
 
 ## Examples
 
-### Observer pattern
-
-```js
-
-    var Subject = df.Object.extend({
-        init: function (state) {
-            this.publisher = df.publisher();
-            this.state = state;
-            this.links = {};
-        },
-        changeState: function (state) {
-            this.state = state;
-            this.notifyObservers();
-        },
-        registerObserver: function (observer) {
-            if (!this.links[observer.id])
-                this.links[observer.id] = df.link(this.publisher, observer.subscriber);
-        },
-        unregisterObserver: function (observer) {
-            if (this.links[observer.id]) {
-                this.links[observer.id].disconnect();
-                delete(this.links[observer.id]);
-            }
-        },
-        notifyObservers: function () {
-            this.publisher(this.state);
-        }
-    });
-
-    var Observer = df.Object.extend({
-        init: function () {
-            this.id = df.uniqueId();
-            this.subscriber = df.subscriber(this.notify, this);
-        },
-        notify: function (state) {
-            this.state = state;
-            console.log("change:state", "#"+this.id, this.state);
-        }
-    });
-
-    var subject = new Subject();
-    var observer1 = new Observer();
-    var observer2 = new Observer();
-    subject.registerObserver(observer1);
-    subject.registerObserver(observer2);
-    var newState = {a:1};
-    subject.changeState(newState);
-    //change:state #11 {a:1}
-    //change:state #12 {a:1}
-```
-
-[The example code is available here as a jasmine test.](test/example.observer.spec.js)
+Examples are not yet available.
 
 ## Documentation
 
