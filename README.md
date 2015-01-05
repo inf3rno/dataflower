@@ -1,4 +1,4 @@
-# DFlo project 2nd edition - dataflow islands for async coding in javascript
+# DataFlow project 2nd edition - dataflow islands for async coding in javascript
 
 The main goal I want to achieve is bidirectional data binding between models and views in client side javascript. Meantime I realized, that
 this is a part of something bigger; javascript has a poor support for async language statements. This is why the callback pyramid is still a
