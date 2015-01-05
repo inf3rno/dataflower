@@ -1,14 +1,16 @@
-var df = require("../df"),
-    Obj = df.Object;
+var NativeObject = Object,
+    df = require("../df");
 
 describe("df", function () {
+
+    var Object = df.Object;
 
     describe("Object", function () {
 
         describe("extend(Object properties = null)", function () {
 
             it("does not keep the abstract init if it is overridden", function () {
-                var Descendant = Obj.extend({
+                var Descendant = Object.extend({
                     init: function () {
                     }
                 });
@@ -19,7 +21,7 @@ describe("df", function () {
 
             it("calls the init of the descendant if it is overridden", function () {
                 var mockInit = jasmine.createSpy();
-                var Descendant = Obj.extend({
+                var Descendant = Object.extend({
                     init: mockInit
                 });
                 new Descendant();
@@ -33,7 +35,7 @@ describe("df", function () {
                     ancestor: jasmine.createSpy(),
                     descendant: jasmine.createSpy()
                 };
-                var Descendant = Obj
+                var Descendant = Object
                     .extend({
                         init: mockInits.ancestor
                     })
@@ -53,7 +55,7 @@ describe("df", function () {
                     b: "b",
                     c: {}
                 };
-                var Descendant = Obj.extend(properties);
+                var Descendant = Object.extend(properties);
                 expect(Descendant.prototype).not.toBe(properties);
                 for (var property in properties)
                     expect(Descendant.prototype[property]).toBe(properties[property]);
@@ -61,14 +63,14 @@ describe("df", function () {
 
             it("uses prototypal inheritance, so by the instances the instanceOf works on both of the ancestor and descendant", function () {
 
-                var Ancestor = Obj.extend({
+                var Ancestor = Object.extend({
                     init: function () {
                     }
                 });
                 var Descendant = Ancestor.extend();
                 var instance = new Descendant();
 
-                expect(instance instanceof Obj).toBe(true);
+                expect(instance instanceof Object).toBe(true);
                 expect(instance instanceof Ancestor).toBe(true);
                 expect(instance instanceof Descendant).toBe(true);
             });
@@ -78,7 +80,7 @@ describe("df", function () {
                     var Surrogate = function () {
                         Surrogate.prototype.constructor.apply(this, arguments);
                     };
-                    Surrogate.prototype = Object.create(Subject.prototype);
+                    Surrogate.prototype = NativeObject.create(Subject.prototype);
                     Surrogate.prototype.constructor = Subject;
                     return Surrogate;
                 };

@@ -1,7 +1,8 @@
-var df = require("../df"),
-    Sequence = df.Sequence;
+var df = require("../df");
 
 describe("df", function () {
+
+    var Sequence = df.Sequence;
 
     describe("Sequence", function () {
 

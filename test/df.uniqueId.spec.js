@@ -1,7 +1,8 @@
-var df = require("../df"),
-    uniqueId = df.uniqueId;
+var df = require("../df");
 
 describe("df", function () {
+
+    var uniqueId = df.uniqueId;
 
     describe("uniqueId", function () {
 
