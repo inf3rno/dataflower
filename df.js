@@ -24,13 +24,15 @@ module.exports = function (NativeObject) {
                 return;
             for (var property in options)
                 this[property] = options[property];
-            if (!options.init || arguments.length == 1)
+            if (!options.init)
                 return;
-            var args;
-            if (arguments.length == 2 && (arguments[1] instanceof Array) || (typeof(arguments[1]) == typeof (arguments) && !isNaN(arguments[1].length)))
-                args = arguments[1];
-            else
-                args = Array.prototype.slice.call(arguments, 1);
+            var args = Array.prototype.slice.call(arguments, 1);
+            if (args.length == 1) {
+                if (args[0] instanceof Array)
+                    args = args[0];
+                else if (typeof(args[0]) == typeof (arguments) && !isNaN(args[0].length))
+                    args = args[0];
+            }
             this.init.apply(this, args);
         }
     }, {
@@ -76,6 +78,7 @@ module.exports = function (NativeObject) {
         },
         state: 0
     }).wrap();
+
 
     return {
         Object: Object,
