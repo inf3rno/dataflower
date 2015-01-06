@@ -12,7 +12,58 @@ should be solved with dataflow-based code islands.
 
 ## Examples
 
-Examples are not yet available.
+### 0. use module
+```js
+var df = require("dflo2/df");
+```
+
+### 1. inheritance, instantiation
+```js
+var Cat = df.Object.extend({
+    init: function (name) {
+        this.name = name;
+        ++Cat.counter;
+    },
+    meow: function () {
+        console.log(this.name + ": meow");
+    }
+}, {
+    counter: 0,
+    count: function () {
+        return this.counter;
+    }
+});
+var kitty = new Cat("Kitty");
+var killer = Cat.instance("Killer");
+
+kitty.meow(); //Kitty: meow
+killer.meow(); //Killer: meow
+console.log(Cat.count()); //2
+```
+
+### 2. sequence, unique id
+
+```js
+var sequence = new df.Sequence({
+    state: 10,
+    generator: function (previousState) {
+        return previousState + 1;
+    }
+});
+var wrapper = sequence.wrap();
+console.log(wrapper.sequence === sequence); //true
+console.log(sequence.state); //10
+console.log(sequence.next()); //11
+console.log(sequence.state); //11
+console.log(wrapper())); //12
+console.log(sequence.state); //12
+```
+
+```js
+var id1 = df.uniqueId();
+var id2 = df.uniqueId();
+console.log(id1 == id2); //false
+```
 
 ## Documentation
 

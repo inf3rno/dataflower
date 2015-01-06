@@ -1,0 +1,53 @@
+var df = require("../df");
+
+describe("example", function () {
+
+    describe("1. inheritance, instantiation", function () {
+        var log = jasmine.createSpy();
+        var Cat = df.Object.extend({
+            init: function (name) {
+                this.name = name;
+                ++Cat.counter;
+            },
+            meow: function () {
+                log(this.name + ": meow");
+            }
+        }, {
+            counter: 0,
+            count: function () {
+                return this.counter;
+            }
+        });
+        var kitty = new Cat("Kitty");
+        var killer = Cat.instance("Killer");
+
+        kitty.meow();
+        expect(log).toHaveBeenCalledWith("Kitty: meow");
+        expect(log).not.toHaveBeenCalledWith("Killer: meow");
+        killer.meow();
+        expect(log).toHaveBeenCalledWith("Killer: meow");
+        expect(Cat.count()).toBe(2);
+    });
+
+
+    describe("2. sequence, unique id", function () {
+        var sequence = new df.Sequence({
+            state: 10,
+            generator: function (previousState) {
+                return previousState + 1;
+            }
+        });
+        var wrapper = sequence.wrap();
+        expect(wrapper.sequence).toBe(sequence);
+        expect(sequence.state).toBe(10);
+        expect(sequence.next()).toBe(11);
+        expect(sequence.state).toBe(11);
+        expect(wrapper()).toBe(12);
+        expect(sequence.state).toBe(12);
+
+        var id1 = df.uniqueId();
+        var id2 = df.uniqueId();
+        expect(id1).not.toBe(id2);
+    });
+
+});

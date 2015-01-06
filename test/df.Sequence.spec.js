@@ -11,9 +11,9 @@ describe("df", function () {
                 generator: function (previous) {
                     return ++previous;
                 },
-                initial: 0
+                state: 0
             });
-            expect(continuouslyIncreasingSequence.get()).toBe(0);
+            expect(continuouslyIncreasingSequence.state).toBe(0);
             expect(continuouslyIncreasingSequence.next()).toBe(1);
             expect(continuouslyIncreasingSequence.next()).toBe(2);
             expect(continuouslyIncreasingSequence.next()).toBe(3);
@@ -24,13 +24,14 @@ describe("df", function () {
                 generator: function (i) {
                     return ++i;
                 },
-                initial: 0
+                state: 0
             });
             var wrapper = sequence.wrap();
+            expect(wrapper.sequence).toBe(sequence);
             expect(wrapper()).toBe(1);
             expect(wrapper()).toBe(2);
             expect(wrapper()).toBe(3);
-            expect(sequence.get()).toBe(3);
+            expect(sequence.state).toBe(3);
         });
 
         it("accepts additional parameters", function () {
@@ -38,7 +39,7 @@ describe("df", function () {
                 generator: function (i, j) {
                     return i + j;
                 },
-                initial: 0
+                state: 0
             });
             var wrapper = sequence.wrap();
             expect(sequence.next(1)).toBe(1);
@@ -51,7 +52,7 @@ describe("df", function () {
                 generator: function (i, j, k) {
                     return i + j + k;
                 },
-                initial: 0
+                state: 0
             });
             var wrapper = sequence.wrap(10);
             expect(wrapper(5)).toBe(15);

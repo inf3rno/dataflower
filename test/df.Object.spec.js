@@ -7,6 +7,15 @@ describe("df", function () {
 
     describe("Object", function () {
 
+        describe("instance(p1, p2, ...)", function () {
+
+            it("should create a new instance of the Object", function () {
+                var instance = Object.instance();
+                expect(instance instanceof Object).toBe(true);
+            });
+
+        });
+
         describe("extend(Object properties = null)", function () {
 
             it("does not keep the abstract init if it is overridden", function () {
@@ -62,7 +71,6 @@ describe("df", function () {
             });
 
             it("uses prototypal inheritance, so by the instances the instanceOf works on both of the ancestor and descendant", function () {
-
                 var Ancestor = Object.extend({
                     init: function () {
                     }
@@ -75,7 +83,7 @@ describe("df", function () {
                 expect(instance instanceof Descendant).toBe(true);
             });
 
-            it('lib should be instantiated for each matching element', function () {
+            it("should not override the ancestor by changes of the descendant or any instance", function () {
                 var mockClass = function (Subject) {
                     var Surrogate = function () {
                         Surrogate.prototype.constructor.apply(this, arguments);
@@ -117,7 +125,24 @@ describe("df", function () {
                 m.setA(1);
                 expect(m.setA).toHaveBeenCalledWith(1);
                 expect(m.a).toBe(2);
+            });
 
+            it("should inherit static properties to the descendant", function () {
+                var My = Object.extend();
+                expect(My.extend).toBe(Object.extend);
+                expect(My.instance).toBe(Object.instance);
+            });
+
+            it("should override static properties of the descendant when new static properties given", function () {
+                var My = Object.extend(null, {
+                    instance: function () {
+                    },
+                    anotherMethod: function () {
+                    }
+                });
+                expect(My.extend).toBe(Object.extend);
+                expect(My.instance).not.toBe(Object.instance);
+                expect(My.anotherMethod).toBeDefined();
             });
 
         });
