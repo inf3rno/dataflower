@@ -37,13 +37,14 @@ describe("example", function () {
                 return previousState + 1;
             }
         });
-        var wrapper = sequence.wrap();
-        expect(wrapper.sequence).toBe(sequence);
         expect(sequence.state).toBe(10);
         expect(sequence.next()).toBe(11);
         expect(sequence.state).toBe(11);
+
+        var wrapper = sequence.wrap();
+        expect(wrapper.sequence).toBe(sequence);
         expect(wrapper()).toBe(12);
-        expect(sequence.state).toBe(12);
+        expect(wrapper.sequence.state).toBe(12);
 
         var id1 = df.uniqueId();
         var id2 = df.uniqueId();

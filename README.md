@@ -33,11 +33,13 @@ var Cat = df.Object.extend({
         return this.counter;
     }
 });
+
 var kitty = new Cat("Kitty");
 var killer = Cat.instance("Killer");
 
 kitty.meow(); //Kitty: meow
 killer.meow(); //Killer: meow
+
 console.log(Cat.count()); //2
 ```
 
@@ -50,19 +52,22 @@ var sequence = new df.Sequence({
         return previousState + 1;
     }
 });
-var wrapper = sequence.wrap();
-console.log(wrapper.sequence === sequence); //true
+
 console.log(sequence.state); //10
 console.log(sequence.next()); //11
 console.log(sequence.state); //11
+
+var wrapper = sequence.wrap();
+
 console.log(wrapper())); //12
-console.log(sequence.state); //12
+console.log(wrapper.sequence.state); //12
 ```
 
 ```js
 var id1 = df.uniqueId();
 var id2 = df.uniqueId();
-console.log(id1 == id2); //false
+
+console.log(id1 != id2); //true
 ```
 
 ## Documentation
