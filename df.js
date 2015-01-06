@@ -18,7 +18,13 @@ module.exports = function (NativeObject) {
         return Descendant;
     };
 
-    var Object = extend(NativeObject, null, {
+    var Object = extend(NativeObject, {
+        configure: function (options) {
+            if (options)
+                for (var property in options)
+                    this[property] = options[property];
+        }
+    }, {
         instance: function () {
             var instance = NativeObject.create(this.prototype);
             this.apply(instance, arguments);
@@ -32,13 +38,8 @@ module.exports = function (NativeObject) {
     var Sequence = Object.extend({
         state: undefined,
         generator: undefined,
-        init: function (config) {
-            if (!config)
-                return;
-            if (config.state !== undefined)
-                this.state = config.state;
-            if (config.generator !== undefined)
-                this.generator = config.generator;
+        init: function (options) {
+            this.configure(options);
         },
         next: function () {
             var args = [this.state];

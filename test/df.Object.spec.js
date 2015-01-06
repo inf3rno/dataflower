@@ -147,6 +147,21 @@ describe("df", function () {
 
         });
 
+        describe("configure", function () {
+
+            it("overrides instance properties with the given ones", function () {
+                var options = {
+                    a: {},
+                    b: {}
+                };
+                var object = Object.instance();
+                object.configure(options);
+                expect(object.a).toBe(options.a);
+                expect(object.b).toBe(options.b);
+            });
+
+        });
+
     });
 
 });
