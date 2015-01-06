@@ -151,13 +151,30 @@ describe("df", function () {
 
             it("overrides instance properties with the given ones", function () {
                 var options = {
-                    a: {},
-                    b: {}
+                    property: {},
+                    method: jasmine.createSpy()
                 };
                 var object = Object.instance();
                 object.configure(options);
-                expect(object.a).toBe(options.a);
-                expect(object.b).toBe(options.b);
+                expect(object.property).toBe(options.property);
+                expect(object.method).toBe(options.method);
+                expect(object.method).not.toHaveBeenCalled();
+                object.method(13);
+                expect(object.method).toHaveBeenCalledWith(13);
+            });
+
+            it("calls init when it was redefined", function () {
+
+                var options = {
+                    init: jasmine.createSpy(),
+                    method: jasmine.createSpy()
+                };
+                var object = Object.instance();
+                object.configure(options, [13, 14]);
+                expect(options.init).toHaveBeenCalledWith(13, 14);
+                expect(options.method).not.toHaveBeenCalled();
+                object.configure(options, 15, 16);
+                expect(options.init).toHaveBeenCalledWith(15, 16);
             });
 
         });

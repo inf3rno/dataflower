@@ -20,9 +20,18 @@ module.exports = function (NativeObject) {
 
     var Object = extend(NativeObject, {
         configure: function (options) {
-            if (options)
-                for (var property in options)
-                    this[property] = options[property];
+            if (!options)
+                return;
+            for (var property in options)
+                this[property] = options[property];
+            if (!options.init || arguments.length == 1)
+                return;
+            var args;
+            if (arguments.length == 2 && (arguments[1] instanceof Array) || (typeof(arguments[1]) == typeof (arguments) && !isNaN(arguments[1].length)))
+                args = arguments[1];
+            else
+                args = Array.prototype.slice.call(arguments, 1);
+            this.init.apply(this, args);
         }
     }, {
         instance: function () {
@@ -39,7 +48,7 @@ module.exports = function (NativeObject) {
         state: undefined,
         generator: undefined,
         init: function (options) {
-            this.configure(options);
+            this.configure(options, arguments);
         },
         next: function () {
             var args = [this.state];

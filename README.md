@@ -17,7 +17,7 @@ should be solved with dataflow-based code islands.
 var df = require("dflo2/df");
 ```
 
-### 1. inheritance, instantiation
+### 1. inheritance, instantiation, configuration
 ```js
 var Cat = df.Object.extend({
     init: function (name) {
@@ -33,7 +33,9 @@ var Cat = df.Object.extend({
         return this.counter;
     }
 });
+```
 
+```js
 var kitty = new Cat("Kitty");
 var killer = Cat.instance("Killer");
 
@@ -42,6 +44,19 @@ killer.meow(); //Killer: meow
 
 console.log(Cat.count()); //2
 ```
+
+```js
+kitty.configure({
+    init: function (postfix) {
+        this.name += " " + postfix;
+    }
+}, "Cat");
+kitty.meow(); //Kitty Cat: meow
+
+kitty.init("from London");
+kitty.meow(); //Kitty Cat from London: meow
+```
+
 
 ### 2. sequence, unique id
 

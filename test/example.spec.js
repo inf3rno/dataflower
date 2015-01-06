@@ -2,7 +2,7 @@ var df = require("../df");
 
 describe("example", function () {
 
-    describe("1. inheritance, instantiation", function () {
+    describe("inheritance, instantiation, configuration", function () {
         var log = jasmine.createSpy();
         var Cat = df.Object.extend({
             init: function (name) {
@@ -27,6 +27,17 @@ describe("example", function () {
         killer.meow();
         expect(log).toHaveBeenCalledWith("Killer: meow");
         expect(Cat.count()).toBe(2);
+
+        kitty.configure({
+            init: function (postfix) {
+                this.name += " " + postfix;
+            }
+        }, "Cat");
+        kitty.meow();
+        expect(log).toHaveBeenCalledWith("Kitty Cat: meow");
+        kitty.init("from London");
+        kitty.meow();
+        expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
     });
 
 
