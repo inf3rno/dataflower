@@ -48,7 +48,7 @@ module.exports = function (NativeObject) {
         state: undefined,
         generator: undefined,
         init: function (options) {
-            this.configure(options, arguments);
+            this.configure.apply(this, arguments);
         },
         next: function () {
             var args = [this.state];
