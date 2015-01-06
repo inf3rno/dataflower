@@ -33,8 +33,12 @@ module.exports = function (NativeObject) {
         state: undefined,
         generator: undefined,
         init: function (config) {
-            this.state = config.state;
-            this.generator = config.generator;
+            if (!config)
+                return;
+            if (config.state !== undefined)
+                this.state = config.state;
+            if (config.generator !== undefined)
+                this.generator = config.generator;
         },
         next: function () {
             var args = [this.state];
