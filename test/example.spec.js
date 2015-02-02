@@ -2,7 +2,7 @@ var df = require("../df");
 
 describe("example", function () {
 
-    describe("inheritance, instantiation, configuration", function () {
+    describe("1. inheritance, instantiation, configuration", function () {
         var log = jasmine.createSpy();
         var Cat = df.Object.extend({
             init: function (name) {
@@ -41,7 +41,39 @@ describe("example", function () {
     });
 
 
-    describe("2. sequence, unique id", function () {
+    describe("2. custom errors", function () {
+        var CustomError = df.Error.extend({
+            name: "CustomError"
+        });
+        var CustomErrorSubType = CustomError.extend({
+            message: "Something really bad happened."
+        });
+        var AnotherSubType = CustomError.extend();
+
+        var throwCustomErrorSubType = function () {
+            throw new CustomErrorSubType();
+        };
+
+        expect(throwCustomErrorSubType).toThrow(new CustomErrorSubType());
+
+        try {
+            throwCustomErrorSubType();
+        } catch (err) {
+            expect(err instanceof CustomErrorSubType).toBe(true);
+            expect(err instanceof CustomError).toBe(true);
+            expect(err instanceof df.Error).toBe(true);
+            expect(err instanceof Error).toBe(true);
+
+            expect(err instanceof AnotherSubType).toBe(false);
+            expect(err instanceof SyntaxError).toBe(false);
+
+            expect(err.stack).toBeDefined();
+        }
+
+
+    });
+
+    describe("3. sequence, unique id", function () {
         var sequence = new df.Sequence({
             state: 10,
             generator: function (previousState) {
