@@ -1,4 +1,4 @@
-module.exports = function (NativeObject) {
+module.exports = function (NativeObject, NativeError) {
 
     var extend = function (Ancestor, properties, staticProperties) {
         var Descendant = function () {
@@ -46,11 +46,58 @@ module.exports = function (NativeObject) {
         }
     });
 
+    var Error = extend(NativeError, {
+        name: "Error",
+        message: "",
+        configure: Object.prototype.configure,
+        init: function (options) {
+            if (typeof (options) == "string")
+                options = {message: options};
+            this.configure(options);
+            this.stack = this.createStack();
+        },
+        createStack: function () {
+            var stack = new NativeError().stack;
+            if (stack === undefined)
+                return;
+            var raisingCallFinder = /^.*?\s+new\s+/m;
+            var instantiationIndex = stack.search(raisingCallFinder);
+            if (instantiationIndex < 0)
+                return;
+            var beforeInstantiation = stack.slice(0, instantiationIndex);
+
+            var callCountSinceRaising = beforeInstantiation.match(/\n/g).length;
+            if (!callCountSinceRaising)
+                return;
+            var clearPattern = "";
+            for (var callIndex = 0; callIndex < callCountSinceRaising; ++callIndex)
+                clearPattern += "\n[^\n]*"
+            var clearRegExp = new RegExp(clearPattern);
+
+            stack = stack.replace(clearRegExp, "");
+            stack = stack.replace(/^Error/m, this.name + " " + this.message);
+            return stack;
+        }
+    }, {
+        instance: Object.instance,
+        extend: Object.extend
+    });
+
+    var InvalidConfiguration = Error.extend({
+        name: "InvalidConfiguration"
+    });
+
+    var InvalidArguments = Error.extend({
+        name: "InvalidArguments"
+    });
+
     var Sequence = Object.extend({
         state: undefined,
         generator: undefined,
         init: function (options) {
-            this.configure.apply(this, arguments);
+            this.configure(options);
+            if (!this.generator)
+                throw new Sequence.InvalidConfiguration.GeneratorRequired();
         },
         next: function () {
             var args = [this.state];
@@ -70,6 +117,12 @@ module.exports = function (NativeObject) {
             wrapper.sequence = this;
             return wrapper;
         }
+    }, {
+        InvalidConfiguration: {
+            GeneratorRequired: InvalidConfiguration.extend({
+                message: "Sequence.generator required."
+            })
+        }
     });
 
     var uniqueId = new Sequence({
@@ -82,8 +135,11 @@ module.exports = function (NativeObject) {
 
     return {
         Object: Object,
+        Error: Error,
+        InvalidConfiguration: InvalidConfiguration,
+        InvalidArguments: InvalidArguments,
         Sequence: Sequence,
         uniqueId: uniqueId
     };
 
-}(Object);
+}(Object, Error);

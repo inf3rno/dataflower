@@ -73,6 +73,11 @@ describe("df", function () {
             expect(series.next()).toBe(2);
         });
 
+        it("throws invalid configuration error if the generator is not given", function () {
+            expect(function () {
+                new Sequence();
+            }).toThrow(new Sequence.InvalidConfiguration.GeneratorRequired());
+        });
     });
 
 });

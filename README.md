@@ -57,8 +57,57 @@ kitty.init("from London");
 kitty.meow(); //Kitty Cat from London: meow
 ```
 
+### 2. custom errors
 
-### 2. sequence, unique id
+```js
+var CustomError = df.Error.extend({
+    name: "CustomError"
+});
+var CustomErrorSubType = CustomError.extend({
+    message: "Something really bad happened."
+});
+var AnotherSubType = CustomError.extend();
+
+var err = new CustomErrorSubType();
+
+// all true
+console.log(
+    err instanceof CustomErrorSubType,
+    err instanceof CustomError,
+    err instanceof df.Error,
+    err instanceof Error
+);
+
+// all false
+console.log(
+    err instanceof AnotherSubType,
+    err instanceof SyntaxError
+);
+```
+
+```js
+console.log(err.toString());
+// CustomError Something really bad happened.
+
+console.log(err.stack);
+// prints the stack, something like:
+/*
+    CustomError Something really bad happened.
+    at null.<anonymous> (/README.md:71:11)
+    ...
+*/
+
+```
+
+```js
+try {
+    throw err;
+} catch (err) {
+
+}
+```
+
+### 3. sequence, unique id
 
 ```js
 var sequence = new df.Sequence({
