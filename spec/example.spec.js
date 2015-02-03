@@ -2,7 +2,7 @@ var df = require("../df");
 
 describe("example", function () {
 
-    describe("1. inheritance, instantiation, configuration", function () {
+    it("1. inheritance, instantiation, configuration", function () {
         var log = jasmine.createSpy();
         var Cat = df.Object.extend({
             init: function (name) {
@@ -41,7 +41,7 @@ describe("example", function () {
     });
 
 
-    describe("2. custom errors", function () {
+    it("2. custom errors", function () {
         var CustomError = df.Error.extend({
             name: "CustomError"
         });
@@ -73,7 +73,7 @@ describe("example", function () {
 
     });
 
-    describe("3. sequence, unique id", function () {
+    it("3. sequence, unique id", function () {
         var sequence = new df.Sequence({
             state: 10,
             generator: function (previousState) {

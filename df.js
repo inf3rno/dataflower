@@ -132,7 +132,6 @@ module.exports = function (NativeObject, NativeError) {
         state: 0
     }).wrap();
 
-
     return {
         Object: Object,
         Error: Error,

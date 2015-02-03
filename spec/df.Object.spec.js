@@ -36,7 +36,7 @@ describe("df", function () {
                 new Descendant();
                 expect(mockInit).toHaveBeenCalled();
                 new Descendant();
-                expect(mockInit.callCount).toBe(2);
+                expect(mockInit.calls.count()).toBe(2);
             });
 
             it("does not call the init of an ancestor automatically", function () {
@@ -106,7 +106,7 @@ describe("df", function () {
                 };
 
                 var Mock = mockClass(My);
-                spyOn(Mock.prototype, "constructor").andCallThrough();
+                spyOn(Mock.prototype, "constructor").and.callThrough();
                 spyOn(Mock.prototype, "init");
 
                 var m = new Mock(1);
@@ -119,7 +119,7 @@ describe("df", function () {
                 m.setA(1);
                 expect(m.a).toBe(1);
 
-                spyOn(Mock.prototype, "setA").andCallFake(function (a) {
+                spyOn(Mock.prototype, "setA").and.callFake(function (a) {
                     this.a = a + 1;
                 });
                 m.setA(1);
