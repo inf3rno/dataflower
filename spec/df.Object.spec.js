@@ -7,7 +7,7 @@ describe("df", function () {
 
     describe("Object", function () {
 
-        describe("instance(p1, p2, ...)", function () {
+        describe("instance", function () {
 
             it("should create a new instance of the Object", function () {
                 var instance = Object.instance();
@@ -16,7 +16,7 @@ describe("df", function () {
 
         });
 
-        describe("extend(Object properties = null)", function () {
+        describe("extend", function () {
 
             it("does not keep the abstract init if it is overridden", function () {
                 var Descendant = Object.extend({

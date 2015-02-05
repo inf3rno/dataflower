@@ -134,6 +134,20 @@ var id2 = df.uniqueId();
 console.log(id1 != id2); //true
 ```
 
+### 4. pub/sub pattern
+
+```js
+var publisher = new df.Publisher();
+var subscription = new df.Subscription({
+    publisher: publisher,
+    subscriber: new df.Subscriber({
+        callback: console.log
+    })
+});
+publisher.publish([1, 2, 3]); // 1, 2, 3
+publisher.publish([4, 5, 6]); // 4, 5, 6
+```
+
 ## Documentation
 
 The documentation is not yet available.

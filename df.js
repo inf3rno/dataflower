@@ -1,4 +1,4 @@
-module.exports = function (NativeObject, NativeError) {
+module.exports = (function (NativeObject, NativeError) {
 
     var extend = function (Ancestor, properties, staticProperties) {
         var Descendant = function () {
@@ -97,7 +97,7 @@ module.exports = function (NativeObject, NativeError) {
         init: function (options) {
             this.configure(options);
             if (!this.generator)
-                throw new Sequence.InvalidConfiguration.GeneratorRequired();
+                throw new Sequence.GeneratorRequired();
         },
         next: function () {
             var args = [this.state];
@@ -118,11 +118,9 @@ module.exports = function (NativeObject, NativeError) {
             return wrapper;
         }
     }, {
-        InvalidConfiguration: {
-            GeneratorRequired: InvalidConfiguration.extend({
-                message: "Sequence.generator required."
-            })
-        }
+        GeneratorRequired: InvalidConfiguration.extend({
+            message: "Generator function required."
+        })
     });
 
     var uniqueId = new Sequence({
@@ -132,13 +130,104 @@ module.exports = function (NativeObject, NativeError) {
         state: 0
     }).wrap();
 
+    var Publisher = Object.extend({
+        id: undefined,
+        subscriptions: undefined,
+        wrapper: undefined,
+        init: function () {
+            this.id = uniqueId();
+            this.subscriptions = {};
+        },
+        addSubscription: function (subscription) {
+            if (!(subscription instanceof Subscription))
+                throw new Publisher.SubscriptionRequired();
+            this.subscriptions[subscription.id] = subscription;
+        },
+        publish: function (args) {
+            if (!(args instanceof Array))
+                throw new Publisher.ArrayRequired();
+            for (var id in this.subscriptions) {
+                var subscription = this.subscriptions[id];
+                subscription.notify(args);
+            }
+        },
+        wrap: function () {
+            if (this.wrapper)
+                return this.wrapper;
+            var publisher = this;
+            this.wrapper = function () {
+                var args = Array.prototype.slice.call(arguments);
+                publisher.publish(args);
+            };
+            this.wrapper.publisher = this;
+            return this.wrapper;
+        }
+    }, {
+        ArrayRequired: InvalidArguments.extend({
+            message: "Array of arguments required."
+        }),
+        SubscriptionRequired: InvalidArguments.extend({
+            message: "Subscription instance required."
+        })
+    });
+
+    var Subscription = Object.extend({
+        id: undefined,
+        publisher: undefined,
+        subscriber: undefined,
+        init: function (options) {
+            this.id = uniqueId();
+            this.configure(options);
+            if (!(this.publisher instanceof Publisher))
+                throw new Subscription.PublisherRequired();
+            if (!(this.subscriber instanceof Subscriber))
+                throw new Subscription.SubscriberRequired();
+            this.publisher.addSubscription(this);
+        },
+        notify: function (args) {
+            if (!(args instanceof Array))
+                throw new Subscription.ArrayRequired();
+            this.subscriber.receive(args);
+        }
+    }, {
+        PublisherRequired: InvalidConfiguration.extend({
+            message: "Publisher instance required."
+        }),
+        SubscriberRequired: InvalidConfiguration.extend({
+            message: "Subscriber instance required."
+        }),
+        ArrayRequired: InvalidArguments.extend({
+            message: "Array of arguments required."
+        })
+    });
+
+    var Subscriber = Object.extend({
+        id: undefined,
+        init: function (options) {
+            this.id = uniqueId();
+            this.configure(options);
+            if (!(this.callback instanceof Function))
+                throw new Subscriber.CallbackRequired();
+        },
+        receive: function (args) {
+            this.callback.apply(null, args);
+        }
+    }, {
+        CallbackRequired: InvalidConfiguration.extend({
+            message: "Callback function required."
+        })
+    });
+
     return {
         Object: Object,
         Error: Error,
         InvalidConfiguration: InvalidConfiguration,
         InvalidArguments: InvalidArguments,
         Sequence: Sequence,
-        uniqueId: uniqueId
+        uniqueId: uniqueId,
+        Publisher: Publisher,
+        Subscription: Subscription,
+        Subscriber: Subscriber
     };
 
-}(Object, Error);
+})(Object, Error);

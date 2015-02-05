@@ -76,7 +76,7 @@ describe("df", function () {
         it("throws invalid configuration error if the generator is not given", function () {
             expect(function () {
                 new Sequence();
-            }).toThrow(new Sequence.InvalidConfiguration.GeneratorRequired());
+            }).toThrow(new Sequence.GeneratorRequired());
         });
     });
 
