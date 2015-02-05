@@ -4,6 +4,7 @@ var NativeObject = Object,
 describe("df", function () {
 
     var Object = df.Object;
+    var InvalidArguments = df.InvalidArguments;
 
     describe("Object", function () {
 
@@ -12,6 +13,100 @@ describe("df", function () {
             it("should create a new instance of the Object", function () {
                 var instance = Object.instance();
                 expect(instance instanceof Object).toBe(true);
+            });
+
+        });
+
+        describe("clone", function () {
+
+            it("should clone the given instance of the Object with shallow copy", function () {
+
+                var instance = Object.instance({
+                    a: 1,
+                    b: {}
+                });
+                var clone = Object.clone(instance);
+
+                expect(clone).not.toBe(instance);
+                expect(clone.a).toEqual(instance.a);
+                expect(clone.b).toBe(instance.b);
+
+                var clone2 = Object.clone(instance);
+                expect(clone2).not.toBe(clone);
+            });
+
+
+            it("should clone the given instance with prototypal inheritance", function () {
+
+                var instance = Object.instance({
+                    a: 1,
+                    b: {}
+                });
+                var clone = Object.clone(instance);
+                var clone2 = Object.clone(instance);
+
+                instance.c = {};
+                expect(instance.c).toBeDefined();
+                expect(clone.c).toBe(instance.c);
+                expect(clone2.c).toBe(instance.c);
+
+                clone.d = {};
+                expect(clone.d).toBeDefined();
+                expect(instance.d).toBeUndefined();
+                expect(clone2.d).toBeUndefined();
+            });
+
+            it("should clone native objects as well", function () {
+
+                var instance = {
+                    a: 1,
+                    b: {}
+                };
+                var clone = Object.clone(instance);
+                expect(clone).not.toBe(instance);
+                expect(clone.a).toEqual(instance.a);
+                expect(clone.b).toBe(instance.b);
+
+            });
+
+            it("should clone descendants based on their custom cloning methods", function () {
+
+                var Descendant = Object.extend({
+                    x: undefined,
+                    o: undefined,
+                    init: function () {
+                        this.x = {};
+                        this.o = {
+                            a: 1,
+                            b: {}
+                        };
+                    }
+                }, {
+                    clone: function (instance) {
+                        if (!(instance instanceof Descendant))
+                            throw new InvalidArguments("Invalid instance type");
+                        var clone = NativeObject.create(instance);
+                        clone.o = Object.clone(clone.o);
+                        return clone;
+                    }
+                });
+                var instance = new Descendant();
+
+                var compare = function (clone, instance) {
+                    expect(clone).not.toBe(instance);
+                    expect(clone instanceof Descendant).toBe(true);
+                    expect(clone.x).toBe(instance.x);
+                    expect(clone.o).not.toBe(instance.o);
+                    expect(clone.o.a).toEqual(instance.o.a);
+                    expect(clone.o.b).toBe(instance.o.b);
+                };
+
+                var clone = Object.clone(instance);
+                var clone2 = Descendant.clone(instance);
+
+                compare(clone, instance);
+                compare(clone2, instance);
+
             });
 
         });

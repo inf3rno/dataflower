@@ -17,7 +17,7 @@ should be solved with dataflow-based code islands.
 var df = require("dflo2/df");
 ```
 
-### 1. inheritance, instantiation, configuration
+### 1. inheritance, instantiation, configuration, cloning
 ```js
 var Cat = df.Object.extend({
     init: function (name) {
@@ -55,6 +55,11 @@ kitty.meow(); //Kitty Cat: meow
 
 kitty.init("from London");
 kitty.meow(); //Kitty Cat from London: meow
+```
+
+```js
+var kittyClone = Cat.clone(kitty);
+kittyClone.meow(); //Kitty Cat from London: meow
 ```
 
 ### 2. custom errors

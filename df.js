@@ -41,6 +41,12 @@ module.exports = (function (NativeObject, NativeError) {
             this.apply(instance, arguments);
             return instance;
         },
+        clone: function (instance) {
+            var Class = instance.constructor;
+            if (Class !== Object && (Class.prototype instanceof Object) && Class.clone !== Object.clone)
+                return Class.clone(instance);
+            return NativeObject.create(instance);
+        },
         extend: function (properties, staticProperties) {
             return extend(this, properties, staticProperties);
         }

@@ -2,9 +2,9 @@ var df = require("../df");
 
 describe("example", function () {
 
-    describe("1. inheritance, instantiation, configuration", function () {
+    describe("1. inheritance, instantiation, configuration, cloning", function () {
 
-        it("implements inheritance, instantiation, configuration", function () {
+        it("implements inheritance, instantiation, configuration, cloning", function () {
             var log = jasmine.createSpy();
             var Cat = df.Object.extend({
                 init: function (name) {
@@ -39,6 +39,10 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith("Kitty Cat: meow");
             kitty.init("from London");
             kitty.meow();
+            expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
+
+            var kittyClone = Cat.clone(kitty);
+            kittyClone.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
         });
 
