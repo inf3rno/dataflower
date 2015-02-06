@@ -159,6 +159,19 @@ describe("example", function () {
             expect(o.receive).toHaveBeenCalledWith(4, 5, 6);
         });
 
+        it("implements Subscriber.subscribe", function () {
+            var o = {
+                send: df.publisher(),
+                receive: jasmine.createSpy()
+            };
+            df.subscriber(o.receive).subscribe(o.send);
+            expect(o.receive).not.toHaveBeenCalled();
+            o.send(1, 2, 3);
+            expect(o.receive).toHaveBeenCalledWith(1, 2, 3);
+            o.send(4, 5, 6);
+            expect(o.receive).toHaveBeenCalledWith(4, 5, 6);
+        });
+
     });
 
 

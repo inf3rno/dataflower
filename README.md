@@ -176,6 +176,16 @@ o.send(1, 2, 3); // 1 2 3
 o.send(4, 5, 6); // 4 5 6
 ```
 
+```js
+var o = {
+    send: df.publisher(),
+    receive: jasmine.createSpy()
+};
+df.subscriber(o.receive).subscribe(o.send);
+o.send(1, 2, 3); // 1 2 3
+o.send(4, 5, 6); // 4 5 6
+```
+
 ## Documentation
 
 The documentation is not yet available.

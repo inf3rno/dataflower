@@ -4,6 +4,8 @@ describe("df", function () {
 
     var Subscriber = df.Subscriber;
     var InvalidArguments = df.InvalidArguments;
+    var Publisher = df.Publisher;
+    var Subscription = df.Subscription;
 
     describe("Subscriber", function () {
 
@@ -118,6 +120,25 @@ describe("df", function () {
                 subscriber.receive([4, 5, 6]);
                 expect(subscriber.callback).toHaveBeenCalledWith(4, 5, 6);
 
+            });
+
+        });
+
+        describe("subscribe", function () {
+
+            it("subscribes to the given publisher", function () {
+
+                var subscriber = new Subscriber({
+                    callback: jasmine.createSpy()
+                });
+                var publisher = new Publisher();
+                var subscription = subscriber.subscribe(publisher);
+
+                expect(subscription instanceof Subscription);
+
+                expect(subscriber.callback).not.toHaveBeenCalled();
+                publisher.publish([1, 2, 3]);
+                expect(subscriber.callback).toHaveBeenCalledWith(1, 2, 3);
             });
 
         });

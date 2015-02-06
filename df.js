@@ -260,6 +260,9 @@ module.exports = (function (NativeObject, NativeError) {
         },
         receive: function (args) {
             this.callback.apply(null, args);
+        },
+        subscribe: function (publisher) {
+            return Subscription.instance(publisher, this);
         }
     }, {
         instance: function () {
