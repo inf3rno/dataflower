@@ -52,6 +52,11 @@ module.exports = (function (NativeObject, NativeError) {
         }
     });
 
+    var id = function () {
+        return ++id.last;
+    };
+    id.last = 0;
+
     var Error = extend(NativeError, {
         name: "Error",
         message: "",
@@ -100,46 +105,6 @@ module.exports = (function (NativeObject, NativeError) {
     InvalidArguments.Empty = InvalidArguments.extend({
         message: "Arguments required."
     });
-
-
-    var Sequence = Object.extend({
-        state: undefined,
-        generator: undefined,
-        init: function (options) {
-            this.configure(options);
-            if (!this.generator)
-                throw new Sequence.GeneratorRequired();
-        },
-        next: function () {
-            var args = [this.state];
-            args.push.apply(args, arguments);
-            this.state = this.generator.apply(this, args);
-            return this.state;
-        },
-        wrap: function () {
-            var store = [];
-            store.push.apply(store, arguments);
-            var wrapper = function () {
-                var args = [];
-                args.push.apply(args, store);
-                args.push.apply(args, arguments);
-                return this.next.apply(this, args);
-            }.bind(this);
-            wrapper.sequence = this;
-            return wrapper;
-        }
-    }, {
-        GeneratorRequired: InvalidConfiguration.extend({
-            message: "Generator function required."
-        })
-    });
-
-    var id = new Sequence({
-        generator: function (previousId) {
-            return ++previousId;
-        },
-        state: 0
-    }).wrap();
 
     var Publisher = Object.extend({
         id: undefined,
@@ -297,7 +262,6 @@ module.exports = (function (NativeObject, NativeError) {
         Error: Error,
         InvalidConfiguration: InvalidConfiguration,
         InvalidArguments: InvalidArguments,
-        Sequence: Sequence,
         id: id,
         Publisher: Publisher,
         Subscription: Subscription,

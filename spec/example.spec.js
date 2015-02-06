@@ -2,7 +2,7 @@ var df = require("../df");
 
 describe("example", function () {
 
-    describe("1. inheritance, instantiation, configuration, cloning", function () {
+    describe("1. inheritance, instantiation, configuration, cloning and unique id", function () {
 
         it("implements inheritance, instantiation, configuration, cloning", function () {
             var log = jasmine.createSpy();
@@ -46,6 +46,12 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
         });
 
+        it("implements unique id", function () {
+            var id1 = df.id();
+            var id2 = df.id();
+            expect(id1).not.toBe(id2);
+        });
+
     });
 
 
@@ -85,34 +91,7 @@ describe("example", function () {
 
     });
 
-
-    describe("3. sequence, unique id", function () {
-
-        it("implements Sequence, unique id", function () {
-            var sequence = new df.Sequence({
-                state: 10,
-                generator: function (previousState) {
-                    return previousState + 1;
-                }
-            });
-            expect(sequence.state).toBe(10);
-            expect(sequence.next()).toBe(11);
-            expect(sequence.state).toBe(11);
-
-            var wrapper = sequence.wrap();
-            expect(wrapper.sequence).toBe(sequence);
-            expect(wrapper()).toBe(12);
-            expect(wrapper.sequence.state).toBe(12);
-
-            var id1 = df.id();
-            var id2 = df.id();
-            expect(id1).not.toBe(id2);
-        });
-
-    });
-
-
-    describe("4. pub/sub pattern", function () {
+    describe("3. pub/sub pattern", function () {
 
         it("implements Publisher, Subscriber, Subscription", function () {
             var publisher = new df.Publisher();

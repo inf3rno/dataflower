@@ -17,7 +17,7 @@ should be solved with dataflow-based code islands.
 var df = require("dflo2/df");
 ```
 
-### 1. inheritance, instantiation, configuration, cloning
+### 1. inheritance, instantiation, configuration, cloning and unique id
 ```js
 var Cat = df.Object.extend({
     init: function (name) {
@@ -60,6 +60,13 @@ kitty.meow(); //Kitty Cat from London: meow
 ```js
 var kittyClone = Cat.clone(kitty);
 kittyClone.meow(); //Kitty Cat from London: meow
+```
+
+```js
+var id1 = df.id();
+var id2 = df.id();
+
+console.log(id1 != id2); //true
 ```
 
 ### 2. custom errors
@@ -112,34 +119,7 @@ try {
 }
 ```
 
-### 3. sequence, unique id
-
-```js
-var sequence = new df.Sequence({
-    state: 10,
-    generator: function (previousState) {
-        return previousState + 1;
-    }
-});
-
-console.log(sequence.state); //10
-console.log(sequence.next()); //11
-console.log(sequence.state); //11
-
-var wrapper = sequence.wrap();
-
-console.log(wrapper())); //12
-console.log(wrapper.sequence.state); //12
-```
-
-```js
-var id1 = df.id();
-var id2 = df.id();
-
-console.log(id1 != id2); //true
-```
-
-### 4. pub/sub pattern
+### 3. pub/sub pattern
 
 ```js
 var publisher = new df.Publisher();
