@@ -97,6 +97,11 @@ module.exports = (function (NativeObject, NativeError) {
         name: "InvalidArguments"
     });
 
+    InvalidArguments.Empty = InvalidArguments.extend({
+        message: "Arguments required."
+    });
+
+
     var Sequence = Object.extend({
         state: undefined,
         generator: undefined,
@@ -196,6 +201,26 @@ module.exports = (function (NativeObject, NativeError) {
             this.subscriber.receive(args);
         }
     }, {
+        instance: function () {
+            if (!arguments.length)
+                throw new InvalidArguments.Empty();
+            if (arguments.length > 2)
+                throw new InvalidArguments();
+            var options;
+            if (arguments.length == 1)
+                options = arguments[0];
+            else {
+                options = {
+                    publisher: arguments[0],
+                    subscriber: arguments[1]
+                }
+            }
+            if (options instanceof Subscription)
+                return options;
+            if (!options || options.constructor !== NativeObject)
+                throw new InvalidArguments();
+            return new Subscription(options);
+        },
         PublisherRequired: InvalidConfiguration.extend({
             message: "Publisher instance required."
         }),
@@ -219,6 +244,22 @@ module.exports = (function (NativeObject, NativeError) {
             this.callback.apply(null, args);
         }
     }, {
+        instance: function () {
+            if (!arguments.length)
+                throw new InvalidArguments.Empty();
+            if (arguments.length > 1)
+                throw new InvalidArguments();
+            var options = arguments[0];
+            if (options instanceof Subscriber)
+                return options;
+            if (options instanceof Function)
+                options = {
+                    callback: options
+                };
+            if (!options || options.constructor !== NativeObject)
+                throw new InvalidArguments();
+            return new Subscriber(options);
+        },
         CallbackRequired: InvalidConfiguration.extend({
             message: "Callback function required."
         })

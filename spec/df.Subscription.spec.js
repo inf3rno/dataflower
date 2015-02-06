@@ -5,8 +5,98 @@ describe("df", function () {
     var Publisher = df.Publisher;
     var Subscriber = df.Subscriber;
     var Subscription = df.Subscription;
+    var InvalidArguments = df.InvalidArguments;
 
     describe("Subscription", function () {
+
+
+        describe("instance", function () {
+
+            it("requires arguments", function () {
+
+                expect(function () {
+                    Subscription.instance();
+                }).toThrow(new InvalidArguments.Empty());
+
+            });
+
+            it("accepts configuration options", function () {
+
+                var subscription = Subscription.instance({
+                    publisher: new Publisher(),
+                    subscriber: new Subscriber({
+                        callback: function () {
+                        }
+                    })
+                });
+                expect(subscription instanceof Subscription).toBe(true);
+            });
+
+            it("accepts publisher as first and subscriber as second argument", function () {
+
+                var publisher = new Publisher();
+                var subscriber = new Subscriber({
+                    callback: function () {
+                    }
+                });
+                var subscription = Subscription.instance(publisher, subscriber);
+                expect(subscription instanceof Subscription);
+                expect(subscription.publisher).toBe(publisher);
+                expect(subscription.subscriber).toBe(subscriber);
+
+            });
+
+            it("refuses too many arguments", function () {
+
+                expect(function () {
+                    Subscription.instance(
+                        new Publisher(),
+                        new Subscriber({
+                            callback: function () {
+                            }
+                        }),
+                        new Subscriber({
+                            callback: function () {
+                            }
+                        })
+                    );
+                }).toThrow(new InvalidArguments());
+
+            });
+
+            it("refuses invalid arguments", function () {
+
+                expect(function () {
+                    Subscription.instance([function () {
+                    }]);
+                }).toThrow(new InvalidArguments());
+
+                expect(function () {
+                    Subscription.instance(null);
+                }).toThrow(new InvalidArguments());
+
+                expect(function () {
+                    Subscription.instance(1);
+                }).toThrow(new InvalidArguments());
+
+            });
+
+            it("accept Subscription instance and returns it", function () {
+
+                var subscription = new Subscription({
+                    publisher: new Publisher(),
+                    subscriber: new Subscriber({
+                        callback: function () {
+                        }
+                    })
+                });
+                var subscription2 = Subscription.instance(subscription);
+                expect(subscription).toBe(subscription2);
+
+            });
+
+        });
+
 
         describe("init", function () {
 

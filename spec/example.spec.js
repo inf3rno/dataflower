@@ -130,6 +130,22 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith(4, 5, 6);
         });
 
+        it("implements static factory methods and wrapper functions", function () {
+            var o = {
+                send: df.Publisher.instance().wrap(),
+                receive: jasmine.createSpy()
+            };
+            var subscription = df.Subscription.instance(
+                o.send.publisher,
+                df.Subscriber.instance(o.receive)
+            );
+            expect(o.receive).not.toHaveBeenCalled();
+            o.send(1, 2, 3);
+            expect(o.receive).toHaveBeenCalledWith(1, 2, 3);
+            o.send(4, 5, 6);
+            expect(o.receive).toHaveBeenCalledWith(4, 5, 6);
+        });
+
     });
 
 

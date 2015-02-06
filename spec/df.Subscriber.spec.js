@@ -3,9 +3,80 @@ var df = require("../df");
 describe("df", function () {
 
     var Subscriber = df.Subscriber;
-    var Subscription = df.Subscription;
+    var InvalidArguments = df.InvalidArguments;
 
     describe("Subscriber", function () {
+
+        describe("instance", function () {
+
+            it("requires arguments", function () {
+
+                expect(function () {
+                    Subscriber.instance();
+                }).toThrow(new InvalidArguments.Empty());
+
+            });
+
+            it("accepts configuration options", function () {
+
+                var subscriber = Subscriber.instance({
+                    callback: function () {
+                    }
+                });
+                expect(subscriber instanceof Subscriber).toBe(true);
+            });
+
+            it("accepts a callback function", function () {
+
+                var callback = function () {
+                };
+                var subscriber = Subscriber.instance(callback);
+                expect(subscriber instanceof Subscriber);
+                expect(subscriber.callback).toBe(callback);
+
+            });
+
+            it("refuses too many arguments", function () {
+
+                expect(function () {
+                    Subscriber.instance({
+                        callback: function () {
+                        }
+                    }, function () {
+                    });
+                }).toThrow(new InvalidArguments());
+
+            });
+
+            it("refuses invalid arguments", function () {
+
+                expect(function () {
+                    Subscriber.instance([function () {
+                    }]);
+                }).toThrow(new InvalidArguments());
+
+                expect(function () {
+                    Subscriber.instance(null);
+                }).toThrow(new InvalidArguments());
+
+                expect(function () {
+                    Subscriber.instance(1);
+                }).toThrow(new InvalidArguments());
+
+            });
+
+            it("accept Subscriber instance and returns it", function () {
+
+                var subscriber = new Subscriber({
+                    callback: function () {
+                    }
+                });
+                var subscriber2 = Subscriber.instance(subscriber);
+                expect(subscriber).toBe(subscriber2);
+
+            });
+
+        });
 
         describe("init", function () {
 

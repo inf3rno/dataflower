@@ -153,6 +153,19 @@ publisher.publish([1, 2, 3]); // 1, 2, 3
 publisher.publish([4, 5, 6]); // 4, 5, 6
 ```
 
+```js
+var o = {
+    send: df.Publisher.instance().wrap(),
+    receive: console.log
+};
+var subscription = df.Subscription.instance(
+    o.send.publisher,
+    df.Subscriber.instance(o.receive)
+);
+o.send(1, 2, 3); // 1 2 3
+o.send(4, 5, 6); // 4 5 6
+```
+
 ## Documentation
 
 The documentation is not yet available.
