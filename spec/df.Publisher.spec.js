@@ -4,6 +4,7 @@ describe("df", function () {
 
     var Publisher = df.Publisher;
     var Subscription = df.Subscription;
+    var InvalidArguments = df.InvalidArguments;
 
     describe("Publisher", function () {
 
@@ -16,15 +17,6 @@ describe("df", function () {
 
             });
 
-            it("accepts null and undefined", function (){
-
-                var publisher = Publisher.instance(null);
-                var publisher2 = Publisher.instance(undefined);
-                expect(publisher instanceof Publisher).toBe(true);
-                expect(publisher2 instanceof Publisher).toBe(true);
-
-            });
-
             it("accepts Publisher instance and returns it", function () {
 
                 var publisher = new Publisher();
@@ -33,12 +25,52 @@ describe("df", function () {
 
             });
 
-            it("accepts wrapper and returns its Publisher", function (){
+            it("accepts wrapper and returns its Publisher", function () {
 
                 var publisher = new Publisher();
                 var publisher2 = Publisher.instance(publisher.wrap());
                 expect(publisher2).toBe(publisher);
             });
+
+
+            it("accepts configuration options", function () {
+
+                var o = {
+                    x: {}
+                };
+                var publisher = Publisher.instance(o);
+                expect(publisher instanceof Publisher).toBe(true);
+                expect(publisher.x).toBe(o.x);
+            });
+
+            it("does not accept other arguments", function () {
+
+                expect(function () {
+                    Publisher.instance(null);
+                }).toThrow(new InvalidArguments());
+
+                expect(function () {
+                    Publisher.instance(undefined);
+                }).toThrow(new InvalidArguments());
+
+                expect(function () {
+                    Publisher.instance([]);
+                }).toThrow(new InvalidArguments());
+
+            });
+
+            it("returns Descendant instances by inheritation", function () {
+
+                var log = jasmine.createSpy();
+                var Descendant = Publisher.extend({
+                    init: log
+                });
+                expect(log).not.toHaveBeenCalled();
+                var instance = Descendant.instance();
+                expect(log).toHaveBeenCalledWith();
+                expect(instance instanceof Descendant);
+            });
+
 
         });
 

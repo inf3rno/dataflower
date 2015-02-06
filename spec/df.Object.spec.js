@@ -10,9 +10,21 @@ describe("df", function () {
 
         describe("instance", function () {
 
-            it("should create a new instance of the Object", function () {
+            it("creates a new instance of the Object", function () {
                 var instance = Object.instance();
                 expect(instance instanceof Object).toBe(true);
+            });
+
+            it("creates Descendant instances by inheritation", function () {
+
+                var log = jasmine.createSpy();
+                var Descendant = Object.extend({
+                    init: log
+                });
+                expect(log).not.toHaveBeenCalled();
+                var instance = Descendant.instance(1, 2, 3);
+                expect(log).toHaveBeenCalledWith(1, 2, 3);
+                expect(instance instanceof Descendant).toBe(true);
             });
 
         });

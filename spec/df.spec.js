@@ -2,7 +2,7 @@ var df = require("../df");
 
 describe("df", function () {
 
-    var uniqueId = df.uniqueId;
+    var id = df.id;
     var publisher = df.publisher;
     var subscriber = df.subscriber;
     var subscribe = df.subscribe;
@@ -10,15 +10,15 @@ describe("df", function () {
     var Subscriber = df.Subscriber;
     var Subscription = df.Subscription;
 
-    describe("uniqueId", function () {
+    describe("id", function () {
 
         it("returns unique id", function () {
             var store = {};
             for (var i = 0; i < 1000; ++i) {
-                var id = uniqueId();
-                if (id in store)
+                var current = id();
+                if (current in store)
                     break;
-                store[id] = true;
+                store[current] = true;
             }
             expect(i).toBe(1000);
         });
@@ -52,7 +52,7 @@ describe("df", function () {
 
         it("returns a Subscription instance using Subscription.instance", function () {
 
-            var instance = subscribe(null, function () {
+            var instance = subscribe(df.publisher(), function () {
             });
             expect(instance instanceof Subscription).toBe(true);
 

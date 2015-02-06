@@ -133,8 +133,8 @@ console.log(wrapper.sequence.state); //12
 ```
 
 ```js
-var id1 = df.uniqueId();
-var id2 = df.uniqueId();
+var id1 = df.id();
+var id2 = df.id();
 
 console.log(id1 != id2); //true
 ```

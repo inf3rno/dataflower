@@ -134,7 +134,7 @@ module.exports = (function (NativeObject, NativeError) {
         })
     });
 
-    var uniqueId = new Sequence({
+    var id = new Sequence({
         generator: function (previousId) {
             return ++previousId;
         },
@@ -145,9 +145,10 @@ module.exports = (function (NativeObject, NativeError) {
         id: undefined,
         subscriptions: undefined,
         wrapper: undefined,
-        init: function () {
-            this.id = uniqueId();
+        init: function (options) {
+            this.id = id();
             this.subscriptions = {};
+            this.configure(options);
         },
         addSubscription: function (subscription) {
             if (!(subscription instanceof Subscription))
@@ -175,18 +176,17 @@ module.exports = (function (NativeObject, NativeError) {
         }
     }, {
         instance: function () {
+            var Publisher = this;
+            if (!arguments.length)
+                return new Publisher();
             if (arguments.length > 1)
                 throw new InvalidArguments();
-            var options;
-            if (arguments.length == 1)
-                options = arguments[0];
+            var options = arguments[0];
             if (options instanceof Publisher)
                 return options;
             if ((options instanceof Function) && (options.publisher instanceof Publisher))
                 return options.publisher;
-            if (options === null)
-                options = undefined;
-            if (options !== undefined)
+            if (!options || options.constructor !== NativeObject)
                 throw new InvalidArguments();
             return new Publisher(options);
         },
@@ -203,7 +203,7 @@ module.exports = (function (NativeObject, NativeError) {
         publisher: undefined,
         subscriber: undefined,
         init: function (options) {
-            this.id = uniqueId();
+            this.id = id();
             this.configure(options);
             if (!(this.publisher instanceof Publisher))
                 throw new Subscription.PublisherRequired();
@@ -218,6 +218,7 @@ module.exports = (function (NativeObject, NativeError) {
         }
     }, {
         instance: function () {
+            var Subscription = this;
             if (!arguments.length)
                 throw new InvalidArguments.Empty();
             if (arguments.length > 2)
@@ -253,7 +254,7 @@ module.exports = (function (NativeObject, NativeError) {
     var Subscriber = Object.extend({
         id: undefined,
         init: function (options) {
-            this.id = uniqueId();
+            this.id = id();
             this.configure(options);
             if (!(this.callback instanceof Function))
                 throw new Subscriber.CallbackRequired();
@@ -262,10 +263,15 @@ module.exports = (function (NativeObject, NativeError) {
             this.callback.apply(null, args);
         },
         subscribe: function (publisher) {
+            if (!arguments.length)
+                throw new InvalidArguments.Empty();
+            if (arguments.length > 1)
+                throw new InvalidArguments();
             return Subscription.instance(publisher, this);
         }
     }, {
         instance: function () {
+            var Subscriber = this;
             if (!arguments.length)
                 throw new InvalidArguments.Empty();
             if (arguments.length > 1)
@@ -292,7 +298,7 @@ module.exports = (function (NativeObject, NativeError) {
         InvalidConfiguration: InvalidConfiguration,
         InvalidArguments: InvalidArguments,
         Sequence: Sequence,
-        uniqueId: uniqueId,
+        id: id,
         Publisher: Publisher,
         Subscription: Subscription,
         Subscriber: Subscriber,

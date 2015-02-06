@@ -104,8 +104,8 @@ describe("example", function () {
             expect(wrapper()).toBe(12);
             expect(wrapper.sequence.state).toBe(12);
 
-            var id1 = df.uniqueId();
-            var id2 = df.uniqueId();
+            var id1 = df.id();
+            var id2 = df.id();
             expect(id1).not.toBe(id2);
         });
 

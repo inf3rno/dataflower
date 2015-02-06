@@ -46,7 +46,7 @@ describe("df", function () {
 
             });
 
-            it("refuses too many arguments", function () {
+            it("declines too many arguments", function () {
 
                 expect(function () {
                     Subscription.instance(
@@ -64,7 +64,7 @@ describe("df", function () {
 
             });
 
-            it("refuses invalid arguments", function () {
+            it("declines invalid arguments", function () {
 
                 expect(function () {
                     Subscription.instance([function () {
@@ -98,10 +98,28 @@ describe("df", function () {
             it("accepts Publisher and Subscriber instantiation arguments instead of complete instances", function () {
 
                 var log = jasmine.createSpy();
-                var subscription = Subscription.instance(null, log);
+                var subscription = Subscription.instance({}, log);
                 expect(log).not.toHaveBeenCalled();
                 subscription.publisher.publish([1, 2, 3]);
                 expect(log).toHaveBeenCalledWith(1, 2, 3);
+            });
+
+            it("returns Descendant instances by inheritation", function () {
+
+                var log = jasmine.createSpy();
+                var Descendant = Subscription.extend({
+                    init: log
+                });
+                var options = {
+                    publisher: new Publisher(),
+                    subscriber: new Subscriber({
+                        callback: function (){}
+                    })
+                };
+                expect(log).not.toHaveBeenCalled();
+                var instance = Descendant.instance(options);
+                expect(log).toHaveBeenCalledWith(options);
+                expect(instance instanceof Descendant);
             });
 
         });
