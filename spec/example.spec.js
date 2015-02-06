@@ -117,7 +117,7 @@ describe("example", function () {
         it("implements Publisher, Subscriber, Subscription", function () {
             var publisher = new df.Publisher();
             var log = jasmine.createSpy();
-            var subscription = new df.Subscription({
+            new df.Subscription({
                 publisher: publisher,
                 subscriber: new df.Subscriber({
                     callback: log
@@ -135,10 +135,23 @@ describe("example", function () {
                 send: df.Publisher.instance().wrap(),
                 receive: jasmine.createSpy()
             };
-            var subscription = df.Subscription.instance(
+            df.Subscription.instance(
                 o.send.publisher,
                 df.Subscriber.instance(o.receive)
             );
+            expect(o.receive).not.toHaveBeenCalled();
+            o.send(1, 2, 3);
+            expect(o.receive).toHaveBeenCalledWith(1, 2, 3);
+            o.send(4, 5, 6);
+            expect(o.receive).toHaveBeenCalledWith(4, 5, 6);
+        });
+
+        it("implements factory functions", function () {
+            var o = {
+                send: df.publisher(),
+                receive: jasmine.createSpy()
+            };
+            df.subscribe(o.send, o.receive);
             expect(o.receive).not.toHaveBeenCalled();
             o.send(1, 2, 3);
             expect(o.receive).toHaveBeenCalledWith(1, 2, 3);

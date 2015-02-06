@@ -65,14 +65,14 @@ describe("df", function () {
 
             });
 
-            it("accept Subscriber instance and returns it", function () {
+            it("accepts Subscriber instance and returns it", function () {
 
                 var subscriber = new Subscriber({
                     callback: function () {
                     }
                 });
                 var subscriber2 = Subscriber.instance(subscriber);
-                expect(subscriber).toBe(subscriber2);
+                expect(subscriber2).toBe(subscriber);
 
             });
 

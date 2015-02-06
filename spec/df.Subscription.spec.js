@@ -81,7 +81,7 @@ describe("df", function () {
 
             });
 
-            it("accept Subscription instance and returns it", function () {
+            it("accepts Subscription instance and returns it", function () {
 
                 var subscription = new Subscription({
                     publisher: new Publisher(),
@@ -91,8 +91,17 @@ describe("df", function () {
                     })
                 });
                 var subscription2 = Subscription.instance(subscription);
-                expect(subscription).toBe(subscription2);
+                expect(subscription2).toBe(subscription);
 
+            });
+
+            it("accepts Publisher and Subscriber instantiation arguments instead of complete instances", function () {
+
+                var log = jasmine.createSpy();
+                var subscription = Subscription.instance(null, log);
+                expect(log).not.toHaveBeenCalled();
+                subscription.publisher.publish([1, 2, 3]);
+                expect(log).toHaveBeenCalledWith(1, 2, 3);
             });
 
         });

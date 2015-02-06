@@ -143,14 +143,14 @@ console.log(id1 != id2); //true
 
 ```js
 var publisher = new df.Publisher();
-var subscription = new df.Subscription({
+new df.Subscription({
     publisher: publisher,
     subscriber: new df.Subscriber({
         callback: console.log
     })
 });
-publisher.publish([1, 2, 3]); // 1, 2, 3
-publisher.publish([4, 5, 6]); // 4, 5, 6
+publisher.publish([1, 2, 3]); // 1 2 3
+publisher.publish([4, 5, 6]); // 4 5 6
 ```
 
 ```js
@@ -158,10 +158,20 @@ var o = {
     send: df.Publisher.instance().wrap(),
     receive: console.log
 };
-var subscription = df.Subscription.instance(
+df.Subscription.instance(
     o.send.publisher,
     df.Subscriber.instance(o.receive)
 );
+o.send(1, 2, 3); // 1 2 3
+o.send(4, 5, 6); // 4 5 6
+```
+
+```js
+var o = {
+    send: df.publisher(),
+    receive: jasmine.createSpy()
+};
+df.subscribe(o.send, o.receive);
 o.send(1, 2, 3); // 1 2 3
 o.send(4, 5, 6); // 4 5 6
 ```

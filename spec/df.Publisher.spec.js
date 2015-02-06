@@ -7,6 +7,41 @@ describe("df", function () {
 
     describe("Publisher", function () {
 
+        describe("instance", function () {
+
+            it("does not require arguments", function () {
+
+                var publisher = Publisher.instance();
+                expect(publisher instanceof Publisher).toBe(true);
+
+            });
+
+            it("accepts null and undefined", function (){
+
+                var publisher = Publisher.instance(null);
+                var publisher2 = Publisher.instance(undefined);
+                expect(publisher instanceof Publisher).toBe(true);
+                expect(publisher2 instanceof Publisher).toBe(true);
+
+            });
+
+            it("accepts Publisher instance and returns it", function () {
+
+                var publisher = new Publisher();
+                var publisher2 = Publisher.instance(publisher);
+                expect(publisher2).toBe(publisher);
+
+            });
+
+            it("accepts wrapper and returns its Publisher", function (){
+
+                var publisher = new Publisher();
+                var publisher2 = Publisher.instance(publisher.wrap());
+                expect(publisher2).toBe(publisher);
+            });
+
+        });
+
         describe("init", function () {
 
             it("generates an id", function () {

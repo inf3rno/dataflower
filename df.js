@@ -174,6 +174,22 @@ module.exports = (function (NativeObject, NativeError) {
             return this.wrapper;
         }
     }, {
+        instance: function () {
+            if (arguments.length > 1)
+                throw new InvalidArguments();
+            var options;
+            if (arguments.length == 1)
+                options = arguments[0];
+            if (options instanceof Publisher)
+                return options;
+            if ((options instanceof Function) && (options.publisher instanceof Publisher))
+                return options.publisher;
+            if (options === null)
+                options = undefined;
+            if (options !== undefined)
+                throw new InvalidArguments();
+            return new Publisher(options);
+        },
         ArrayRequired: InvalidArguments.extend({
             message: "Array of arguments required."
         }),
@@ -219,6 +235,8 @@ module.exports = (function (NativeObject, NativeError) {
                 return options;
             if (!options || options.constructor !== NativeObject)
                 throw new InvalidArguments();
+            options.publisher = Publisher.instance(options.publisher);
+            options.subscriber = Subscriber.instance(options.subscriber);
             return new Subscription(options);
         },
         PublisherRequired: InvalidConfiguration.extend({
@@ -274,7 +292,17 @@ module.exports = (function (NativeObject, NativeError) {
         uniqueId: uniqueId,
         Publisher: Publisher,
         Subscription: Subscription,
-        Subscriber: Subscriber
+        Subscriber: Subscriber,
+        publisher: function () {
+            var publisher = Publisher.instance.apply(Publisher, arguments);
+            return publisher.wrap();
+        },
+        subscriber: function () {
+            return Subscriber.instance.apply(Subscriber, arguments);
+        },
+        subscribe: function () {
+            return Subscription.instance.apply(Subscription, arguments);
+        }
     };
 
 })(Object, Error);
