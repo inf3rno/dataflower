@@ -65,7 +65,8 @@ module.exports = (function (NativeObject, NativeError) {
             if (typeof (options) == "string")
                 options = {message: options};
             this.configure(options);
-            this.stack = this.createStack();
+            if (Error.debug)
+                this.stack = this.createStack();
         },
         createStack: function () {
             var stack = new NativeError().stack;
@@ -91,7 +92,8 @@ module.exports = (function (NativeObject, NativeError) {
         }
     }, {
         instance: Object.instance,
-        extend: Object.extend
+        extend: Object.extend,
+        debug: false
     });
 
     var InvalidConfiguration = Error.extend({
@@ -275,6 +277,9 @@ module.exports = (function (NativeObject, NativeError) {
         },
         subscribe: function () {
             return Subscription.instance.apply(Subscription, arguments);
+        },
+        debug: function () {
+            Error.debug = true;
         }
     };
 

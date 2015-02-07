@@ -72,6 +72,10 @@ console.log(id1 != id2); //true
 ### 2. custom errors
 
 ```js
+df.debug(); // turns on stack creation by custom errors
+```
+
+```js
 var CustomError = df.Error.extend({
     name: "CustomError"
 });
@@ -149,7 +153,7 @@ o.send(4, 5, 6); // 4 5 6
 ```js
 var o = {
     send: df.publisher(),
-    receive: jasmine.createSpy()
+    receive: console.log
 };
 df.subscribe(o.send, o.receive);
 o.send(1, 2, 3); // 1 2 3
@@ -159,7 +163,7 @@ o.send(4, 5, 6); // 4 5 6
 ```js
 var o = {
     send: df.publisher(),
-    receive: jasmine.createSpy()
+    receive: console.log
 };
 df.subscriber(o.receive).subscribe(o.send);
 o.send(1, 2, 3); // 1 2 3
