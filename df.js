@@ -57,43 +57,70 @@ module.exports = (function (NativeObject, NativeError) {
     };
     id.last = 0;
 
+    var StackFactory = Object.extend({
+        cache: undefined,
+        init: function () {
+            this.cache = {};
+        },
+        getStack: function (customError, nativeError) {
+            if (!this.cache.hasOwnProperty(customError.id)) {
+                var stack;
+                if (nativeError.stack)
+                    stack = this.createV8Stack(customError, nativeError);
+                this.cache[customError.id] = stack;
+            }
+            return this.cache[customError.id];
+        },
+        createV8Stack: function (customError, nativeError) {
+            var nativeStack = nativeError.stack;
+            if (nativeStack === undefined)
+                return;
+            var stack = nativeStack;
+            var instantiationFrameFinder = /^.*?\s+new\s+/m;
+            var instantiationFrameIndex = stack.search(instantiationFrameFinder);
+            if (instantiationFrameIndex < 0)
+                return;
+            var framesBeforeInstantiation = stack.slice(0, instantiationFrameIndex);
+
+            var frameCountBeforeInstantiation = framesBeforeInstantiation.match(/\n/g).length;
+            if (!frameCountBeforeInstantiation)
+                return;
+            var unwantedFrameCleanerPattern = "";
+            for (var frameIndex = 0; frameIndex < frameCountBeforeInstantiation; ++frameIndex)
+                unwantedFrameCleanerPattern += "\n[^\n]*"
+            var unwantedFrameCleaner = new RegExp(unwantedFrameCleanerPattern);
+
+            stack = stack.replace(unwantedFrameCleaner, "");
+            stack = stack.replace(/^Error/m, customError.name + " " + customError.message);
+            return stack;
+        }
+    });
+
     var Error = extend(NativeError, {
+        id: undefined,
         name: "Error",
         message: "",
         configure: Object.prototype.configure,
         init: function (options) {
+            this.id = id();
             if (typeof (options) == "string")
                 options = {message: options};
             this.configure(options);
-            if (Error.debug)
-                this.stack = this.createStack();
-        },
-        createStack: function () {
-            var stack = new NativeError().stack;
-            if (stack === undefined)
-                return;
-            var raisingCallFinder = /^.*?\s+new\s+/m;
-            var instantiationIndex = stack.search(raisingCallFinder);
-            if (instantiationIndex < 0)
-                return;
-            var beforeInstantiation = stack.slice(0, instantiationIndex);
 
-            var callCountSinceRaising = beforeInstantiation.match(/\n/g).length;
-            if (!callCountSinceRaising)
-                return;
-            var clearPattern = "";
-            for (var callIndex = 0; callIndex < callCountSinceRaising; ++callIndex)
-                clearPattern += "\n[^\n]*"
-            var clearRegExp = new RegExp(clearPattern);
-
-            stack = stack.replace(clearRegExp, "");
-            stack = stack.replace(/^Error/m, this.name + " " + this.message);
-            return stack;
+            var nativeError = new NativeError();
+            var customError = this;
+            NativeObject.defineProperty(this, "stack", {
+                enumerable: true,
+                configurable: false,
+                get: function () {
+                    return Error.stackFactory.getStack(customError, nativeError);
+                }
+            });
         }
     }, {
         instance: Object.instance,
         extend: Object.extend,
-        debug: false
+        stackFactory: new StackFactory()
     });
 
     var InvalidConfiguration = Error.extend({
@@ -277,9 +304,6 @@ module.exports = (function (NativeObject, NativeError) {
         },
         subscribe: function () {
             return Subscription.instance.apply(Subscription, arguments);
-        },
-        debug: function () {
-            Error.debug = true;
         }
     };
 

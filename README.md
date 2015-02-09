@@ -72,10 +72,6 @@ console.log(id1 != id2); //true
 ### 2. custom errors
 
 ```js
-df.debug(); // turns on stack creation by custom errors
-```
-
-```js
 var CustomError = df.Error.extend({
     name: "CustomError"
 });
