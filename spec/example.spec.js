@@ -55,7 +55,70 @@ describe("example", function () {
     });
 
 
-    describe("2. custom errors", function () {
+    describe("2. container, factory, custom errors", function () {
+
+        it("implements container, factory", function () {
+
+            var log = jasmine.createSpy();
+            var Cat = df.Object.extend({
+                color: undefined,
+                name: undefined,
+                init: function (options) {
+                    this.configure(options);
+                },
+                meow: function () {
+                    log(this.color + " " + this.name + ": meow");
+                }
+            }, {
+                instance: new df.Container().register({
+                    factory: df.Factory.extend({
+                        create: function (context, options) {
+                            if (arguments.length != 1)
+                                throw new df.InvalidArguments();
+                            if (options.constructor !== Object)
+                                throw new df.InvalidArguments();
+                            return new context(options);
+                        }
+                    }).instance(),
+                    isDefault: true
+                }).register(df.Factory.extend({
+                    create: function (context, color, name) {
+                        if (arguments.length != 3)
+                            return;
+                        return new context({
+                            color: color,
+                            name: name
+                        });
+                    }
+                }).instance()).wrap({
+                    passContext: true
+                })
+            });
+
+            var WhiteCat = Cat.extend({
+                color: "white"
+            });
+
+            Cat.instance.container.register(df.Factory.extend({
+                create: function (context, name) {
+                    if (arguments.length != 2)
+                        return;
+                    if (context.prototype.color)
+                        return new context({
+                            name: name
+                        });
+                    throw new df.InvalidArguments("Color not defined.");
+                }
+            }).instance());
+
+            var kitty = Cat.instance("orange", "Kitty");
+            kitty.meow();
+            expect(log).toHaveBeenCalledWith("orange Kitty: meow");
+            var killer = WhiteCat.instance("Killer");
+            killer.meow();
+            expect(log).toHaveBeenCalledWith("white Killer: meow");
+
+        });
 
         it("implements custom Error", function () {
             var CustomError = df.Error.extend({

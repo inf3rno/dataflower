@@ -57,43 +57,96 @@ module.exports = (function (NativeObject, NativeError) {
     };
     id.last = 0;
 
-    var StackFactory = Object.extend({
-        cache: undefined,
-        init: function () {
-            this.cache = {};
+    var Factory = Object.extend({
+        init: function (options) {
+            this.configure(options);
         },
-        getStack: function (customError, nativeError) {
-            if (!this.cache.hasOwnProperty(customError.id)) {
-                var stack;
-                if (nativeError.stack)
-                    stack = this.createV8Stack(customError, nativeError);
-                this.cache[customError.id] = stack;
-            }
-            return this.cache[customError.id];
-        },
-        createV8Stack: function (customError, nativeError) {
-            var nativeStack = nativeError.stack;
-            if (nativeStack === undefined)
-                return;
-            var stack = nativeStack;
-            var instantiationFrameFinder = /^.*?\s+new\s+/m;
-            var instantiationFrameIndex = stack.search(instantiationFrameFinder);
-            if (instantiationFrameIndex < 0)
-                return;
-            var framesBeforeInstantiation = stack.slice(0, instantiationFrameIndex);
-
-            var frameCountBeforeInstantiation = framesBeforeInstantiation.match(/\n/g).length;
-            if (!frameCountBeforeInstantiation)
-                return;
-            var unwantedFrameCleanerPattern = "";
-            for (var frameIndex = 0; frameIndex < frameCountBeforeInstantiation; ++frameIndex)
-                unwantedFrameCleanerPattern += "\n[^\n]*"
-            var unwantedFrameCleaner = new RegExp(unwantedFrameCleanerPattern);
-
-            stack = stack.replace(unwantedFrameCleaner, "");
-            stack = stack.replace(/^Error/m, customError.name + " " + customError.message);
-            return stack;
+        create: function () {
         }
+    });
+
+    var Container = Factory.extend({
+        registry: undefined,
+        defaultRegistry: undefined,
+        init: function (options) {
+            Factory.prototype.init.call(this, options);
+            this.registry = [];
+            this.defaultRegistry = [];
+        },
+        register: function (factory, isDefault) {
+            var options = {
+                factory: factory,
+                isDefault: isDefault
+            };
+            if (factory.constructor === NativeObject)
+                options = factory;
+            if (!(options.factory instanceof Factory))
+                throw new Container.FactoryRequired();
+            var registry = this.registry;
+            if (options.isDefault)
+                registry = this.defaultRegistry;
+            registry.push(options.factory);
+            return this;
+        },
+        wrap: function () {
+            var options = {
+                pass: Array.prototype.slice.call(arguments),
+                passContext: false
+            };
+            if (arguments.length == 1 && arguments[0].constructor === NativeObject) {
+                options = arguments[0];
+                if (!(options.pass instanceof Array))
+                    options.pass = [];
+                options.passContext = !!options.passContext;
+            }
+            var container = this;
+            var wrapper = function () {
+                var args = [];
+                if (options.passContext)
+                    args.push(this);
+                args.push.apply(args, options.pass);
+                args.push.apply(args, arguments);
+                return container.create.apply(container, args);
+            };
+            wrapper.container = container;
+            return wrapper;
+        },
+        create: function () {
+            var instance = this.invokeRegistry(this.registry, arguments);
+            if (instance !== undefined)
+                return instance;
+            return this.invokeRegistry(this.defaultRegistry, arguments);
+        },
+        invokeRegistry: function (registry, args) {
+            for (var index = 0, length = registry.length; index < length; ++index) {
+                var factory = registry[index];
+                var instance = factory.create.apply(factory, args);
+                if (instance !== undefined)
+                    return instance;
+            }
+        }
+    }, {
+        FactoryRequired: undefined
+    });
+
+    var Stack = Object.extend({
+        string: undefined,
+        init: function (options) {
+            this.configure(options);
+        },
+        toString: function () {
+            return this.string;
+        }
+    }, {
+        instance: new Container().wrap()
+    });
+    Stack.instance.container.register({
+        factory: Factory.extend({
+            create: function () {
+                return new Stack();
+            }
+        }).instance(),
+        isDefault: true
     });
 
     var Error = extend(NativeError, {
@@ -108,19 +161,58 @@ module.exports = (function (NativeObject, NativeError) {
             this.configure(options);
 
             var nativeError = new NativeError();
-            var customError = this;
+            NativeObject.defineProperty(this, "nativeError", {
+                enumerable: false,
+                get: function () {
+                    return nativeError;
+                }
+            });
+
+            var error = this;
+            var stack;
             NativeObject.defineProperty(this, "stack", {
                 enumerable: true,
-                configurable: false,
                 get: function () {
-                    return Error.stackFactory.getStack(customError, nativeError);
+                    if (!stack)
+                        stack = Stack.instance(error).toString();
+                    return stack;
                 }
             });
         }
     }, {
         instance: Object.instance,
-        extend: Object.extend,
-        stackFactory: new StackFactory()
+        extend: Object.extend
+    });
+
+    Stack.instance.container.register({
+        factory: Factory.extend({
+            create: function (error) {
+                var nativeError = error.nativeError;
+                var nativeStack = nativeError.stack;
+                if (nativeStack === undefined)
+                    return;
+                var stack = nativeStack;
+                var instantiationFrameFinder = /^.*?\s+new\s+/m;
+                var instantiationFrameIndex = stack.search(instantiationFrameFinder);
+                if (instantiationFrameIndex < 0)
+                    return;
+                var framesBeforeInstantiation = stack.slice(0, instantiationFrameIndex);
+
+                var frameCountBeforeInstantiation = framesBeforeInstantiation.match(/\n/g).length;
+                if (!frameCountBeforeInstantiation)
+                    return;
+                var unwantedFrameCleanerPattern = "";
+                for (var frameIndex = 0; frameIndex < frameCountBeforeInstantiation; ++frameIndex)
+                    unwantedFrameCleanerPattern += "\n[^\n]*"
+                var unwantedFrameCleaner = new RegExp(unwantedFrameCleanerPattern);
+
+                stack = stack.replace(unwantedFrameCleaner, "");
+                stack = stack.replace(/^Error/m, error.name + " " + error.message);
+                return new Stack({
+                    string: stack
+                });
+            }
+        }).instance()
     });
 
     var InvalidConfiguration = Error.extend({
@@ -133,6 +225,10 @@ module.exports = (function (NativeObject, NativeError) {
 
     InvalidArguments.Empty = InvalidArguments.extend({
         message: "Arguments required."
+    });
+
+    Container.FactoryRequired = InvalidArguments.extend({
+        message: "Factory instance required."
     });
 
     var Publisher = Object.extend({
@@ -288,6 +384,9 @@ module.exports = (function (NativeObject, NativeError) {
 
     return {
         Object: Object,
+        Factory: Factory,
+        Container: Container,
+        Stack: Stack,
         Error: Error,
         InvalidConfiguration: InvalidConfiguration,
         InvalidArguments: InvalidArguments,
