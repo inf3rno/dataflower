@@ -10,14 +10,18 @@ I don't think that everything is a nail, and dataflow-based patterns should be u
 sync code of the components should be developed with plain old javascript and only the communication between them
 should be solved with dataflow-based code islands.
 
-## Examples
+## Documentation
 
-### 0. use module
+A detailed documentation is not yet available.
+
+### Examples
+
+#### 0. use module
 ```js
 var df = require("dflo2/df");
 ```
 
-### 1. inheritance, instantiation, configuration, cloning and unique id
+#### 1. inheritance, instantiation, configuration, cloning and unique id
 ```js
 var Cat = df.Object.extend({
     init: function (name) {
@@ -69,7 +73,7 @@ var id2 = df.id();
 console.log(id1 != id2); //true
 ```
 
-### 2. custom errors
+#### 2. custom errors
 
 ```js
 var CustomError = df.Error.extend({
@@ -119,7 +123,7 @@ try {
 }
 ```
 
-### 3. pub/sub pattern
+#### 3. pub/sub pattern
 
 ```js
 var publisher = new df.Publisher();
@@ -166,13 +170,39 @@ o.send(1, 2, 3); // 1 2 3
 o.send(4, 5, 6); // 4 5 6
 ```
 
-## Documentation
-
-The documentation is not yet available.
-
 ### Installation
 
-Currently only copy-paste and node.js is available.
+Node.js with manual copy & paste is available.
+Npm and bower support will be available by 1.0.
+
+#### Environment
+
+An ES5 capable environment is required at least with
+
+- `Object.create`
+- `Object.defineProperty`
+
+The framework is written for ES5.
+There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.
+Probably there won't be ES7 support, because it defines `async` functions, which will make this framework obsolete.
+
+#### Testing
+
+[Jasmine](https://github.com/jasmine/jasmine) 2.2 tests are available.
+
+By node.js 0.10.36 I used [jasmine-npm](https://github.com/jasmine/jasmine-npm) 1.4.28.
+
+By browsers I will use [karma](https://github.com/karma-runner/karma) x.x.x & [karma-jasmine](https://github.com/karma-runner/karma-jasmine) x.x.x.
+Browser tests will be available by 1.1 and data binding tests will be available by 1.2.
+
+There will be a DataFlow specific Jasmine helper available by 1.1.
+Probably integration with other testing frameworks will be supported as well by 1.1.
+
+#### Code completion
+
+[WebStorm](https://www.jetbrains.com/webstorm/) support will be available by 1.1.
+Probably other IDEs and editors will be supported in later 1.3+ versions.
+
 
 ## License
 
