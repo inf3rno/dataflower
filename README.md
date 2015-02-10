@@ -86,7 +86,7 @@ var Cat = df.Object.extend({
         console.log("%s %s: meow", this.color, this.name);
     }
 }, {
-    instance: new df.Container().register({
+    instance: new df.Container().add({
         factory: df.Factory.extend({
             create: function (context, options) {
                 if (arguments.length != 1)
@@ -102,7 +102,7 @@ var Cat = df.Object.extend({
     })
 });
 
-Cat.instance.container.register({
+Cat.instance.container.add({
     factory: df.Factory.extend({
         create: function (context, color, name) {
             if (arguments.length != 3)

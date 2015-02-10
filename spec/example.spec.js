@@ -70,7 +70,7 @@ describe("example", function () {
                     log(this.color + " " + this.name + ": meow");
                 }
             }, {
-                instance: new df.Container().register({
+                instance: new df.Container().add({
                     factory: df.Factory.extend({
                         create: function (context, options) {
                             if (arguments.length != 1)
@@ -81,7 +81,7 @@ describe("example", function () {
                         }
                     }).instance(),
                     isDefault: true
-                }).register(df.Factory.extend({
+                }).add(df.Factory.extend({
                     create: function (context, color, name) {
                         if (arguments.length != 3)
                             return;
@@ -99,7 +99,7 @@ describe("example", function () {
                 color: "white"
             });
 
-            Cat.instance.container.register(df.Factory.extend({
+            Cat.instance.container.add(df.Factory.extend({
                 create: function (context, name) {
                     if (arguments.length != 2)
                         return;

@@ -21,27 +21,27 @@ describe("df", function () {
 
         });
 
-        describe("register", function () {
+        describe("add", function () {
 
             it("accepts only Factory relatives", function () {
 
                 var container = new Container();
 
                 expect(function () {
-                    container.register(Object.extend());
+                    container.add(Object.extend());
                 }).toThrow(new Container.FactoryRequired());
 
                 expect(function () {
-                    container.register(new Factory());
+                    container.add(new Factory());
                 }).not.toThrow();
 
                 expect(function () {
-                    container.register(Factory.extend().instance());
+                    container.add(Factory.extend().instance());
                 }).not.toThrow();
 
             });
 
-            it("can be used to register Factory relatives, which are called by Container.instance", function () {
+            it("can be used to add Factory relatives, which are called by Container.instance", function () {
 
                 var container = new Container();
                 var A = Factory.extend({
@@ -52,8 +52,8 @@ describe("df", function () {
                 });
                 var a = new A();
                 var b = new B();
-                container.register(a, false);
-                container.register({
+                container.add(a, false);
+                container.add({
                     factory: b,
                     default: false
                 });
@@ -82,7 +82,7 @@ describe("df", function () {
                         return {a: a, b: b, c: c};
                     }
                 });
-                container.register(new CustomFactory());
+                container.add(new CustomFactory());
                 var instance = container.create(1, 2, 3);
                 expect(instance).toEqual({a: 1, b: 2, c: 3});
             });
@@ -100,8 +100,8 @@ describe("df", function () {
                         return [a, b, c];
                     }
                 });
-                container.register(new FirstFactory());
-                container.register(new SecondFactory());
+                container.add(new FirstFactory());
+                container.add(new SecondFactory());
                 var instance = container.create(1, 2, 3);
                 expect(instance).toEqual({a: 1, b: 2, c: 3});
 
@@ -120,8 +120,8 @@ describe("df", function () {
                         return [a, b, c];
                     }
                 });
-                container.register(new FirstFactory());
-                container.register(new SecondFactory());
+                container.add(new FirstFactory());
+                container.add(new SecondFactory());
                 var instance = container.create(1, 2, 3);
                 expect(instance).toEqual([1, 2, 3]);
 
@@ -132,7 +132,7 @@ describe("df", function () {
 
                 var log = jasmine.createSpy();
                 var container = new Container();
-                container.register({
+                container.add({
                     factory: Factory.extend({
                         create: function () {
                             return 1;
@@ -140,12 +140,12 @@ describe("df", function () {
                     }).instance(),
                     isDefault: true
                 });
-                container.register(Factory.extend({
+                container.add(Factory.extend({
                     create: function () {
                         return 2;
                     }
                 }).instance(), true);
-                container.register(Factory.extend({
+                container.add(Factory.extend({
                     create: function () {
                         return 3;
                     }
@@ -171,10 +171,10 @@ describe("df", function () {
 
                 var log = jasmine.createSpy();
                 var container = new Container();
-                container.register(Factory.extend({
+                container.add(Factory.extend({
                     create: log
                 }).instance());
-                container.register(Factory.extend({
+                container.add(Factory.extend({
                     create: function (a, b, c) {
                         return {a: a, b: b, c: c};
                     }
@@ -192,7 +192,7 @@ describe("df", function () {
 
                 var log = jasmine.createSpy();
                 var container = new Container();
-                container.register(Factory.extend({
+                container.add(Factory.extend({
                     create: log
                 }).instance());
                 var wrapper = container.wrap(1, 2, 3);
@@ -207,7 +207,7 @@ describe("df", function () {
 
                 var log = jasmine.createSpy();
                 var container = new Container();
-                container.register(Factory.extend({
+                container.add(Factory.extend({
                     create: log
                 }).instance());
                 var wrapper = container.wrap({

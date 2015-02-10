@@ -66,14 +66,14 @@ module.exports = (function (NativeObject, NativeError) {
     });
 
     var Container = Factory.extend({
-        registry: undefined,
-        defaultRegistry: undefined,
+        factories: undefined,
+        defaultFactories: undefined,
         init: function (options) {
             Factory.prototype.init.call(this, options);
-            this.registry = [];
-            this.defaultRegistry = [];
+            this.factories = [];
+            this.defaultFactories = [];
         },
-        register: function (factory, isDefault) {
+        add: function (factory, isDefault) {
             var options = {
                 factory: factory,
                 isDefault: isDefault
@@ -82,10 +82,10 @@ module.exports = (function (NativeObject, NativeError) {
                 options = factory;
             if (!(options.factory instanceof Factory))
                 throw new Container.FactoryRequired();
-            var registry = this.registry;
+            var factories = this.factories;
             if (options.isDefault)
-                registry = this.defaultRegistry;
-            registry.push(options.factory);
+                factories = this.defaultFactories;
+            factories.push(options.factory);
             return this;
         },
         wrap: function () {
@@ -112,14 +112,14 @@ module.exports = (function (NativeObject, NativeError) {
             return wrapper;
         },
         create: function () {
-            var instance = this.invokeRegistry(this.registry, arguments);
+            var instance = this.invokeFactories(this.factories, arguments);
             if (instance !== undefined)
                 return instance;
-            return this.invokeRegistry(this.defaultRegistry, arguments);
+            return this.invokeFactories(this.defaultFactories, arguments);
         },
-        invokeRegistry: function (registry, args) {
-            for (var index = 0, length = registry.length; index < length; ++index) {
-                var factory = registry[index];
+        invokeFactories: function (factories, args) {
+            for (var index = 0, length = factories.length; index < length; ++index) {
+                var factory = factories[index];
                 var instance = factory.create.apply(factory, args);
                 if (instance !== undefined)
                     return instance;
@@ -140,7 +140,7 @@ module.exports = (function (NativeObject, NativeError) {
     }, {
         instance: new Container().wrap()
     });
-    Stack.instance.container.register({
+    Stack.instance.container.add({
         factory: Factory.extend({
             create: function () {
                 return new Stack();
@@ -184,7 +184,7 @@ module.exports = (function (NativeObject, NativeError) {
         extend: Object.extend
     });
 
-    Stack.instance.container.register({
+    Stack.instance.container.add({
         factory: Factory.extend({
             create: function (error) {
                 var nativeError = error.nativeError;
