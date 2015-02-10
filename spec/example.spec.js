@@ -65,6 +65,10 @@ describe("example", function () {
                 name: undefined,
                 init: function (options) {
                     this.configure(options);
+                    if (typeof(this.color) != "string")
+                        throw new df.InvalidConfiguration("Color not defined.");
+                    if (typeof (this.name) != "string")
+                        throw new df.InvalidConfiguration("Name is not defined.");
                 },
                 meow: function () {
                     log(this.color + " " + this.name + ": meow");
@@ -72,23 +76,22 @@ describe("example", function () {
             }, {
                 instance: new df.Container().add({
                     factory: df.Factory.extend({
-                        create: function (context, options) {
-                            if (arguments.length != 1)
+                        create: function (Cat, options) {
+                            if (arguments.length != 2)
                                 throw new df.InvalidArguments();
-                            if (options.constructor !== Object)
+                            if (!this.isOptions(options))
                                 throw new df.InvalidArguments();
-                            return new context(options);
+                            return new Cat(options);
                         }
                     }).instance(),
                     isDefault: true
                 }).add(df.Factory.extend({
-                    create: function (context, color, name) {
-                        if (arguments.length != 3)
-                            return;
-                        return new context({
-                            color: color,
-                            name: name
-                        });
+                    create: function (Cat, color, name) {
+                        if (arguments.length == 3)
+                            return Cat.instance({
+                                color: color,
+                                name: name
+                            });
                     }
                 }).instance()).wrap({
                     passContext: true
@@ -100,14 +103,13 @@ describe("example", function () {
             });
 
             Cat.instance.container.add(df.Factory.extend({
-                create: function (context, name) {
+                create: function (Cat, name) {
                     if (arguments.length != 2)
                         return;
-                    if (context.prototype.color)
-                        return new context({
+                    if (typeof(name) == "string")
+                        return Cat.instance({
                             name: name
                         });
-                    throw new df.InvalidArguments("Color not defined.");
                 }
             }).instance());
 

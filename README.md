@@ -88,12 +88,12 @@ var Cat = df.Object.extend({
 }, {
     instance: new df.Container().add({
         factory: df.Factory.extend({
-            create: function (context, options) {
-                if (arguments.length != 1)
+            create: function (Cat, options) {
+                if (arguments.length != 2)
                     throw new df.InvalidArguments();
-                if (options.constructor !== Object)
+                if (!this.isOptions(options))
                     throw new df.InvalidArguments();
-                return new context(options);
+                return new Cat(options);
             }
         }).instance(),
         isDefault: true
@@ -104,13 +104,12 @@ var Cat = df.Object.extend({
 
 Cat.instance.container.add({
     factory: df.Factory.extend({
-        create: function (context, color, name) {
-            if (arguments.length != 3)
-                return;
-            return new context({
-                color: color,
-                name: name
-            });
+        create: function (Cat, color, name) {
+            if (arguments.length == 3)
+                return Cat.instance({
+                    color: color,
+                    name: name
+                });
         }
     }).instance()
 });

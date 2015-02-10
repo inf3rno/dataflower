@@ -1,4 +1,5 @@
 var NativeObject = Object,
+    NativeError = Error,
     df = require("../df");
 
 describe("df", function () {
@@ -282,6 +283,27 @@ describe("df", function () {
                 expect(options.method).not.toHaveBeenCalled();
                 object.configure(options, 15, 16);
                 expect(options.init).toHaveBeenCalledWith(15, 16);
+            });
+
+        });
+
+        describe("isOptions", function () {
+
+            it("returns true only by native objects.", function () {
+                var o = Object.instance();
+
+                expect(o.isOptions(null)).toBe(false);
+                expect(o.isOptions(false)).toBe(false);
+                expect(o.isOptions(o)).toBe(false);
+                expect(o.isOptions(undefined)).toBe(false);
+                expect(o.isOptions(new Date())).toBe(false);
+                expect(o.isOptions([1, 2, 3])).toBe(false);
+                expect(o.isOptions(new NativeError())).toBe(false);
+                expect(o.isOptions(function () {
+                })).toBe(false);
+
+                expect(o.isOptions({})).toBe(true);
+                expect(o.isOptions(new NativeObject())).toBe(true);
             });
 
         });

@@ -20,7 +20,7 @@ module.exports = (function (NativeObject, NativeError) {
 
     var Object = extend(NativeObject, {
         configure: function (options) {
-            if (!options)
+            if (!this.isOptions(options))
                 return;
             for (var property in options)
                 this[property] = options[property];
@@ -34,6 +34,9 @@ module.exports = (function (NativeObject, NativeError) {
                     args = args[0];
             }
             this.init.apply(this, args);
+        },
+        isOptions: function (options) {
+            return !!options && options.constructor === NativeObject;
         }
     }, {
         instance: function () {
@@ -78,7 +81,7 @@ module.exports = (function (NativeObject, NativeError) {
                 factory: factory,
                 isDefault: isDefault
             };
-            if (factory.constructor === NativeObject)
+            if (this.isOptions(factory))
                 options = factory;
             if (!(options.factory instanceof Factory))
                 throw new Container.FactoryRequired();
@@ -93,7 +96,7 @@ module.exports = (function (NativeObject, NativeError) {
                 pass: Array.prototype.slice.call(arguments),
                 passContext: false
             };
-            if (arguments.length == 1 && arguments[0].constructor === NativeObject) {
+            if (arguments.length == 1 && this.isOptions(arguments[0])) {
                 options = arguments[0];
                 if (!(options.pass instanceof Array))
                     options.pass = [];
@@ -154,6 +157,7 @@ module.exports = (function (NativeObject, NativeError) {
         name: "Error",
         message: "",
         configure: Object.prototype.configure,
+        isOptions: Object.prototype.isOptions,
         init: function (options) {
             this.id = id();
             if (typeof (options) == "string")
@@ -265,21 +269,31 @@ module.exports = (function (NativeObject, NativeError) {
             return this.wrapper;
         }
     }, {
-        instance: function () {
-            var Publisher = this;
-            if (!arguments.length)
-                return new Publisher();
-            if (arguments.length > 1)
-                throw new InvalidArguments();
-            var options = arguments[0];
-            if (options instanceof Publisher)
-                return options;
-            if ((options instanceof Function) && (options.publisher instanceof Publisher))
-                return options.publisher;
-            if (!options || options.constructor !== NativeObject)
-                throw new InvalidArguments();
-            return new Publisher(options);
-        },
+        instance: new Container().add({
+            factory: Factory.extend({
+                create: function (Publisher, options) {
+                    if (arguments.length > 2)
+                        throw new InvalidArguments();
+                    if (arguments.length == 1)
+                        return new Publisher();
+                    if (!this.isOptions(options))
+                        throw new InvalidArguments();
+                    return new Publisher(options);
+                }
+            }).instance(),
+            isDefault: true
+        }).add({
+            factory: Factory.extend({
+                create: function (Publisher, instance) {
+                    if (instance instanceof Publisher)
+                        return instance;
+                    if ((instance instanceof Function) && (instance.publisher instanceof Publisher))
+                        return instance.publisher;
+                }
+            }).instance()
+        }).wrap({
+            passContext: true
+        }),
         ArrayRequired: InvalidArguments.extend({
             message: "Array of arguments required."
         }),
@@ -307,29 +321,41 @@ module.exports = (function (NativeObject, NativeError) {
             this.subscriber.receive(args);
         }
     }, {
-        instance: function () {
-            var Subscription = this;
-            if (!arguments.length)
-                throw new InvalidArguments.Empty();
-            if (arguments.length > 2)
-                throw new InvalidArguments();
-            var options;
-            if (arguments.length == 1)
-                options = arguments[0];
-            else {
-                options = {
-                    publisher: arguments[0],
-                    subscriber: arguments[1]
+        instance: new Container().add({
+            factory: Factory.extend({
+                create: function (Subscription, options) {
+                    if (arguments.length == 1)
+                        throw new InvalidArguments.Empty();
+                    if (arguments.length > 2)
+                        throw new InvalidArguments();
+                    if (!Object.prototype.isOptions(options))
+                        throw new InvalidArguments();
+                    options.publisher = Publisher.instance(options.publisher);
+                    options.subscriber = Subscriber.instance(options.subscriber);
+                    return new Subscription(options);
                 }
-            }
-            if (options instanceof Subscription)
-                return options;
-            if (!options || options.constructor !== NativeObject)
-                throw new InvalidArguments();
-            options.publisher = Publisher.instance(options.publisher);
-            options.subscriber = Subscriber.instance(options.subscriber);
-            return new Subscription(options);
-        },
+            }).instance(),
+            isDefault: true
+        }).add({
+            factory: Factory.extend({
+                create: function (Subscription, instance) {
+                    if (instance instanceof Subscription)
+                        return instance;
+                }
+            }).instance()
+        }).add({
+            factory: Factory.extend({
+                create: function (Subscription, publisher, subscriber) {
+                    if (arguments.length == 3)
+                        return Subscription.instance({
+                            publisher: publisher,
+                            subscriber: subscriber
+                        });
+                }
+            }).instance()
+        }).wrap({
+            passContext: true
+        }),
         PublisherRequired: InvalidConfiguration.extend({
             message: "Publisher instance required."
         }),
@@ -360,23 +386,33 @@ module.exports = (function (NativeObject, NativeError) {
             return Subscription.instance(publisher, this);
         }
     }, {
-        instance: function () {
-            var Subscriber = this;
-            if (!arguments.length)
-                throw new InvalidArguments.Empty();
-            if (arguments.length > 1)
-                throw new InvalidArguments();
-            var options = arguments[0];
-            if (options instanceof Subscriber)
-                return options;
-            if (options instanceof Function)
-                options = {
-                    callback: options
-                };
-            if (!options || options.constructor !== NativeObject)
-                throw new InvalidArguments();
-            return new Subscriber(options);
-        },
+        instance: new Container().add({
+            factory: Factory.extend({
+                create: function (Subscriber, options) {
+                    if (arguments.length == 1)
+                        throw new InvalidArguments.Empty();
+                    if (arguments.length > 2)
+                        throw new InvalidArguments();
+                    if (options instanceof Function)
+                        options = {
+                            callback: options
+                        };
+                    if (!this.isOptions(options))
+                        throw new InvalidArguments();
+                    return new Subscriber(options);
+                }
+            }).instance(),
+            isDefault: true
+        }).add({
+            factory: Factory.extend({
+                create: function (Subscriber, instance) {
+                    if (instance instanceof Subscriber)
+                        return instance;
+                }
+            }).instance()
+        }).wrap({
+            passContext: true
+        }),
         CallbackRequired: InvalidConfiguration.extend({
             message: "Callback function required."
         })
