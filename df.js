@@ -1,5 +1,10 @@
 module.exports = (function (NativeObject, NativeError) {
 
+    var id = function () {
+        return ++id.last;
+    };
+    id.last = 0;
+
     var extend = function (Ancestor, properties, staticProperties) {
         var Descendant = function () {
             if (this.init instanceof Function)
@@ -55,10 +60,151 @@ module.exports = (function (NativeObject, NativeError) {
         }
     });
 
-    var id = function () {
-        return ++id.last;
-    };
-    id.last = 0;
+    var Error = extend(NativeError, {
+        id: undefined,
+        name: "Error",
+        message: "",
+        configure: Object.prototype.configure,
+        isOptions: Object.prototype.isOptions,
+        init: function (options) {
+            this.id = id();
+            if (typeof (options) == "string")
+                options = {message: options};
+            this.configure(options);
+
+            var nativeError = new NativeError();
+            var error = this;
+            var stack;
+            NativeObject.defineProperty(this, "stack", {
+                enumerable: true,
+                get: function () {
+                    if (stack === undefined) {
+                        stack = "";
+                        stack += error.name + " " + error.message + "\n";
+                        stack += Stack.instance(nativeError);
+                        delete(nativeError);
+                    }
+                    return stack;
+                }
+            });
+        }
+    }, {
+        instance: Object.instance,
+        extend: Object.extend
+    });
+
+    var InvalidConfiguration = Error.extend({
+        name: "InvalidConfiguration"
+    });
+
+    var InvalidArguments = Error.extend({
+        name: "InvalidArguments"
+    });
+
+    InvalidArguments.Empty = InvalidArguments.extend({
+        message: "Arguments required."
+    });
+
+    var Stack = Object.extend({
+        frames: [],
+        string: undefined,
+        init: function (options) {
+            this.configure(options);
+            if (!(this.frames instanceof Array))
+                throw new Stack.FramesRequired();
+            for (var index = 0, length = this.frames.length; index < length; ++index) {
+                var frame = this.frames[index];
+                if (!(frame instanceof Frame))
+                    throw new Stack.FramesRequired();
+            }
+        },
+        toString: function () {
+            if (this.string === undefined)
+                this.string = this.frames.join("\n");
+            return this.string;
+        }
+    }, {
+        instance: function (nativeError) {
+            return new Stack({
+                string: nativeError.stack || nativeError.stacktrace || ""
+            });
+        },
+        FramesRequired: InvalidConfiguration.extend({
+            message: "An array of frames is required."
+        })
+    });
+
+    var Frame = Object.extend({
+        description: undefined,
+        path: undefined,
+        row: undefined,
+        col: undefined,
+        string: undefined,
+        init: function (options) {
+            this.configure(options);
+            if (typeof (this.description) != "string")
+                throw new Frame.DescriptionRequired();
+            if (typeof (this.path) != "string")
+                throw new Frame.PathRequired();
+            if (isNaN(this.row))
+                throw new Frame.RowRequired();
+            if (isNaN(this.col))
+                throw new Frame.ColRequired();
+        },
+        toString: function () {
+            if (this.string !== undefined)
+                return this.string;
+            this.string = "at " + this.description + " (" + this.path + ":" + this.row + ":" + this.col + ")";
+            if (this.description === "")
+                this.string = this.string.replace("  ", " ");
+
+            return this.string;
+        }
+    }, {
+        DescriptionRequired: InvalidConfiguration.extend({
+            message: "Description string required."
+        }),
+        PathRequired: InvalidConfiguration.extend({
+            message: "Path string required."
+        }),
+        RowRequired: InvalidConfiguration.extend({
+            message: "Row number required."
+        }),
+        ColRequired: InvalidConfiguration.extend({
+            message: "Col number required"
+        })
+    });
+
+    var Plugin = Object.extend({
+        installed: false,
+        compatible: undefined,
+        init: function (options) {
+            this.configure(options);
+        },
+        install: function () {
+            if (!this.isCompatible())
+                throw new Plugin.Incompatible();
+            if (this.installed)
+                return;
+            this.setup();
+            this.installed = true;
+        },
+        isCompatible: function () {
+            if (this.compatible === undefined)
+                this.compatible = this.test();
+            return this.compatible;
+        },
+        test: function () {
+            return true;
+        },
+        setup: function () {
+        }
+    }, {
+        Incompatible: Error.extend({
+            name: "Incompatible",
+            message: "The Plugin you wanted to install is incompatible with the current environment."
+        })
+    });
 
     var Factory = Object.extend({
         init: function (options) {
@@ -129,110 +275,9 @@ module.exports = (function (NativeObject, NativeError) {
             }
         }
     }, {
-        FactoryRequired: undefined
-    });
-
-    var Stack = Object.extend({
-        string: undefined,
-        init: function (options) {
-            this.configure(options);
-        },
-        toString: function () {
-            return this.string;
-        }
-    }, {
-        instance: new Container().wrap()
-    });
-    Stack.instance.container.add({
-        factory: Factory.extend({
-            create: function () {
-                return new Stack();
-            }
-        }).instance(),
-        isDefault: true
-    });
-
-    var Error = extend(NativeError, {
-        id: undefined,
-        name: "Error",
-        message: "",
-        configure: Object.prototype.configure,
-        isOptions: Object.prototype.isOptions,
-        init: function (options) {
-            this.id = id();
-            if (typeof (options) == "string")
-                options = {message: options};
-            this.configure(options);
-
-            var nativeError = new NativeError();
-            NativeObject.defineProperty(this, "nativeError", {
-                enumerable: false,
-                get: function () {
-                    return nativeError;
-                }
-            });
-
-            var error = this;
-            var stack;
-            NativeObject.defineProperty(this, "stack", {
-                enumerable: true,
-                get: function () {
-                    if (!stack)
-                        stack = Stack.instance(error).toString();
-                    return stack;
-                }
-            });
-        }
-    }, {
-        instance: Object.instance,
-        extend: Object.extend
-    });
-
-    Stack.instance.container.add({
-        factory: Factory.extend({
-            create: function (error) {
-                var nativeError = error.nativeError;
-                var nativeStack = nativeError.stack;
-                if (nativeStack === undefined)
-                    return;
-                var stack = nativeStack;
-                var instantiationFrameFinder = /^.*?\s+new\s+/m;
-                var instantiationFrameIndex = stack.search(instantiationFrameFinder);
-                if (instantiationFrameIndex < 0)
-                    return;
-                var framesBeforeInstantiation = stack.slice(0, instantiationFrameIndex);
-
-                var frameCountBeforeInstantiation = framesBeforeInstantiation.match(/\n/g).length;
-                if (!frameCountBeforeInstantiation)
-                    return;
-                var unwantedFrameCleanerPattern = "";
-                for (var frameIndex = 0; frameIndex < frameCountBeforeInstantiation; ++frameIndex)
-                    unwantedFrameCleanerPattern += "\n[^\n]*"
-                var unwantedFrameCleaner = new RegExp(unwantedFrameCleanerPattern);
-
-                stack = stack.replace(unwantedFrameCleaner, "");
-                stack = stack.replace(/^Error/m, error.name + " " + error.message);
-                return new Stack({
-                    string: stack
-                });
-            }
-        }).instance()
-    });
-
-    var InvalidConfiguration = Error.extend({
-        name: "InvalidConfiguration"
-    });
-
-    var InvalidArguments = Error.extend({
-        name: "InvalidArguments"
-    });
-
-    InvalidArguments.Empty = InvalidArguments.extend({
-        message: "Arguments required."
-    });
-
-    Container.FactoryRequired = InvalidArguments.extend({
-        message: "Factory instance required."
+        FactoryRequired: InvalidArguments.extend({
+            message: "Factory instance required."
+        })
     });
 
     var Publisher = Object.extend({
@@ -418,15 +463,30 @@ module.exports = (function (NativeObject, NativeError) {
         })
     });
 
+    Stack.instance = new Container().add({
+        factory: Factory.extend({
+            create: (function (instance) {
+                return function (Stack, nativeError) {
+                    return instance.call(Stack, nativeError);
+                }
+            })(Stack.instance)
+        }).instance(),
+        isDefault: true
+    }).wrap({
+        passContext: true
+    });
+
     return {
+        id: id,
         Object: Object,
-        Factory: Factory,
-        Container: Container,
-        Stack: Stack,
         Error: Error,
         InvalidConfiguration: InvalidConfiguration,
         InvalidArguments: InvalidArguments,
-        id: id,
+        Stack: Stack,
+        Frame: Frame,
+        Plugin: Plugin,
+        Factory: Factory,
+        Container: Container,
         Publisher: Publisher,
         Subscription: Subscription,
         Subscriber: Subscriber,

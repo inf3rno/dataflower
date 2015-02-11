@@ -80,6 +80,15 @@ describe("df", function () {
                 expect(new Publisher().id).not.toEqual(Publisher.prototype.id);
             });
 
+            it("accepts configuration options", function () {
+
+                var o = {
+                    x: {}
+                };
+                var publisher = new Publisher(o);
+                expect(publisher.x).toBe(o.x);
+            });
+
         });
 
         describe("addSubscription", function () {

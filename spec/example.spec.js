@@ -55,7 +55,7 @@ describe("example", function () {
     });
 
 
-    describe("2. container, factory, custom errors", function () {
+    describe("2. container, factory, custom errors, plugins", function () {
 
         it("implements container, factory", function () {
 
@@ -151,7 +151,21 @@ describe("example", function () {
                 expect(err.stack).toBeDefined();
             }
 
+        });
 
+        it("implements Plugin", function () {
+
+            var plugin = new df.Plugin({
+                test: function () {
+                    return false;
+                },
+                setup: function () {
+                    console.log("Installing plugin.");
+                }
+            });
+            if (plugin.isCompatible())
+                plugin.install(); // won't install because of failing test
+            expect(plugin.installed).toBe(false);
         });
 
     });

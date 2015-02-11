@@ -73,7 +73,7 @@ var id2 = df.id();
 console.log(id1 != id2); //true
 ```
 
-#### 2. container, factory, custom errors
+#### 2. container, factory, custom errors, plugins
 
 ```js
 var Cat = df.Object.extend({
@@ -169,6 +169,22 @@ try {
 } catch (err) {
 
 }
+```
+
+```js
+var plugin = new df.Plugin({
+    test: function () {
+        return false;
+    },
+    setup: function () {
+        console.log("Installing plugin.");
+    }
+});
+
+if (plugin.isCompatible())
+    plugin.install(); // won't install because of failing test
+
+console.log(plugin.installed); //false
 ```
 
 #### 3. pub/sub pattern

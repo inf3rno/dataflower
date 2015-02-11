@@ -1,0 +1,116 @@
+var df = require("./df");
+var NativeError = Error;
+var Factory = df.Factory;
+var Object = df.Object;
+var Stack = df.Stack;
+var Frame = df.Frame;
+var InvalidArguments = df.InvalidArguments;
+var InvalidConfiguration = df.InvalidConfiguration;
+var Plugin = df.Plugin;
+
+var StackFactory = Factory.extend({
+    parser: undefined,
+    init: function (options) {
+        Factory.prototype.init.apply(this, arguments);
+        if (!this.parser)
+            throw new StackFactory.StackStringParserRequired();
+    },
+    create: function (Stack, nativeError) {
+        if (nativeError.stack !== undefined)
+            return this.parser.parse(Stack, nativeError.stack);
+    }
+}, {
+    StackStringParserRequired: InvalidConfiguration.extend({
+        message: "StackStringParser required."
+    })
+});
+
+var StackStringParser = Object.extend({
+    messageFinder: /^[^\n]*\n/,
+    inheritanceRelatedFramesFinder: /^[\s\S]*?\s+new\s+[^\n]+\n/,
+    frameFinders: [
+        {
+            pattern: /^\s*at\s+(?:\s*(.*?)\s*)\((.+):(\d+):(\d+)\)\s*$/,
+            processor: function (match) {
+                return {
+                    description: match[1],
+                    path: match[2],
+                    row: Number(match[3]),
+                    col: Number(match[4])
+                }
+            }
+        },
+        {
+            pattern: /^\s*at\s+(.+):(\d+):(\d+)\s*$/,
+            processor: function (match) {
+                return {
+                    description: "",
+                    path: match[1],
+                    row: Number(match[2]),
+                    col: Number(match[3])
+                }
+            }
+        }
+
+    ],
+    parse: function (Stack, stackString) {
+        var rawFramesString = this.removeMessage(stackString);
+        var framesString = this.removeInheritanceRelatedFrames(rawFramesString);
+        var frames = this.parseFramesString(framesString);
+        return new Stack({
+            frames: frames
+        });
+    },
+    removeMessage: function (stackString) {
+        return stackString.replace(this.messageFinder, "");
+    },
+    removeInheritanceRelatedFrames: function (rawFramesString) {
+        return rawFramesString.replace(this.inheritanceRelatedFramesFinder, "");
+    },
+    parseFramesString: function (framesString) {
+        var frameStrings = framesString.split("\n");
+        var frames = [];
+        for (var index = 0, length = frameStrings.length; index < length; ++index) {
+            var options = this.parseFrameString(frameStrings[index]);
+            frames.push(new Frame(options));
+        }
+        return frames;
+    },
+    parseFrameString: function (frameString) {
+        for (var index = 0, length = this.frameFinders.length; index < length; ++index) {
+            var frameFinder = this.frameFinders[index];
+            var match = frameString.match(frameFinder.pattern);
+            if (match)
+                return frameFinder.processor(match);
+        }
+        throw new StackStringParser.UnknownFrameFormat();
+    }
+}, {
+    UnknownFrameFormat: InvalidArguments.extend({
+        message: "Unknown frame format"
+    })
+});
+
+
+module.exports = new Plugin({
+    StackStringParser: StackStringParser,
+    StackFactory: StackFactory,
+    stackFactory: StackFactory.instance({
+        parser: StackStringParser.instance()
+    }),
+    test: function () {
+        try {
+            var stack = this.stackFactory.create(Stack, new NativeError());
+            stack.toString();
+            return true;
+        } catch (error) {
+            this.error = error;
+            return false;
+        }
+    },
+    setup: function () {
+        Stack.instance.container.add({
+            factory: this.stackFactory
+        });
+    }
+});
