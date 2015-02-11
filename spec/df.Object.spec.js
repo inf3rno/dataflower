@@ -32,7 +32,7 @@ describe("df", function () {
 
         describe("clone", function () {
 
-            it("should clone the given instance of the Object with shallow copy", function () {
+            it("clones the given instance of the Object with shallow copy", function () {
 
                 var instance = Object.instance({
                     a: 1,
@@ -49,7 +49,7 @@ describe("df", function () {
             });
 
 
-            it("should clone the given instance with prototypal inheritance", function () {
+            it("clones the given instance with prototypal inheritance", function () {
 
                 var instance = Object.instance({
                     a: 1,
@@ -69,7 +69,7 @@ describe("df", function () {
                 expect(clone2.d).toBeUndefined();
             });
 
-            it("should clone native objects as well", function () {
+            it("clones native objects as well", function () {
 
                 var instance = {
                     a: 1,
@@ -82,7 +82,7 @@ describe("df", function () {
 
             });
 
-            it("should clone descendants based on their custom cloning methods", function () {
+            it("clones descendants based on their custom cloning methods", function () {
 
                 var Descendant = Object.extend({
                     x: undefined,
@@ -126,17 +126,7 @@ describe("df", function () {
 
         describe("extend", function () {
 
-            it("does not keep the abstract init if it is overridden", function () {
-                var Descendant = Object.extend({
-                    init: function () {
-                    }
-                });
-                expect(function () {
-                    new Descendant();
-                }).not.toThrow();
-            });
-
-            it("calls the init of the descendant if it is overridden", function () {
+            it("calls the init of the descendant", function () {
                 var mockInit = jasmine.createSpy();
                 var Descendant = Object.extend({
                     init: mockInit
@@ -166,7 +156,7 @@ describe("df", function () {
                 expect(mockInits.descendant).toHaveBeenCalledWith(4, 5, 6);
             });
 
-            it("overrides properties in the prototype if they are given", function () {
+            it("overrides properties in the prototype with given ones", function () {
                 var properties = {
                     a: 1,
                     b: "b",
@@ -176,6 +166,18 @@ describe("df", function () {
                 expect(Descendant.prototype).not.toBe(properties);
                 for (var property in properties)
                     expect(Descendant.prototype[property]).toBe(properties[property]);
+            });
+
+            it("overrides native methods like toString, in the prototype with the given ones", function () {
+
+                var log = jasmine.createSpy().and.callFake(function () {
+                    return "";
+                });
+                var Descendant = Object.extend({
+                    toString: log
+                });
+                String(Descendant.prototype);
+                expect(log).toHaveBeenCalled();
             });
 
             it("uses prototypal inheritance, so by the instances the instanceOf works on both of the ancestor and descendant", function () {
@@ -191,7 +193,7 @@ describe("df", function () {
                 expect(instance instanceof Descendant).toBe(true);
             });
 
-            it("should not override the ancestor by changes of the descendant or any instance", function () {
+            it("does not override the ancestor by changes of the descendant or any instance", function () {
                 var mockClass = function (Subject) {
                     var Surrogate = function () {
                         Surrogate.prototype.constructor.apply(this, arguments);
@@ -235,13 +237,13 @@ describe("df", function () {
                 expect(m.a).toBe(2);
             });
 
-            it("should inherit static properties to the descendant", function () {
+            it("inherits static properties to the descendant", function () {
                 var My = Object.extend();
                 expect(My.extend).toBe(Object.extend);
                 expect(My.instance).toBe(Object.instance);
             });
 
-            it("should override static properties of the descendant when new static properties given", function () {
+            it("overrides static properties of the descendant when new static properties given", function () {
                 var My = Object.extend(null, {
                     instance: function () {
                     },
@@ -269,6 +271,18 @@ describe("df", function () {
                 expect(object.method).not.toHaveBeenCalled();
                 object.method(13);
                 expect(object.method).toHaveBeenCalledWith(13);
+            });
+
+            it("overrides native methods like toString with the given ones", function () {
+                var object = Object.instance();
+                var log = jasmine.createSpy().and.callFake(function () {
+                    return "";
+                });
+                object.configure({
+                    toString: log
+                });
+                String(object);
+                expect(log).toHaveBeenCalled();
             });
 
             it("calls init when it was redefined", function () {
