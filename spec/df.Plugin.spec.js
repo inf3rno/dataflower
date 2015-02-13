@@ -20,7 +20,7 @@ describe("df", function () {
 
         });
 
-        describe("isCompatible", function () {
+        describe("compatible", function () {
 
             it("calls test once", function () {
 
@@ -35,11 +35,11 @@ describe("df", function () {
                 expect(plugin.test).not.toHaveBeenCalled();
 
                 shouldThrow = false;
-                expect(plugin.isCompatible()).toBe(true);
+                expect(plugin.compatible()).toBe(true);
                 expect(plugin.test).toHaveBeenCalled();
 
                 shouldThrow = true;
-                expect(plugin.isCompatible()).toBe(true);
+                expect(plugin.compatible()).toBe(true);
                 expect(plugin.test.calls.count()).toBe(1);
             });
 

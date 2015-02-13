@@ -183,7 +183,7 @@ var plugin = new df.Plugin({
     }
 });
 
-if (plugin.isCompatible())
+if (plugin.compatible())
     plugin.install(); // won't install because of failing test
 
 console.log(plugin.installed); //false

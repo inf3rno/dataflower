@@ -29,7 +29,7 @@ describe("df.v8", function () {
                     }).toThrow();
 
                     expect(v8.debug()).toBeDefined();
-                    expect(v8.isCompatible()).toBe(false);
+                    expect(v8.compatible()).toBe(false);
                 });
 
             });
@@ -41,7 +41,7 @@ describe("df.v8", function () {
                 }).not.toThrow();
 
                 expect(v8.debug()).toBe(false);
-                expect(v8.isCompatible()).toBe(true);
+                expect(v8.compatible()).toBe(true);
 
             });
         });

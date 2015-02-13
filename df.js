@@ -182,14 +182,14 @@ module.exports = (function (NativeObject, NativeError) {
             this.configure(options);
         },
         install: function () {
-            if (!this.isCompatible())
+            if (!this.compatible())
                 throw new Plugin.Incompatible();
             if (this.installed)
                 return;
             this.setup();
             this.installed = true;
         },
-        isCompatible: function () {
+        compatible: function () {
             if (this.error === undefined)
                 try {
                     this.test();
@@ -200,7 +200,7 @@ module.exports = (function (NativeObject, NativeError) {
             return !this.error;
         },
         debug: function () {
-            this.isCompatible();
+            this.compatible();
             return this.error;
         },
         test: function () {

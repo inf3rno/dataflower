@@ -163,7 +163,7 @@ describe("example", function () {
                     console.log("Installing plugin.");
                 }
             });
-            if (plugin.isCompatible())
+            if (plugin.compatible())
                 plugin.install(); // won't install because of failing test
             expect(plugin.installed).toBe(false);
         });
