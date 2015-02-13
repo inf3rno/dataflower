@@ -189,6 +189,19 @@ if (plugin.compatible())
 console.log(plugin.installed); //false
 ```
 
+```js
+var dependency = require("dependency");
+
+// plugin classes come here
+
+module.exports = new Plugin({
+    setup: function (){
+        dependency.install();  // throws Error if cannot install dependency
+        // other stuff related to install
+    }
+});
+```
+
 #### 3. pub/sub pattern
 
 ```js
