@@ -1,11 +1,11 @@
-var df = require("../df");
+var df = require("dflo2");
 
 describe("df", function () {
 
-    var Subscriber = df.Subscriber;
-    var InvalidArguments = df.InvalidArguments;
-    var Publisher = df.Publisher;
-    var Subscription = df.Subscription;
+    var Subscriber = df.Subscriber,
+        InvalidArguments = df.InvalidArguments,
+        Publisher = df.Publisher,
+        Subscription = df.Subscription;
 
     describe("Subscriber", function () {
 
@@ -31,8 +31,8 @@ describe("df", function () {
             it("accepts a callback function", function () {
 
                 var callback = function () {
-                };
-                var subscriber = Subscriber.instance(callback);
+                    },
+                    subscriber = Subscriber.instance(callback);
                 expect(subscriber instanceof Subscriber);
                 expect(subscriber.callback).toBe(callback);
 
@@ -70,22 +70,22 @@ describe("df", function () {
             it("accepts Subscriber instance and returns it", function () {
 
                 var subscriber = new Subscriber({
-                    callback: function () {
-                    }
-                });
-                var subscriber2 = Subscriber.instance(subscriber);
+                        callback: function () {
+                        }
+                    }),
+                    subscriber2 = Subscriber.instance(subscriber);
                 expect(subscriber2).toBe(subscriber);
 
             });
 
             it("returns Descendant instances by inheritation", function () {
 
-                var log = jasmine.createSpy();
-                var Descendant = Subscriber.extend({
-                    init: log
-                });
-                var callback = function () {
-                };
+                var log = jasmine.createSpy(),
+                    Descendant = Subscriber.extend({
+                        init: log
+                    }),
+                    callback = function () {
+                    };
                 expect(log).not.toHaveBeenCalled();
                 var instance = Descendant.instance(callback);
                 expect(log).toHaveBeenCalledWith({callback: callback});
@@ -144,10 +144,10 @@ describe("df", function () {
             it("subscribes to the given publisher", function () {
 
                 var subscriber = new Subscriber({
-                    callback: jasmine.createSpy()
-                });
-                var publisher = new Publisher();
-                var subscription = subscriber.subscribe(publisher);
+                        callback: jasmine.createSpy()
+                    }),
+                    publisher = new Publisher(),
+                    subscription = subscriber.subscribe(publisher);
 
                 expect(subscription instanceof Subscription);
 
@@ -176,12 +176,12 @@ describe("df", function () {
             it("accepts Publisher instantiation arguments", function () {
 
                 var o = {
-                    x: {}
-                };
-                var subscriber = new Subscriber({
-                    callback: jasmine.createSpy()
-                });
-                var subscription = subscriber.subscribe(o);
+                        x: {}
+                    },
+                    subscriber = new Subscriber({
+                        callback: jasmine.createSpy()
+                    }),
+                    subscription = subscriber.subscribe(o);
                 expect(subscription.publisher instanceof Publisher).toBe(true);
                 expect(subscription.publisher.x).toBe(o.x);
             });

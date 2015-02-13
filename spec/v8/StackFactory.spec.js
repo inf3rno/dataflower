@@ -1,13 +1,13 @@
-var df = require("../../df");
-var v8 = require("../../df.v8");
-var NativeObject = Object;
-var NativeError = Error;
+var NativeObject = Object,
+    NativeError = Error,
+    df = require("dflo2"),
+    v8 = require("dflo2/v8");
 
-describe("df.v8", function () {
+describe("v8", function () {
 
-    var StackFactory = v8.StackFactory;
-    var StackStringParser = v8.StackStringParser;
-    var Stack = df.Stack;
+    var StackFactory = v8.StackFactory,
+        StackStringParser = v8.StackStringParser,
+        Stack = df.Stack;
 
     describe("StackFactory", function () {
 

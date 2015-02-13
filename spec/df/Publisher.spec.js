@@ -1,10 +1,10 @@
-var df = require("../df");
+var df = require("dflo2");
 
 describe("df", function () {
 
-    var Publisher = df.Publisher;
-    var Subscription = df.Subscription;
-    var InvalidArguments = df.InvalidArguments;
+    var Publisher = df.Publisher,
+        Subscription = df.Subscription,
+        InvalidArguments = df.InvalidArguments;
 
     describe("Publisher", function () {
 
@@ -19,16 +19,16 @@ describe("df", function () {
 
             it("accepts Publisher instance and returns it", function () {
 
-                var publisher = new Publisher();
-                var publisher2 = Publisher.instance(publisher);
+                var publisher = new Publisher(),
+                    publisher2 = Publisher.instance(publisher);
                 expect(publisher2).toBe(publisher);
 
             });
 
             it("accepts wrapper and returns its Publisher", function () {
 
-                var publisher = new Publisher();
-                var publisher2 = Publisher.instance(publisher.wrap());
+                var publisher = new Publisher(),
+                    publisher2 = Publisher.instance(publisher.wrap());
                 expect(publisher2).toBe(publisher);
             });
 
@@ -36,9 +36,9 @@ describe("df", function () {
             it("accepts configuration options", function () {
 
                 var o = {
-                    x: {}
-                };
-                var publisher = Publisher.instance(o);
+                        x: {}
+                    },
+                    publisher = Publisher.instance(o);
                 expect(publisher instanceof Publisher).toBe(true);
                 expect(publisher.x).toBe(o.x);
             });
@@ -61,10 +61,10 @@ describe("df", function () {
 
             it("returns Descendant instances by inheritation", function () {
 
-                var log = jasmine.createSpy();
-                var Descendant = Publisher.extend({
-                    init: log
-                });
+                var log = jasmine.createSpy(),
+                    Descendant = Publisher.extend({
+                        init: log
+                    });
                 expect(log).not.toHaveBeenCalled();
                 var instance = Descendant.instance();
                 expect(log).toHaveBeenCalledWith();
@@ -83,9 +83,9 @@ describe("df", function () {
             it("accepts configuration options", function () {
 
                 var o = {
-                    x: {}
-                };
-                var publisher = new Publisher(o);
+                        x: {}
+                    },
+                    publisher = new Publisher(o);
                 expect(publisher.x).toBe(o.x);
             });
 
@@ -181,8 +181,8 @@ describe("df", function () {
 
             it("has a publisher property", function () {
 
-                var publisher = new Publisher();
-                var wrapper = publisher.wrap();
+                var publisher = new Publisher(),
+                    wrapper = publisher.wrap();
                 expect(wrapper.publisher).toBe(publisher);
             });
 

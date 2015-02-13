@@ -1,11 +1,11 @@
 var NativeObject = Object,
     NativeError = Error,
-    df = require("../df");
+    df = require("dflo2");
 
 describe("df", function () {
 
-    var Object = df.Object;
-    var InvalidArguments = df.InvalidArguments;
+    var Object = df.Object,
+        InvalidArguments = df.InvalidArguments;
 
     describe("Object", function () {
 
@@ -18,10 +18,10 @@ describe("df", function () {
 
             it("creates Descendant instances by inheritation", function () {
 
-                var log = jasmine.createSpy();
-                var Descendant = Object.extend({
-                    init: log
-                });
+                var log = jasmine.createSpy(),
+                    Descendant = Object.extend({
+                        init: log
+                    });
                 expect(log).not.toHaveBeenCalled();
                 var instance = Descendant.instance(1, 2, 3);
                 expect(log).toHaveBeenCalledWith(1, 2, 3);
@@ -35,10 +35,10 @@ describe("df", function () {
             it("clones the given instance of the Object with shallow copy", function () {
 
                 var instance = Object.instance({
-                    a: 1,
-                    b: {}
-                });
-                var clone = Object.clone(instance);
+                        a: 1,
+                        b: {}
+                    }),
+                    clone = Object.clone(instance);
 
                 expect(clone).not.toBe(instance);
                 expect(clone.a).toEqual(instance.a);
@@ -52,11 +52,11 @@ describe("df", function () {
             it("clones the given instance with prototypal inheritance", function () {
 
                 var instance = Object.instance({
-                    a: 1,
-                    b: {}
-                });
-                var clone = Object.clone(instance);
-                var clone2 = Object.clone(instance);
+                        a: 1,
+                        b: {}
+                    }),
+                    clone = Object.clone(instance),
+                    clone2 = Object.clone(instance);
 
                 instance.c = {};
                 expect(instance.c).toBeDefined();
@@ -72,10 +72,10 @@ describe("df", function () {
             it("clones native objects as well", function () {
 
                 var instance = {
-                    a: 1,
-                    b: {}
-                };
-                var clone = Object.clone(instance);
+                        a: 1,
+                        b: {}
+                    },
+                    clone = Object.clone(instance);
                 expect(clone).not.toBe(instance);
                 expect(clone.a).toEqual(instance.a);
                 expect(clone.b).toBe(instance.b);
@@ -85,37 +85,35 @@ describe("df", function () {
             it("clones descendants based on their custom cloning methods", function () {
 
                 var Descendant = Object.extend({
-                    x: undefined,
-                    o: undefined,
-                    init: function () {
-                        this.x = {};
-                        this.o = {
-                            a: 1,
-                            b: {}
-                        };
-                    }
-                }, {
-                    clone: function (instance) {
-                        if (!(instance instanceof Descendant))
-                            throw new InvalidArguments("Invalid instance type");
-                        var clone = NativeObject.create(instance);
-                        clone.o = Object.clone(clone.o);
-                        return clone;
-                    }
-                });
-                var instance = new Descendant();
-
-                var compare = function (clone, instance) {
-                    expect(clone).not.toBe(instance);
-                    expect(clone instanceof Descendant).toBe(true);
-                    expect(clone.x).toBe(instance.x);
-                    expect(clone.o).not.toBe(instance.o);
-                    expect(clone.o.a).toEqual(instance.o.a);
-                    expect(clone.o.b).toBe(instance.o.b);
-                };
-
-                var clone = Object.clone(instance);
-                var clone2 = Descendant.clone(instance);
+                        x: undefined,
+                        o: undefined,
+                        init: function () {
+                            this.x = {};
+                            this.o = {
+                                a: 1,
+                                b: {}
+                            };
+                        }
+                    }, {
+                        clone: function (instance) {
+                            if (!(instance instanceof Descendant))
+                                throw new InvalidArguments("Invalid instance type");
+                            var clone = NativeObject.create(instance);
+                            clone.o = Object.clone(clone.o);
+                            return clone;
+                        }
+                    }),
+                    instance = new Descendant(),
+                    compare = function (clone, instance) {
+                        expect(clone).not.toBe(instance);
+                        expect(clone instanceof Descendant).toBe(true);
+                        expect(clone.x).toBe(instance.x);
+                        expect(clone.o).not.toBe(instance.o);
+                        expect(clone.o.a).toEqual(instance.o.a);
+                        expect(clone.o.b).toBe(instance.o.b);
+                    },
+                    clone = Object.clone(instance),
+                    clone2 = Descendant.clone(instance);
 
                 compare(clone, instance);
                 compare(clone2, instance);
@@ -127,10 +125,10 @@ describe("df", function () {
         describe("extend", function () {
 
             it("calls the init of the descendant", function () {
-                var mockInit = jasmine.createSpy();
-                var Descendant = Object.extend({
-                    init: mockInit
-                });
+                var mockInit = jasmine.createSpy(),
+                    Descendant = Object.extend({
+                        init: mockInit
+                    });
                 new Descendant();
                 expect(mockInit).toHaveBeenCalled();
                 new Descendant();
@@ -139,16 +137,16 @@ describe("df", function () {
 
             it("does not call the init of an ancestor automatically", function () {
                 var mockInits = {
-                    ancestor: jasmine.createSpy(),
-                    descendant: jasmine.createSpy()
-                };
-                var Descendant = Object
-                    .extend({
-                        init: mockInits.ancestor
-                    })
-                    .extend({
-                        init: mockInits.descendant
-                    });
+                        ancestor: jasmine.createSpy(),
+                        descendant: jasmine.createSpy()
+                    },
+                    Descendant = Object
+                        .extend({
+                            init: mockInits.ancestor
+                        })
+                        .extend({
+                            init: mockInits.descendant
+                        });
                 new Descendant(1, 2, 3);
                 expect(mockInits.ancestor).not.toHaveBeenCalled();
                 expect(mockInits.descendant).toHaveBeenCalledWith(1, 2, 3);
@@ -158,11 +156,11 @@ describe("df", function () {
 
             it("overrides properties in the prototype with given ones", function () {
                 var properties = {
-                    a: 1,
-                    b: "b",
-                    c: {}
-                };
-                var Descendant = Object.extend(properties);
+                        a: 1,
+                        b: "b",
+                        c: {}
+                    },
+                    Descendant = Object.extend(properties);
                 expect(Descendant.prototype).not.toBe(properties);
                 for (var property in properties)
                     expect(Descendant.prototype[property]).toBe(properties[property]);
@@ -171,22 +169,22 @@ describe("df", function () {
             it("overrides native methods like toString, in the prototype with the given ones", function () {
 
                 var log = jasmine.createSpy().and.callFake(function () {
-                    return "";
-                });
-                var Descendant = Object.extend({
-                    toString: log
-                });
+                        return "";
+                    }),
+                    Descendant = Object.extend({
+                        toString: log
+                    });
                 String(Descendant.prototype);
                 expect(log).toHaveBeenCalled();
             });
 
             it("uses prototypal inheritance, so by the instances the instanceOf works on both of the ancestor and descendant", function () {
                 var Ancestor = Object.extend({
-                    init: function () {
-                    }
-                });
-                var Descendant = Ancestor.extend();
-                var instance = new Descendant();
+                        init: function () {
+                        }
+                    }),
+                    Descendant = Ancestor.extend(),
+                    instance = new Descendant();
 
                 expect(instance instanceof Object).toBe(true);
                 expect(instance instanceof Ancestor).toBe(true);
@@ -195,17 +193,16 @@ describe("df", function () {
 
             it("does not override the ancestor by changes of the descendant or any instance", function () {
                 var mockClass = function (Subject) {
-                    var Surrogate = function () {
-                        Surrogate.prototype.constructor.apply(this, arguments);
+                        var Surrogate = function () {
+                            Surrogate.prototype.constructor.apply(this, arguments);
+                        };
+                        Surrogate.prototype = NativeObject.create(Subject.prototype);
+                        Surrogate.prototype.constructor = Subject;
+                        return Surrogate;
+                    },
+                    My = function (a) {
+                        this.init(a);
                     };
-                    Surrogate.prototype = NativeObject.create(Subject.prototype);
-                    Surrogate.prototype.constructor = Subject;
-                    return Surrogate;
-                };
-
-                var My = function (a) {
-                    this.init(a);
-                };
                 My.prototype = {
                     init: function (a) {
                         this.setA(a);
@@ -261,10 +258,10 @@ describe("df", function () {
 
             it("overrides instance properties with the given ones", function () {
                 var options = {
-                    property: {},
-                    method: jasmine.createSpy()
-                };
-                var object = Object.instance();
+                        property: {},
+                        method: jasmine.createSpy()
+                    },
+                    object = Object.instance();
                 object.configure(options);
                 expect(object.property).toBe(options.property);
                 expect(object.method).toBe(options.method);
@@ -274,10 +271,10 @@ describe("df", function () {
             });
 
             it("overrides native methods like toString with the given ones", function () {
-                var object = Object.instance();
-                var log = jasmine.createSpy().and.callFake(function () {
-                    return "";
-                });
+                var object = Object.instance(),
+                    log = jasmine.createSpy().and.callFake(function () {
+                        return "";
+                    });
                 object.configure({
                     toString: log
                 });
@@ -288,10 +285,10 @@ describe("df", function () {
             it("calls init when it was redefined", function () {
 
                 var options = {
-                    init: jasmine.createSpy(),
-                    method: jasmine.createSpy()
-                };
-                var object = Object.instance();
+                        init: jasmine.createSpy(),
+                        method: jasmine.createSpy()
+                    },
+                    object = Object.instance();
                 object.configure(options, [13, 14]);
                 expect(options.init).toHaveBeenCalledWith(13, 14);
                 expect(options.method).not.toHaveBeenCalled();

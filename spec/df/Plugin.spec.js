@@ -1,5 +1,5 @@
-var df = require("../df"),
-    NativeError = Error,
+var NativeError = Error,
+    df = require("dflo2"),
     InvalidArguments = df.InvalidArguments;
 
 describe("df", function () {
@@ -17,9 +17,9 @@ describe("df", function () {
             it("accepts configuration options", function () {
 
                 var o = {
-                    x: {}
-                };
-                var plugin = new Plugin(o);
+                        x: {}
+                    },
+                    plugin = new Plugin(o);
                 expect(plugin.x).toBe(o.x);
             });
 
@@ -30,9 +30,9 @@ describe("df", function () {
             it("calls test once", function () {
 
                 var plugin = new Plugin({
-                    test: jasmine.createSpy()
-                });
-                var shouldThrow;
+                        test: jasmine.createSpy()
+                    }),
+                    shouldThrow;
                 plugin.test.and.callFake(function () {
                     if (shouldThrow)
                         throw new NativeError();
@@ -54,12 +54,12 @@ describe("df", function () {
 
             it("returns the error if the test failed", function () {
 
-                var error = new NativeError();
-                var plugin = new Plugin({
-                    test: function () {
-                        throw error;
-                    }
-                });
+                var error = new NativeError(),
+                    plugin = new Plugin({
+                        test: function () {
+                            throw error;
+                        }
+                    });
                 expect(plugin.debug()).toBe(error);
 
             });
@@ -103,8 +103,8 @@ describe("df", function () {
 
             it("accepts only Plugins as dependencies", function () {
 
-                var a = new Plugin();
-                var b = new Plugin();
+                var a = new Plugin(),
+                    b = new Plugin();
 
                 expect(function () {
                     b.dependency(a);
@@ -119,12 +119,12 @@ describe("df", function () {
             it("calls compatible on dependencies by checking compatibility", function () {
 
                 var a = new Plugin({
-                    compatible: jasmine.createSpy()
-                });
-                var b = new Plugin({
-                    compatible: jasmine.createSpy()
-                });
-                var c = new Plugin();
+                        compatible: jasmine.createSpy()
+                    }),
+                    b = new Plugin({
+                        compatible: jasmine.createSpy()
+                    }),
+                    c = new Plugin();
 
                 c.dependency(a, b);
                 expect(a.compatible).not.toHaveBeenCalled();
@@ -137,12 +137,12 @@ describe("df", function () {
             it("calls install on dependencies before installing", function () {
 
                 var a = new Plugin({
-                    install: jasmine.createSpy()
-                });
-                var b = new Plugin({
-                    install: jasmine.createSpy()
-                });
-                var c = new Plugin();
+                        install: jasmine.createSpy()
+                    }),
+                    b = new Plugin({
+                        install: jasmine.createSpy()
+                    }),
+                    c = new Plugin();
 
                 c.dependency(a, b);
                 expect(a.install).not.toHaveBeenCalled();

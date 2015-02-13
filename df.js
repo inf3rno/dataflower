@@ -401,7 +401,7 @@ module.exports = (function (NativeObject, NativeError) {
         }
     }, {
         instance: new Container().add({
-            factory: Factory.extend({
+            factory: new Factory({
                 create: function (Subscription, options) {
                     if (arguments.length == 1)
                         throw new InvalidArguments.Empty();
@@ -413,17 +413,17 @@ module.exports = (function (NativeObject, NativeError) {
                     options.subscriber = Subscriber.instance(options.subscriber);
                     return new Subscription(options);
                 }
-            }).instance(),
+            }),
             isDefault: true
         }).add({
-            factory: Factory.extend({
+            factory: new Factory({
                 create: function (Subscription, instance) {
                     if (instance instanceof Subscription)
                         return instance;
                 }
-            }).instance()
+            })
         }).add({
-            factory: Factory.extend({
+            factory: new Factory({
                 create: function (Subscription, publisher, subscriber) {
                     if (arguments.length == 3)
                         return Subscription.instance({
@@ -431,7 +431,7 @@ module.exports = (function (NativeObject, NativeError) {
                             subscriber: subscriber
                         });
                 }
-            }).instance()
+            })
         }).wrap({
             passContext: true
         }),
@@ -466,7 +466,7 @@ module.exports = (function (NativeObject, NativeError) {
         }
     }, {
         instance: new Container().add({
-            factory: Factory.extend({
+            factory: new Factory({
                 create: function (Subscriber, options) {
                     if (arguments.length == 1)
                         throw new InvalidArguments.Empty();
@@ -480,15 +480,15 @@ module.exports = (function (NativeObject, NativeError) {
                         throw new InvalidArguments();
                     return new Subscriber(options);
                 }
-            }).instance(),
+            }),
             isDefault: true
         }).add({
-            factory: Factory.extend({
+            factory: new Factory({
                 create: function (Subscriber, instance) {
                     if (instance instanceof Subscriber)
                         return instance;
                 }
-            }).instance()
+            })
         }).wrap({
             passContext: true
         }),
@@ -498,13 +498,13 @@ module.exports = (function (NativeObject, NativeError) {
     });
 
     Stack.instance = new Container().add({
-        factory: Factory.extend({
+        factory: new Factory({
             create: (function (instance) {
                 return function (Stack, nativeError) {
                     return instance.call(Stack, nativeError);
                 }
             })(Stack.instance)
-        }).instance(),
+        }),
         isDefault: true
     }).wrap({
         passContext: true

@@ -1,11 +1,11 @@
-var df = require("../df");
+var df = require("dflo2");
 
 describe("df", function () {
 
-    var Publisher = df.Publisher;
-    var Subscriber = df.Subscriber;
-    var Subscription = df.Subscription;
-    var InvalidArguments = df.InvalidArguments;
+    var Publisher = df.Publisher,
+        Subscriber = df.Subscriber,
+        Subscription = df.Subscription,
+        InvalidArguments = df.InvalidArguments;
 
     describe("Subscription", function () {
 
@@ -34,11 +34,11 @@ describe("df", function () {
 
             it("accepts publisher as first and subscriber as second argument", function () {
 
-                var publisher = new Publisher();
-                var subscriber = new Subscriber({
-                    callback: function () {
-                    }
-                });
+                var publisher = new Publisher(),
+                    subscriber = new Subscriber({
+                        callback: function () {
+                        }
+                    });
                 var subscription = Subscription.instance(publisher, subscriber);
                 expect(subscription instanceof Subscription);
                 expect(subscription.publisher).toBe(publisher);
@@ -84,21 +84,21 @@ describe("df", function () {
             it("accepts Subscription instance and returns it", function () {
 
                 var subscription = new Subscription({
-                    publisher: new Publisher(),
-                    subscriber: new Subscriber({
-                        callback: function () {
-                        }
-                    })
-                });
-                var subscription2 = Subscription.instance(subscription);
+                        publisher: new Publisher(),
+                        subscriber: new Subscriber({
+                            callback: function () {
+                            }
+                        })
+                    }),
+                    subscription2 = Subscription.instance(subscription);
                 expect(subscription2).toBe(subscription);
 
             });
 
             it("accepts Publisher and Subscriber instantiation arguments instead of complete instances", function () {
 
-                var log = jasmine.createSpy();
-                var subscription = Subscription.instance({}, log);
+                var log = jasmine.createSpy(),
+                    subscription = Subscription.instance({}, log);
                 expect(log).not.toHaveBeenCalled();
                 subscription.publisher.publish([1, 2, 3]);
                 expect(log).toHaveBeenCalledWith(1, 2, 3);
@@ -106,17 +106,17 @@ describe("df", function () {
 
             it("returns Descendant instances by inheritation", function () {
 
-                var log = jasmine.createSpy();
-                var Descendant = Subscription.extend({
-                    init: log
-                });
-                var options = {
-                    publisher: new Publisher(),
-                    subscriber: new Subscriber({
-                        callback: function () {
-                        }
-                    })
-                };
+                var log = jasmine.createSpy(),
+                    Descendant = Subscription.extend({
+                        init: log
+                    }),
+                    options = {
+                        publisher: new Publisher(),
+                        subscriber: new Subscriber({
+                            callback: function () {
+                            }
+                        })
+                    };
                 expect(log).not.toHaveBeenCalled();
                 var instance = Descendant.instance(options);
                 expect(log).toHaveBeenCalledWith(options);
@@ -130,8 +130,8 @@ describe("df", function () {
 
             it("requires a publisher and a subscriber", function () {
 
-                var publisher = new Publisher();
-                var mockSubscriber = Object.create(Subscriber.prototype);
+                var publisher = new Publisher(),
+                    mockSubscriber = Object.create(Subscriber.prototype);
 
                 expect(function () {
                     var subscription = new Subscription({
@@ -156,12 +156,12 @@ describe("df", function () {
 
             it("generates an id", function () {
 
-                var publisher = new Publisher();
-                var mockSubscriber = Object.create(Subscriber.prototype);
-                var options = {
-                    publisher: publisher,
-                    subscriber: mockSubscriber
-                };
+                var publisher = new Publisher(),
+                    mockSubscriber = Object.create(Subscriber.prototype),
+                    options = {
+                        publisher: publisher,
+                        subscriber: mockSubscriber
+                    };
                 expect(new Subscription(options).id).not.toBe(new Subscription(options).id);
             });
 
@@ -185,12 +185,12 @@ describe("df", function () {
 
             it("requires the array of arguments", function () {
 
-                var publisher = new Publisher();
-                var mockSubscriber = Object.create(Subscriber.prototype);
-                var subscription = new Subscription({
-                    publisher: publisher,
-                    subscriber: mockSubscriber
-                });
+                var publisher = new Publisher(),
+                    mockSubscriber = Object.create(Subscriber.prototype),
+                    subscription = new Subscription({
+                        publisher: publisher,
+                        subscriber: mockSubscriber
+                    });
 
                 expect(function () {
                     subscription.notify();
@@ -200,8 +200,8 @@ describe("df", function () {
 
             it("notifies the subscriber", function () {
 
-                var publisher = new Publisher();
-                var mockSubscriber = Object.create(Subscriber.prototype);
+                var publisher = new Publisher(),
+                    mockSubscriber = Object.create(Subscriber.prototype);
                 mockSubscriber.receive = jasmine.createSpy();
 
                 var subscription = new Subscription({

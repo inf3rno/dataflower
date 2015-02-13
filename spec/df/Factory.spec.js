@@ -1,4 +1,4 @@
-var df = require("../df");
+var df = require("dflo2");
 
 describe("df", function () {
 
@@ -11,9 +11,9 @@ describe("df", function () {
             it("accepts configuration options", function () {
 
                 var o = {
-                    x: {}
-                };
-                var factory = new Factory(o);
+                        x: {}
+                    },
+                    factory = new Factory(o);
                 expect(factory.x).toBe(o.x);
             });
 
@@ -23,8 +23,8 @@ describe("df", function () {
 
             it("returns undefined", function () {
 
-                var factory = new Factory({});
-                var instance = factory.create();
+                var factory = new Factory({}),
+                    instance = factory.create();
                 expect(instance).toBeUndefined();
 
             });

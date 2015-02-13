@@ -1,9 +1,9 @@
-var df = require("../df");
+var df = require("dflo2");
 
 describe("df", function () {
 
-    var Stack = df.Stack;
-    var Frame = df.Frame;
+    var Stack = df.Stack,
+        Frame = df.Frame;
 
     describe("Stack", function () {
 
@@ -12,9 +12,9 @@ describe("df", function () {
             it("accepts configuration options", function () {
 
                 var o = {
-                    x: {}
-                };
-                var stack = new Stack(o);
+                        x: {}
+                    },
+                    stack = new Stack(o);
                 expect(stack.x).toBe(o.x);
             });
 
@@ -43,8 +43,8 @@ describe("df", function () {
 
             it("converts the frames into string", function () {
 
-                var mockFrame = Object.create(Frame.prototype);
-                var cnt = 0;
+                var mockFrame = Object.create(Frame.prototype),
+                    cnt = 0;
                 mockFrame.toString = function () {
                     return String(++cnt);
                 };

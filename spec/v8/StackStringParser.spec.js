@@ -1,11 +1,11 @@
-var df = require("../../df");
-var v8 = require("../../df.v8");
+var df = require("dflo2"),
+    v8 = require("dflo2/v8");
 
-describe("df.v8", function () {
+describe("v8", function () {
 
-    var StackStringParser = v8.StackStringParser;
-    var Stack = df.Stack;
-    var Frame = df.Frame;
+    var StackStringParser = v8.StackStringParser,
+        Stack = df.Stack,
+        Frame = df.Frame;
 
     describe("StackStringParser", function () {
 
@@ -13,16 +13,15 @@ describe("df.v8", function () {
 
             it("creates a Stack from the stack string", function () {
                 var stackString = [
-                    "Error",
-                    "	at module.exports.extend.init (http://example.com/df.js:75:31)",
-                    "	at new Descendant (http://example.com/df.js:11:27)",
-                    "	at custom (http://example.com/spec/example.spec.js:222:23)",
-                    "	at Object.<anonymous> (http://example.com/spec/example.spec.js:224:13)",
-                    "	at http://example.com/spec/example.spec.js:10:20"
-                ].join("\n");
-
-                var parser = new StackStringParser();
-                var StackRelative = Stack.extend();
+                        "Error",
+                        "	at module.exports.extend.init (http://example.com/df.js:75:31)",
+                        "	at new Descendant (http://example.com/df.js:11:27)",
+                        "	at custom (http://example.com/spec/example.spec.js:222:23)",
+                        "	at Object.<anonymous> (http://example.com/spec/example.spec.js:224:13)",
+                        "	at http://example.com/spec/example.spec.js:10:20"
+                    ].join("\n"),
+                    parser = new StackStringParser(),
+                    StackRelative = Stack.extend();
 
                 var stack = parser.parse(StackRelative, stackString);
                 expect(stack instanceof StackRelative);

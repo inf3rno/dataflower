@@ -1,12 +1,12 @@
-var df = require("./df");
-var NativeError = Error;
-var Factory = df.Factory;
-var Object = df.Object;
-var Stack = df.Stack;
-var Frame = df.Frame;
-var InvalidArguments = df.InvalidArguments;
-var InvalidConfiguration = df.InvalidConfiguration;
-var Plugin = df.Plugin;
+var NativeError = Error,
+    df = require("dflo2"),
+    Factory = df.Factory,
+    Object = df.Object,
+    Stack = df.Stack,
+    Frame = df.Frame,
+    InvalidArguments = df.InvalidArguments,
+    InvalidConfiguration = df.InvalidConfiguration,
+    Plugin = df.Plugin;
 
 var StackFactory = Factory.extend({
     parser: undefined,

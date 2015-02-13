@@ -1,4 +1,4 @@
-var df = require("../df");
+var df = require("dflo2");
 
 describe("df", function () {
 

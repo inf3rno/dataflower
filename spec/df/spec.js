@@ -1,14 +1,14 @@
-var df = require("../df");
+var df = require("dflo2");
 
 describe("df", function () {
 
-    var id = df.id;
-    var publisher = df.publisher;
-    var subscriber = df.subscriber;
-    var subscribe = df.subscribe;
-    var Publisher = df.Publisher;
-    var Subscriber = df.Subscriber;
-    var Subscription = df.Subscription;
+    var id = df.id,
+        publisher = df.publisher,
+        subscriber = df.subscriber,
+        subscribe = df.subscribe,
+        Publisher = df.Publisher,
+        Subscriber = df.Subscriber,
+        Subscription = df.Subscription;
 
     describe("id", function () {
 
