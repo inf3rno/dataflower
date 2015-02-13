@@ -24,20 +24,36 @@ module.exports = (function (NativeObject, NativeError) {
     };
 
     var Object = extend(NativeObject, {
-        configure: function (options) {
+        configure: function (options, preprocessor) {
             if (!this.isOptions(options))
                 return;
-            for (var property in options)
-                this[property] = options[property];
+            if (options.hasOwnProperty("configure")) {
+                this.configure = options.configure;
+                return this.configure.apply(this, arguments);
+            }
+            if (!this.isOptions(preprocessor))
+                preprocessor = {};
+            for (var property in options) {
+                if (property == "init")
+                    continue;
+                var value = options[property];
+                if (!preprocessor.hasOwnProperty(property)) {
+                    this[property] = value;
+                    continue;
+                }
+                var transformer = preprocessor[property];
+                if (!(transformer instanceof Function))
+                    throw new Object.FunctionRequired();
+                this[property] = transformer(value);
+            }
             if (!options.init)
                 return;
-            var parameters = Array.prototype.slice.call(arguments, 1);
-            if (parameters.length == 1) {
-                if (parameters[0] instanceof Array)
-                    parameters = parameters[0];
-                else if (typeof(parameters[0]) == typeof (arguments) && !isNaN(parameters[0].length))
-                    parameters = parameters[0];
-            }
+            this.init = options.init;
+            var parameters = [];
+            if (preprocessor.hasOwnProperty("init"))
+                parameters = preprocessor.init;
+            if (!(parameters instanceof Array))
+                throw new Object.ArgumentsRequired();
             this.init.apply(this, parameters);
         },
         isOptions: function (options) {
@@ -57,7 +73,9 @@ module.exports = (function (NativeObject, NativeError) {
         },
         extend: function (properties, staticProperties) {
             return extend(this, properties, staticProperties);
-        }
+        },
+        FunctionRequired: undefined,
+        ArgumentsRequired: undefined
     });
 
     var Error = extend(NativeError, {
@@ -66,11 +84,11 @@ module.exports = (function (NativeObject, NativeError) {
         message: "",
         configure: Object.prototype.configure,
         isOptions: Object.prototype.isOptions,
-        init: function (options) {
+        init: function (options, preprocessor) {
             this.id = id();
             if (typeof (options) == "string")
                 options = {message: options};
-            this.configure(options);
+            this.configure(options, preprocessor);
 
             var nativeError = new NativeError();
             var error = this;
@@ -105,11 +123,18 @@ module.exports = (function (NativeObject, NativeError) {
         message: "Arguments required."
     });
 
+    Object.FunctionRequired = InvalidConfiguration.extend({
+        message: "Function required as preprocessor."
+    });
+    Object.ArgumentsRequired = InvalidConfiguration.extend({
+        message: "Init arguments required as preprocessor parameter."
+    });
+
     var Stack = Object.extend({
         frames: [],
         string: undefined,
-        init: function (options) {
-            this.configure(options);
+        init: function (options, preprocessor) {
+            this.configure(options, preprocessor);
             if (!(this.frames instanceof Array))
                 throw new Stack.FramesRequired();
             for (var index = 0, length = this.frames.length; index < length; ++index) {
@@ -140,8 +165,8 @@ module.exports = (function (NativeObject, NativeError) {
         row: undefined,
         col: undefined,
         string: undefined,
-        init: function (options) {
-            this.configure(options);
+        init: function (options, preprocessor) {
+            this.configure(options, preprocessor);
             if (typeof (this.description) != "string")
                 throw new Frame.DescriptionRequired();
             if (typeof (this.path) != "string")
@@ -184,10 +209,10 @@ module.exports = (function (NativeObject, NativeError) {
         },
         setup: function () {
         },
-        init: function (options) {
+        init: function (options, preprocessor) {
             this.id = id();
             this.dependencies = {};
-            this.configure(options);
+            this.configure(options, preprocessor);
         },
         install: function () {
             if (this.installed)
@@ -241,8 +266,8 @@ module.exports = (function (NativeObject, NativeError) {
     });
 
     var Factory = Object.extend({
-        init: function (options) {
-            this.configure(options);
+        init: function (options, preprocessor) {
+            this.configure(options, preprocessor);
         },
         create: function () {
         }
@@ -251,8 +276,8 @@ module.exports = (function (NativeObject, NativeError) {
     var Container = Factory.extend({
         factories: undefined,
         defaultFactories: undefined,
-        init: function (options) {
-            Factory.prototype.init.call(this, options);
+        init: function (options, preprocessor) {
+            Factory.prototype.init.call(this, options, preprocessor);
             this.factories = [];
             this.defaultFactories = [];
         },
@@ -318,10 +343,10 @@ module.exports = (function (NativeObject, NativeError) {
         id: undefined,
         subscriptions: undefined,
         wrapper: undefined,
-        init: function (options) {
+        init: function (options, preprocessor) {
             this.id = id();
             this.subscriptions = {};
-            this.configure(options);
+            this.configure(options, preprocessor);
         },
         addSubscription: function (subscription) {
             if (!(subscription instanceof Subscription))
@@ -385,9 +410,9 @@ module.exports = (function (NativeObject, NativeError) {
         id: undefined,
         publisher: undefined,
         subscriber: undefined,
-        init: function (options) {
+        init: function (options, preprocessor) {
             this.id = id();
-            this.configure(options);
+            this.configure(options, preprocessor);
             if (!(this.publisher instanceof Publisher))
                 throw new Subscription.PublisherRequired();
             if (!(this.subscriber instanceof Subscriber))
@@ -448,9 +473,9 @@ module.exports = (function (NativeObject, NativeError) {
 
     var Subscriber = Object.extend({
         id: undefined,
-        init: function (options) {
+        init: function (options, preprocessor) {
             this.id = id();
-            this.configure(options);
+            this.configure(options, preprocessor);
             if (!(this.callback instanceof Function))
                 throw new Subscriber.CallbackRequired();
         },

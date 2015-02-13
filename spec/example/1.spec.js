@@ -34,7 +34,7 @@ describe("example", function () {
                 init: function (postfix) {
                     this.name += " " + postfix;
                 }
-            }, "Cat");
+            }, {init: ["Cat"]});
             kitty.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat: meow");
             kitty.init("from London");

@@ -10,7 +10,7 @@ var NativeError = Error,
 
 var StackFactory = Factory.extend({
     parser: undefined,
-    init: function (options) {
+    init: function (options, preprocessor) {
         Factory.prototype.init.apply(this, arguments);
         if (!this.parser)
             throw new StackFactory.StackStringParserRequired();

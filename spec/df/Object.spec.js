@@ -283,17 +283,56 @@ describe("df", function () {
             });
 
             it("calls init when it was redefined", function () {
-
                 var options = {
                         init: jasmine.createSpy(),
                         method: jasmine.createSpy()
                     },
                     object = Object.instance();
-                object.configure(options, [13, 14]);
+                object.configure(options, {init: [13, 14]});
+                expect(object.init).toBe(options.init);
                 expect(options.init).toHaveBeenCalledWith(13, 14);
                 expect(options.method).not.toHaveBeenCalled();
-                object.configure(options, 15, 16);
+                object.configure(options, {init: [15, 16]});
                 expect(options.init).toHaveBeenCalledWith(15, 16);
+            });
+
+            it("transforms parameters with preprocessor functions", function () {
+
+                var object = Object.instance();
+                object.configure({
+                    a: 1,
+                    b: 2
+                }, {
+                    b: function (b) {
+                        return b + 3
+                    }
+                });
+                expect(object.a).toBe(1);
+                expect(object.b).toBe(5);
+            });
+
+            it("accepts only function as preprocessor except init ofc.", function () {
+
+                var object = Object.instance();
+                expect(function () {
+                    object.configure({a: 1}, {a: 2});
+                }).toThrow(new Object.FunctionRequired());
+
+            });
+
+            it("overrides old configure with the new one, and calls only the new one", function () {
+
+                var object = Object.instance(),
+                    options = {
+                        configure: jasmine.createSpy(),
+                        a: 1
+                    },
+                    preprocessor = {
+                        a: jasmine.createSpy()
+                    };
+                object.configure(options, preprocessor);
+                expect(preprocessor.a).not.toHaveBeenCalled();
+                expect(options.configure).toHaveBeenCalledWith(options, preprocessor);
             });
 
         });

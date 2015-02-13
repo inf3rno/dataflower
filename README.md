@@ -55,7 +55,9 @@ kitty.configure({
     init: function (postfix) {
         this.name += " " + postfix;
     }
-}, "Cat");
+},{
+    init: ["Cat"]
+});
 kitty.meow(); //Kitty Cat: meow
 
 kitty.init("from London");
