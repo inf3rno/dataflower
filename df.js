@@ -177,7 +177,7 @@ module.exports = (function (NativeObject, NativeError) {
 
     var Plugin = Object.extend({
         installed: false,
-        compatible: undefined,
+        error: undefined,
         init: function (options) {
             this.configure(options);
         },
@@ -190,12 +190,20 @@ module.exports = (function (NativeObject, NativeError) {
             this.installed = true;
         },
         isCompatible: function () {
-            if (this.compatible === undefined)
-                this.compatible = this.test();
-            return this.compatible;
+            if (this.error === undefined)
+                try {
+                    this.test();
+                    this.error = false;
+                } catch (error) {
+                    this.error = error;
+                }
+            return !this.error;
+        },
+        debug: function () {
+            this.isCompatible();
+            return this.error;
         },
         test: function () {
-            return true;
         },
         setup: function () {
         }

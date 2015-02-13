@@ -1,4 +1,5 @@
-var df = require("../df");
+var df = require("../df"),
+    NativeError = Error;
 
 describe("df", function () {
 
@@ -26,55 +27,73 @@ describe("df", function () {
                 var plugin = new Plugin({
                     test: jasmine.createSpy()
                 });
-                var result;
+                var shouldThrow;
                 plugin.test.and.callFake(function () {
-                    return result;
+                    if (shouldThrow)
+                        throw new NativeError();
                 });
                 expect(plugin.test).not.toHaveBeenCalled();
 
-                result = true;
+                shouldThrow = false;
                 expect(plugin.isCompatible()).toBe(true);
                 expect(plugin.test).toHaveBeenCalled();
 
-                result = false;
+                shouldThrow = true;
                 expect(plugin.isCompatible()).toBe(true);
                 expect(plugin.test.calls.count()).toBe(1);
             });
 
-            describe("install", function () {
+        });
 
-                it("calls setup once", function () {
+        describe("debug", function () {
 
-                    var plugin = new Plugin({
-                        setup: jasmine.createSpy()
-                    });
+            it("returns the error if the test failed", function () {
 
-                    expect(plugin.setup).not.toHaveBeenCalled();
-                    plugin.install();
-                    expect(plugin.setup).toHaveBeenCalled();
-                    plugin.install();
-                    expect(plugin.setup.calls.count()).toBe(1);
+                var error = new NativeError();
+                var plugin = new Plugin({
+                    test: function () {
+                        throw error;
+                    }
                 });
-
-                it("checks compatibility before installing", function () {
-
-                    var plugin = new Plugin({
-                        test: function () {
-                            return false;
-                        },
-                        setup: jasmine.createSpy()
-                    });
-
-                    expect(function () {
-                        plugin.install();
-                    }).toThrow(new Plugin.Incompatible());
-
-                    expect(plugin.setup).not.toHaveBeenCalled();
-                });
+                expect(plugin.debug()).toBe(error);
 
             });
 
         });
+
+        describe("install", function () {
+
+            it("calls setup once", function () {
+
+                var plugin = new Plugin({
+                    setup: jasmine.createSpy()
+                });
+
+                expect(plugin.setup).not.toHaveBeenCalled();
+                plugin.install();
+                expect(plugin.setup).toHaveBeenCalled();
+                plugin.install();
+                expect(plugin.setup.calls.count()).toBe(1);
+            });
+
+            it("checks compatibility before installing", function () {
+
+                var plugin = new Plugin({
+                    test: function () {
+                        throw new NativeError();
+                    },
+                    setup: jasmine.createSpy()
+                });
+
+                expect(function () {
+                    plugin.install();
+                }).toThrow(new Plugin.Incompatible());
+
+                expect(plugin.setup).not.toHaveBeenCalled();
+            });
+
+        });
+
     });
 
 });

@@ -3,7 +3,7 @@ var v8 = require("../../df.v8");
 var NativeObject = Object;
 var NativeError = Error;
 
-describe("df", function () {
+describe("df.v8", function () {
 
     var StackFactory = v8.StackFactory;
     var StackStringParser = v8.StackStringParser;

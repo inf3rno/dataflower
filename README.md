@@ -14,7 +14,7 @@ should be solved with dataflow-based code islands.
 
 ## Documentation
 
-A detailed documentation is not yet available.
+A detailed documentation will be available on GitHub Pages by the first release. Until then all I can provide are low quality examples.
 
 ### Examples
 
@@ -176,7 +176,7 @@ try {
 ```js
 var plugin = new df.Plugin({
     test: function () {
-        return false;
+        throw new Error();
     },
     setup: function () {
         console.log("Installing plugin.");

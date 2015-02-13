@@ -1,7 +1,7 @@
 var df = require("../../df");
 var v8 = require("../../df.v8");
 
-describe("df", function () {
+describe("df.v8", function () {
 
     var StackStringParser = v8.StackStringParser;
     var Stack = df.Stack;

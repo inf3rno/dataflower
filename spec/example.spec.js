@@ -157,7 +157,7 @@ describe("example", function () {
 
             var plugin = new df.Plugin({
                 test: function () {
-                    return false;
+                    throw new Error();
                 },
                 setup: function () {
                     console.log("Installing plugin.");

@@ -99,14 +99,10 @@ module.exports = new Plugin({
         parser: StackStringParser.instance()
     }),
     test: function () {
-        try {
-            var stack = this.stackFactory.create(Stack, new NativeError());
-            stack.toString();
-            return true;
-        } catch (error) {
-            this.error = error;
-            return false;
-        }
+        var stack = this.stackFactory.create(Stack, new NativeError());
+        var string = stack.toString();
+        if (typeof (string) != "string")
+            throw new NativeError();
     },
     setup: function () {
         Stack.instance.container.add({
