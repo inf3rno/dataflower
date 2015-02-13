@@ -77,7 +77,7 @@ describe("df", function () {
         describe("init", function () {
 
             it("generates an id", function () {
-                expect(new Publisher().id).not.toEqual(Publisher.prototype.id);
+                expect(new Publisher().id).not.toBe(new Publisher().id);
             });
 
             it("accepts configuration options", function () {

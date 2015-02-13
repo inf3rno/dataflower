@@ -2,15 +2,14 @@
 
 [![Build Status](https://travis-ci.org/inf3rno/dflo2.png?branch=master)](https://travis-ci.org/inf3rno/dflo2)
 
-The main goal I want to achieve is bidirectional data binding between models and views in client side javascript. Meantime I realized, that
-this is a part of something bigger; javascript has a poor support for async language statements. This is why the callback pyramid is still a
-problem by async codes. Currently only `yield` is available to make async series, but nothing more. I studied many different topics which share this
-common problem. A short list of them: pub/sub pattern, observer pattern, ZermoMQ, message queue, message bus, promises, the async
-lib, routing by computer networks, neural networks, I/O automaton, actor-based programming, agent-based programming, and the noflo lib, which
-is dataflow-based. At the end I came to the conclusion, that what I need is dataflow-based programming but only by the async parts of the code.
-I don't think that everything is a nail, and dataflow-based patterns should be used as a golden hammer. In my opinion the
-sync code of the components should be developed with plain old javascript and only the communication between them
-should be solved with dataflow-based code islands.
+The main goal I wanted to achieve is bidirectional data binding between models and views in client side javascript. Meantime I realized, this is a part of something much bigger; javascript has a poor support for async language statements. This is why the callback pyramid is still a problem by async codes.
+
+Currently only `yield` is available in ES6 generators to make async series, but nothing more. ES7 will solve the problem, but who knows when will it be supported natively by browsers and node.js, which currently barely support ES6?! That's why I decided to address this issue, maybe I can do something to make things better.
+
+I studied many different topics which share this common problem. A short list of them: pub/sub pattern, observer pattern, ZeroMQ, message queues, message bus, promises, the async
+lib, routing by computer networks, neural networks, I/O automaton, actor-based programming, agent-based programming, and the noflo lib, which is dataflow-based. At the end I came to the conclusion; what I need is dataflow-based programming, but only by the async parts of the code. I don't think that everything is a nail, and dataflow-based patterns should be used as a golden hammer. In my opinion the sync code of the components should be developed with vanilla javascript and only the communication between them should be solved with dataflow-based code islands.
+
+The projects concentrates on solving some general issues like inheritance, error handling, instantiation and after that it declares some nice classes, which can be used to build data flow graphs. The naming convention could have been easily something like graph - output - flow - input, but I think most of the developers are more familiar with network - publisher - subscription - subscriber, so after the alpha version of the project I decided to use the latter one. Please enjoy the flow based programming in javascript and if you find it useful, feel free to donate! :-)
 
 ## Documentation
 
@@ -20,7 +19,7 @@ A detailed documentation will be available on GitHub Pages by the first release.
 
 #### 0. use module
 ```js
-var df = require("dflo2/df");
+var df = require("dflo2");
 ```
 
 #### 1. inheritance, instantiation, configuration, cloning and unique id
@@ -191,15 +190,11 @@ console.log(plugin.installed); //false
 
 ```js
 var dependency = require("dependency");
-
-// plugin classes come here
-
-module.exports = new Plugin({
-    setup: function (){
-        dependency.install();  // throws Error if cannot install dependency
-        // other stuff related to install
-    }
+var plugin = new df.Plugin({
+    //...
 });
+plugin.dependency(dependency);
+plugin.install(); // installs dependency before setup
 ```
 
 #### 3. pub/sub pattern
@@ -253,6 +248,11 @@ o.send(4, 5, 6); // 4 5 6
 
 Node.js with manual copy & paste is available.
 Npm and bower support will be available by 1.0.
+
+#### Versioning
+
+I decided to not give version numbers until the implementation reaches 0.9. You can follow the progress in the issue tracker. I write a low, so watching the repo is not a good idea if you don't want to get about 10 emails daily.
+I could add auto-versioning by using git branches, but my experience that by a single developer project branching only slows me down. After version 1.0 (or probably later) I'll add branching and auto-versioning.
 
 #### Environment
 

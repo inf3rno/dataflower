@@ -46,5 +46,14 @@ describe("df", function () {
 
         });
 
+        describe("init", function () {
+
+            it("generates an id", function () {
+
+                expect(new Error().id).not.toBe(new Error().id);
+            });
+
+        });
+
     });
 });

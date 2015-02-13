@@ -10,10 +10,11 @@
     "type": "git",
     "url": "https://github.com/inf3rno/dflo2"
   },
-  "dependencies": {
-  },
+  "main": "df.js",
   "scripts": {
     "test": "jasmine"
+  },
+  "dependencies": {
   },
   "devDependencies": {
     "jasmine": ">=2.2.0"

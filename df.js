@@ -31,14 +31,14 @@ module.exports = (function (NativeObject, NativeError) {
                 this[property] = options[property];
             if (!options.init)
                 return;
-            var args = Array.prototype.slice.call(arguments, 1);
-            if (args.length == 1) {
-                if (args[0] instanceof Array)
-                    args = args[0];
-                else if (typeof(args[0]) == typeof (arguments) && !isNaN(args[0].length))
-                    args = args[0];
+            var parameters = Array.prototype.slice.call(arguments, 1);
+            if (parameters.length == 1) {
+                if (parameters[0] instanceof Array)
+                    parameters = parameters[0];
+                else if (typeof(parameters[0]) == typeof (arguments) && !isNaN(parameters[0].length))
+                    parameters = parameters[0];
             }
-            this.init.apply(this, args);
+            this.init.apply(this, parameters);
         },
         isOptions: function (options) {
             return !!options && options.constructor === NativeObject;
@@ -176,41 +176,67 @@ module.exports = (function (NativeObject, NativeError) {
     });
 
     var Plugin = Object.extend({
+        id: undefined,
         installed: false,
         error: undefined,
+        dependencies: undefined,
+        test: function () {
+        },
+        setup: function () {
+        },
         init: function (options) {
+            this.id = id();
+            this.dependencies = {};
             this.configure(options);
         },
         install: function () {
-            if (!this.compatible())
-                throw new Plugin.Incompatible();
             if (this.installed)
                 return;
+            if (!this.compatible())
+                throw new Plugin.Incompatible();
+            for (var id in this.dependencies) {
+                var dependency = this.dependencies[id];
+                dependency.install();
+            }
             this.setup();
             this.installed = true;
         },
         compatible: function () {
-            if (this.error === undefined)
-                try {
-                    this.test();
-                    this.error = false;
-                } catch (error) {
-                    this.error = error;
-                }
+            if (this.error !== undefined)
+                return !this.error;
+            for (var id in this.dependencies) {
+                var dependency = this.dependencies[id];
+                this.error = dependency.debug();
+                if (this.error !== undefined)
+                    return !this.error;
+            }
+            try {
+                this.test();
+                this.error = false;
+            } catch (error) {
+                this.error = error;
+            }
             return !this.error;
         },
         debug: function () {
             this.compatible();
             return this.error;
         },
-        test: function () {
-        },
-        setup: function () {
+        dependency: function () {
+            for (var index = 0, length = arguments.length; index < length; ++index) {
+                var plugin = arguments[index];
+                if (!(plugin instanceof Plugin))
+                    throw new Plugin.PluginRequired();
+                this.dependencies[plugin.id] = plugin;
+            }
         }
     }, {
         Incompatible: Error.extend({
             name: "Incompatible",
             message: "The Plugin you wanted to install is incompatible with the current environment."
+        }),
+        PluginRequired: InvalidArguments.extend({
+            message: "Plugin required."
         })
     });
 
@@ -258,12 +284,12 @@ module.exports = (function (NativeObject, NativeError) {
             }
             var container = this;
             var wrapper = function () {
-                var args = [];
+                var parameters = [];
                 if (options.passContext)
-                    args.push(this);
-                args.push.apply(args, options.pass);
-                args.push.apply(args, arguments);
-                return container.create.apply(container, args);
+                    parameters.push(this);
+                parameters.push.apply(parameters, options.pass);
+                parameters.push.apply(parameters, arguments);
+                return container.create.apply(container, parameters);
             };
             wrapper.container = container;
             return wrapper;
@@ -274,10 +300,10 @@ module.exports = (function (NativeObject, NativeError) {
                 return instance;
             return this.invokeFactories(this.defaultFactories, arguments);
         },
-        invokeFactories: function (factories, args) {
+        invokeFactories: function (factories, parameters) {
             for (var index = 0, length = factories.length; index < length; ++index) {
                 var factory = factories[index];
-                var instance = factory.create.apply(factory, args);
+                var instance = factory.create.apply(factory, parameters);
                 if (instance !== undefined)
                     return instance;
             }
@@ -302,12 +328,12 @@ module.exports = (function (NativeObject, NativeError) {
                 throw new Publisher.SubscriptionRequired();
             this.subscriptions[subscription.id] = subscription;
         },
-        publish: function (args) {
-            if (!(args instanceof Array))
+        publish: function (parameters) {
+            if (!(parameters instanceof Array))
                 throw new Publisher.ArrayRequired();
             for (var id in this.subscriptions) {
                 var subscription = this.subscriptions[id];
-                subscription.notify(args);
+                subscription.notify(parameters);
             }
         },
         wrap: function () {
@@ -315,8 +341,8 @@ module.exports = (function (NativeObject, NativeError) {
                 return this.wrapper;
             var publisher = this;
             this.wrapper = function () {
-                var args = Array.prototype.slice.call(arguments);
-                publisher.publish(args);
+                var parameters = Array.prototype.slice.call(arguments);
+                publisher.publish(parameters);
             };
             this.wrapper.publisher = this;
             return this.wrapper;
@@ -368,10 +394,10 @@ module.exports = (function (NativeObject, NativeError) {
                 throw new Subscription.SubscriberRequired();
             this.publisher.addSubscription(this);
         },
-        notify: function (args) {
-            if (!(args instanceof Array))
+        notify: function (parameters) {
+            if (!(parameters instanceof Array))
                 throw new Subscription.ArrayRequired();
-            this.subscriber.receive(args);
+            this.subscriber.receive(parameters);
         }
     }, {
         instance: new Container().add({
@@ -428,8 +454,8 @@ module.exports = (function (NativeObject, NativeError) {
             if (!(this.callback instanceof Function))
                 throw new Subscriber.CallbackRequired();
         },
-        receive: function (args) {
-            this.callback.apply(null, args);
+        receive: function (parameters) {
+            this.callback.apply(null, parameters);
         },
         subscribe: function (publisher) {
             if (!arguments.length)

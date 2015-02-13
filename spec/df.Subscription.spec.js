@@ -113,7 +113,8 @@ describe("df", function () {
                 var options = {
                     publisher: new Publisher(),
                     subscriber: new Subscriber({
-                        callback: function (){}
+                        callback: function () {
+                        }
                     })
                 };
                 expect(log).not.toHaveBeenCalled();
@@ -157,11 +158,11 @@ describe("df", function () {
 
                 var publisher = new Publisher();
                 var mockSubscriber = Object.create(Subscriber.prototype);
-
-                expect(new Subscription({
+                var options = {
                     publisher: publisher,
                     subscriber: mockSubscriber
-                }).id).not.toEqual(Subscription.prototype.id);
+                };
+                expect(new Subscription(options).id).not.toBe(new Subscription(options).id);
             });
 
             it("adds the subscription to the publisher", function () {

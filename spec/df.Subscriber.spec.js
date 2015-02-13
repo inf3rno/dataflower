@@ -112,17 +112,18 @@ describe("df", function () {
 
             it("generates an id", function () {
 
-                expect(new Subscriber({
+                var options = {
                     callback: function () {
                     }
-                }).id).not.toEqual(Subscriber.prototype.id);
+                };
+                expect(new Subscriber(options).id).not.toBe(new Subscriber(options).id);
             });
 
         });
 
         describe("receive", function () {
 
-            it("calls the callback with the args", function () {
+            it("calls the callback with the parameters", function () {
 
                 var subscriber = new Subscriber({
                     callback: jasmine.createSpy()
