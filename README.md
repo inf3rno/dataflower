@@ -1,4 +1,6 @@
-# DataFlow project 2nd edition - dataflow islands for async coding in javascript
+# dflo2 - The DataFlow Project
+
+[![Build Status](https://travis-ci.org/inf3rno/dflo2.png?branch=master)](https://travis-ci.org/inf3rno/dflo2)
 
 The main goal I want to achieve is bidirectional data binding between models and views in client side javascript. Meantime I realized, that
 this is a part of something bigger; javascript has a poor support for async language statements. This is why the callback pyramid is still a
@@ -254,7 +256,7 @@ Probably there won't be ES7 support, because it defines `async` functions, which
 
 [Jasmine](https://github.com/jasmine/jasmine) 2.2 tests are available.
 
-By node.js 0.10.36 I used [jasmine-npm](https://github.com/jasmine/jasmine-npm) 1.4.28.
+By node.js 0.10.36 I used [jasmine-npm](https://github.com/jasmine/jasmine-npm) 2.2.0.
 
 By browsers I will use [karma](https://github.com/karma-runner/karma) x.x.x & [karma-jasmine](https://github.com/karma-runner/karma-jasmine) x.x.x.
 Browser tests will be available by 1.1 and data binding tests will be available by 1.2.

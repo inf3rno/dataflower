@@ -1,0 +1,21 @@
+{
+  "name": "dflo2",
+  "description": "DataFlow project",
+  "keywords": [
+    "dataflow",
+    "pub sub",
+    "data binding"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inf3rno/dflo2"
+  },
+  "dependencies": {
+  },
+  "scripts": {
+    "test": "jasmine"
+  },
+  "devDependencies": {
+    "jasmine": ">=2.2.0"
+  }
+}
