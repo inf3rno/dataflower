@@ -112,11 +112,13 @@ var o = {
         return Subscription.instance.apply(Subscription, arguments);
     }
 };
+o.flow = o.subscribe;
 
 module.exports = new Plugin({
     publisher: o.publisher,
     subscriber: o.subscriber,
     subscribe: o.subscribe,
+    flow: o.flow,
     test: function () {
     },
     setup: function () {

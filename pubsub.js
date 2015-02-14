@@ -5,8 +5,9 @@ var df = require("dflo2"),
     InvalidConfiguration = df.InvalidConfiguration,
     id = df.id;
 
+var Component = Base.extend();
 
-var Publisher = Base.extend({
+var Publisher = Component.extend({
     id: undefined,
     subscriptions: undefined,
     wrapper: undefined,
@@ -78,7 +79,7 @@ var Subscription = Base.extend({
     })
 });
 
-var Subscriber = Base.extend({
+var Subscriber = Component.extend({
     id: undefined,
     init: function (options, preprocessor) {
         this.id = id();
@@ -103,15 +104,19 @@ var Subscriber = Base.extend({
 });
 
 module.exports = new Plugin({
+    Component: Component,
     Publisher: Publisher,
     Subscription: Subscription,
+    Flow: Subscription,
     Subscriber: Subscriber,
     test: function () {
     },
     setup: function () {
         var o = {
+            Component: Component,
             Publisher: Publisher,
             Subscription: Subscription,
+            Flow: Subscription,
             Subscriber: Subscriber
         };
 
