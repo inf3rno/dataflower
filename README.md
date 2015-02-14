@@ -17,14 +17,30 @@ A detailed documentation will be available on GitHub Pages by the first release.
 
 ### Examples
 
-#### 0. use module
+#### 0. setting environment variables, installing plugins
+
+```bash
+export NODE_PATH=../
+# you should add the parent directory to NODE_PATH to support require("dflo2") by a local copy
+# another possible solutions are npm link and symlink
+```
+
 ```js
-var df = require("dflo2");
+var df = require("dflo2"),
+    ps = require("dflo2/pubsub"),
+    psf = require("dflo2/pubsub.fluent"),
+    v8 = require("dflo2/error.v8");
+
+ps.install();
+psf.install();
+
+if (v8.compatible())
+    v8.install();
 ```
 
 #### 1. inheritance, instantiation, configuration, cloning and unique id
 ```js
-var Cat = df.Object.extend({
+var Cat = df.Base.extend({
     init: function (name) {
         this.name = name;
         ++Cat.counter;
@@ -79,7 +95,7 @@ console.log(id1 != id2); //true
 #### 2. container, factory, custom errors, plugins
 
 ```js
-var Cat = df.Object.extend({
+var Cat = df.Base.extend({
     color: undefined,
     name: undefined,
     init: function (options) {
@@ -127,7 +143,7 @@ killer.meow(); // white Killer: meow
 ```
 
 ```js
-var CustomError = df.Error.extend({
+var CustomError = df.UserError.extend({
     name: "CustomError"
 });
 var CustomErrorSubType = CustomError.extend({
@@ -141,7 +157,7 @@ var err = new CustomErrorSubType();
 console.log(
     err instanceof CustomErrorSubType,
     err instanceof CustomError,
-    err instanceof df.Error,
+    err instanceof df.UserError,
     err instanceof Error
 );
 

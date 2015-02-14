@@ -1,10 +1,10 @@
-var df = require("dflo2");
+var df = require("dflo2"),
+    ps = require("dflo2/pubsub"),
+    InvalidArguments = df.InvalidArguments,
+    Publisher = ps.Publisher,
+    Subscription = ps.Subscription;
 
-describe("df", function () {
-
-    var Publisher = df.Publisher,
-        Subscription = df.Subscription,
-        InvalidArguments = df.InvalidArguments;
+describe("pubsub", function () {
 
     describe("Publisher", function () {
 

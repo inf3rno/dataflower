@@ -1,13 +1,10 @@
-var NativeObject = Object,
-    NativeError = Error,
-    df = require("dflo2"),
-    v8 = require("dflo2/v8");
+var df = require("dflo2"),
+    v8 = require("dflo2/error.v8"),
+    Stack = df.Stack,
+    StackStringParser = v8.StackStringParser,
+    StackFactory = v8.StackFactory;
 
-describe("v8", function () {
-
-    var StackFactory = v8.StackFactory,
-        StackStringParser = v8.StackStringParser,
-        Stack = df.Stack;
+describe("error.v8", function () {
 
     describe("StackFactory", function () {
 
@@ -19,7 +16,7 @@ describe("v8", function () {
                     init: jasmine.createSpy()
                 });
 
-                var mockParser = NativeObject.create(StackStringParser.prototype);
+                var mockParser = Object.create(StackStringParser.prototype);
                 mockParser.parse = jasmine.createSpy();
                 mockParser.parse.and.callFake(function (MockStack, stackString) {
                     return new MockStack("parsed", stackString);
@@ -29,7 +26,7 @@ describe("v8", function () {
                     parser: mockParser
                 });
 
-                var mockNativeError = NativeObject.create(NativeError.prototype);
+                var mockNativeError = Object.create(Error.prototype);
                 mockNativeError.stack = "stackString";
 
                 var mockStack = factory.create(MockStack, mockNativeError);

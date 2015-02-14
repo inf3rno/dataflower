@@ -6,7 +6,7 @@ describe("example", function () {
 
         it("implements inheritance, instantiation, configuration, cloning", function () {
             var log = jasmine.createSpy(),
-                Cat = df.Object.extend({
+                Cat = df.Base.extend({
                     init: function (name) {
                         this.name = name;
                         ++Cat.counter;

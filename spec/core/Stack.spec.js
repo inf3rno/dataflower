@@ -1,9 +1,8 @@
-var df = require("dflo2");
+var df = require("dflo2"),
+    Stack = df.Stack,
+    Frame = df.Frame;
 
-describe("df", function () {
-
-    var Stack = df.Stack,
-        Frame = df.Frame;
+describe("core", function () {
 
     describe("Stack", function () {
 

@@ -1,29 +1,18 @@
-var df = require("dflo2");
+/*
+    psf need to be installed on ps to pass
+    so we are testing integration here and not individual classes
+*/
 
-describe("df", function () {
+var ps = require("dflo2/pubsub"),
+    psf = require("dflo2/pubsub.fluent"),
+    Publisher = ps.Publisher,
+    Subscriber = ps.Subscriber,
+    Subscription = ps.Subscription,
+    publisher = psf.publisher,
+    subscriber = psf.subscriber,
+    subscribe = psf.subscribe;
 
-    var id = df.id,
-        publisher = df.publisher,
-        subscriber = df.subscriber,
-        subscribe = df.subscribe,
-        Publisher = df.Publisher,
-        Subscriber = df.Subscriber,
-        Subscription = df.Subscription;
-
-    describe("id", function () {
-
-        it("returns unique id", function () {
-            var store = {};
-            for (var i = 0; i < 1000; ++i) {
-                var current = id();
-                if (current in store)
-                    break;
-                store[current] = true;
-            }
-            expect(i).toBe(1000);
-        });
-
-    });
+describe("pubsub.fluent", function () {
 
     describe("publisher", function () {
 
@@ -52,7 +41,7 @@ describe("df", function () {
 
         it("returns a Subscription instance using Subscription.instance", function () {
 
-            var instance = subscribe(df.publisher(), function () {
+            var instance = subscribe(publisher(), function () {
             });
             expect(instance instanceof Subscription).toBe(true);
 

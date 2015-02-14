@@ -1,8 +1,7 @@
-var df = require("dflo2");
+var df = require("dflo2"),
+    Factory = df.Factory;
 
-describe("df", function () {
-
-    var Factory = df.Factory;
+describe("core", function () {
 
     describe("Factory", function () {
 

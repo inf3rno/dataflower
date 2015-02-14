@@ -1,10 +1,10 @@
 var df = require("dflo2");
 
-describe("df", function () {
+describe("core", function () {
 
     var Container = df.Container;
     var Factory = df.Factory;
-    var Object = df.Object;
+    var Object = df.Base;
 
     describe("Container", function () {
 

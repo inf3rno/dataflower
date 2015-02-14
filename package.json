@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/inf3rno/dflo2"
   },
-  "main": "df.js",
+  "main": "core.js",
   "scripts": {
     "test": "jasmine"
   },

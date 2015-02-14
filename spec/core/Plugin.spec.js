@@ -1,10 +1,8 @@
-var NativeError = Error,
-    df = require("dflo2"),
-    InvalidArguments = df.InvalidArguments;
+var df = require("dflo2"),
+    InvalidArguments = df.InvalidArguments,
+    Plugin = df.Plugin;
 
-describe("df", function () {
-
-    var Plugin = df.Plugin;
+describe("core", function () {
 
     describe("Plugin", function () {
 
@@ -35,7 +33,7 @@ describe("df", function () {
                     shouldThrow;
                 plugin.test.and.callFake(function () {
                     if (shouldThrow)
-                        throw new NativeError();
+                        throw new Error();
                 });
                 expect(plugin.test).not.toHaveBeenCalled();
 
@@ -54,7 +52,7 @@ describe("df", function () {
 
             it("returns the error if the test failed", function () {
 
-                var error = new NativeError(),
+                var error = new Error(),
                     plugin = new Plugin({
                         test: function () {
                             throw error;
@@ -85,7 +83,7 @@ describe("df", function () {
 
                 var plugin = new Plugin({
                     test: function () {
-                        throw new NativeError();
+                        throw new Error();
                     },
                     setup: jasmine.createSpy()
                 });

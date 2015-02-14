@@ -2,12 +2,12 @@ var df = require("dflo2");
 
 describe("example", function () {
 
-    describe("2. container, factory, custom errors, plugins", function () {
+    describe("2. container, factory, user errors, plugins", function () {
 
         it("implements container, factory", function () {
 
             var log = jasmine.createSpy(),
-                Cat = df.Object.extend({
+                Cat = df.Base.extend({
                     color: undefined,
                     name: undefined,
                     init: function (options) {
@@ -68,29 +68,29 @@ describe("example", function () {
 
         });
 
-        it("implements custom Error", function () {
-            var CustomError = df.Error.extend({
-                    name: "CustomError"
+        it("implements UserError", function () {
+            var MyUserError = df.UserError.extend({
+                    name: "MyError"
                 }),
-                CustomErrorSubType = CustomError.extend({
+                MyUserErrorDescendant = MyUserError.extend({
                     message: "Something really bad happened."
                 }),
-                AnotherSubType = CustomError.extend(),
-                throwCustomErrorSubType = function () {
-                    throw new CustomErrorSubType();
+                AnotherDescendant = MyUserError.extend(),
+                throwMyErrorDescendant = function () {
+                    throw new MyUserErrorDescendant();
                 };
 
-            expect(throwCustomErrorSubType).toThrow(new CustomErrorSubType());
+            expect(throwMyErrorDescendant).toThrow(new MyUserErrorDescendant());
 
             try {
-                throwCustomErrorSubType();
+                throwMyErrorDescendant();
             } catch (err) {
-                expect(err instanceof CustomErrorSubType).toBe(true);
-                expect(err instanceof CustomError).toBe(true);
-                expect(err instanceof df.Error).toBe(true);
+                expect(err instanceof MyUserErrorDescendant).toBe(true);
+                expect(err instanceof MyUserError).toBe(true);
+                expect(err instanceof df.UserError).toBe(true);
                 expect(err instanceof Error).toBe(true);
 
-                expect(err instanceof AnotherSubType).toBe(false);
+                expect(err instanceof AnotherDescendant).toBe(false);
                 expect(err instanceof SyntaxError).toBe(false);
 
                 expect(err.stack).toBeDefined();

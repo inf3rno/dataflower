@@ -1,7 +1,6 @@
-var NativeError = Error,
-    df = require("dflo2"),
+var df = require("dflo2"),
     Factory = df.Factory,
-    Object = df.Object,
+    Base = df.Base,
     Stack = df.Stack,
     Frame = df.Frame,
     InvalidArguments = df.InvalidArguments,
@@ -25,7 +24,7 @@ var StackFactory = Factory.extend({
     })
 });
 
-var StackStringParser = Object.extend({
+var StackStringParser = Base.extend({
     messageFinder: /^[^\n]*\n/,
     inheritanceRelatedFramesFinder: /^[\s\S]*?\s+new\s+[^\n]+\n/,
     frameFinders: [
@@ -99,10 +98,10 @@ module.exports = new Plugin({
         parser: StackStringParser.instance()
     }),
     test: function () {
-        var stack = this.stackFactory.create(Stack, new NativeError());
+        var stack = this.stackFactory.create(Stack, new Error());
         var string = stack.toString();
         if (typeof (string) != "string")
-            throw new NativeError();
+            throw new Error();
     },
     setup: function () {
         Stack.instance.container.add({

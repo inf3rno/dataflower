@@ -1,8 +1,7 @@
-var df = require("dflo2");
+var df = require("dflo2"),
+    Frame = df.Frame;
 
-describe("df", function () {
-
-    var Frame = df.Frame;
+describe("core", function () {
 
     describe("Frame", function () {
 

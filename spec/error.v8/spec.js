@@ -1,8 +1,8 @@
 var df = require("dflo2"),
-    v8 = require("dflo2/v8"),
+    v8 = require("dflo2/error.v8"),
     Factory = df.Factory;
 
-describe("v8", function () {
+describe("error.v8", function () {
 
     describe("test", function () {
 

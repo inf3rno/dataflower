@@ -1,11 +1,10 @@
 var df = require("dflo2"),
-    v8 = require("dflo2/v8");
+    v8 = require("dflo2/error.v8"),
+    Stack = df.Stack,
+    Frame = df.Frame,
+    StackStringParser = v8.StackStringParser;
 
-describe("v8", function () {
-
-    var StackStringParser = v8.StackStringParser,
-        Stack = df.Stack,
-        Frame = df.Frame;
+describe("error.v8", function () {
 
     describe("StackStringParser", function () {
 
@@ -17,7 +16,7 @@ describe("v8", function () {
                         "	at module.exports.extend.init (http://example.com/df.js:75:31)",
                         "	at new Descendant (http://example.com/df.js:11:27)",
                         "	at custom (http://example.com/spec/example.spec.js:222:23)",
-                        "	at Object.<anonymous> (http://example.com/spec/example.spec.js:224:13)",
+                        "	at Base.<anonymous> (http://example.com/spec/example.spec.js:224:13)",
                         "	at http://example.com/spec/example.spec.js:10:20"
                     ].join("\n"),
                     parser = new StackStringParser(),
@@ -33,7 +32,7 @@ describe("v8", function () {
                         col: 23
                     }),
                     new Frame({
-                        description: "Object.<anonymous>",
+                        description: "Base.<anonymous>",
                         path: "http://example.com/spec/example.spec.js",
                         row: 224,
                         col: 13
