@@ -9,15 +9,25 @@
     "data binding"
   ],
   "license": "MIT",
-  "author": "László Lajos Jánszky",
+  "authors": [
+    {
+      "name": "László Lajos Jánszky"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/inf3rno/dataflower"
   },
-  "bugs": {
-    "url": "http://github.com/owner/project/issues"
-  },
   "main": "core.js",
+  "ignore": [
+    ".idea/",
+    "release/",
+    "node_modules/",
+    ".gitignore",
+    ".npmignore",
+    ".travis.yml",
+    "package.json"
+  ],
   "scripts": {
     "test": "jasmine"
   },

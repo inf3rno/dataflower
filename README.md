@@ -17,13 +17,15 @@ The projects concentrates on solving some general issues like inheritance, error
 
  - [wikipedia - Software release life cycle - Pre-alpha](http://en.wikipedia.org/wiki/Software_release_life_cycle#Pre-alpha)
 
+**Most of the dataflow components are not yet implemented! I am working on the utils currently.**
+
 ## Documentation
 
 A detailed documentation will be available on GitHub Pages by the first release. Until then all I can provide are low quality examples.
 
 ### Examples
 
-#### 0. setting environment variables, installing plugins
+#### 0. setting environment variables, installing plugins, testing
 
 ```bash
 export NODE_PATH=../
