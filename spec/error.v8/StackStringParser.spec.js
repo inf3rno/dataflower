@@ -1,5 +1,5 @@
-var df = require("dflo2"),
-    v8 = require("dflo2/error.v8"),
+var df = require("dataflower"),
+    v8 = require("dataflower/error.v8"),
     Frame = df.Frame,
     StackStringParser = v8.StackStringParser;
 

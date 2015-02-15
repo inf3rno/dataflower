@@ -1,4 +1,4 @@
-var df = require("dflo2"),
+var df = require("dataflower"),
     UserError = df.UserError;
 
 describe("core", function () {

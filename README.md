@@ -1,6 +1,6 @@
-# dflo2 - The DataFlow Project
+# DataFlower - The dataflow project
 
-[![Build Status](https://travis-ci.org/inf3rno/dflo2.png?branch=master)](https://travis-ci.org/inf3rno/dflo2)
+[![Build Status](https://travis-ci.org/inf3rno/dataflower.png?branch=master)](https://travis-ci.org/inf3rno/dataflower)
 
 The main goal I wanted to achieve is bidirectional data binding between models and views in client side javascript. Meantime I realized, this is a part of something much bigger; javascript has a poor support for async language statements. This is why the callback pyramid is still a problem by async codes.
 
@@ -10,6 +10,12 @@ I studied many different topics which share this common problem. A short list of
 lib, routing by computer networks, neural networks, I/O automaton, actor-based programming, agent-based programming, and the noflo lib, which is dataflow-based. At the end I came to the conclusion; what I need is dataflow-based programming, but only by the async parts of the code. I don't think that everything is a nail, and dataflow-based patterns should be used as a golden hammer. In my opinion the sync code of the components should be developed with vanilla javascript and only the communication between them should be solved with dataflow-based code islands.
 
 The projects concentrates on solving some general issues like inheritance, error handling, instantiation and after that it declares some nice classes, which can be used to build data flow graphs. The naming convention could have been easily something like graph - output - flow - input, but I think most of the developers are more familiar with network - publisher - subscription - subscriber, so after the alpha version of the project I decided to use the latter one. Please enjoy the flow based programming in javascript and if you find it useful, feel free to donate! :-)
+
+## Pre-alpha Stage
+
+> Pre-alpha refers to all activities performed during the software project before testing. These activities can include requirements analysis, software design, software development, and unit testing. In typical open source development, there are several types of pre-alpha versions. Milestone versions include specific sets of functions and are released as soon as the functionality is complete.
+
+ - [wikipedia - Software release life cycle - Pre-alpha](http://en.wikipedia.org/wiki/Software_release_life_cycle#Pre-alpha)
 
 ## Documentation
 
@@ -21,15 +27,15 @@ A detailed documentation will be available on GitHub Pages by the first release.
 
 ```bash
 export NODE_PATH=../
-# you should add the parent directory to NODE_PATH to support require("dflo2") by a local copy
+# you should add the parent directory to NODE_PATH to support require("dataflower") by a local copy
 # another possible solutions are npm link and symlink
 ```
 
 ```js
-var df = require("dflo2"),
-    ps = require("dflo2/pubsub"),
-    psf = require("dflo2/pubsub.fluent"),
-    v8 = require("dflo2/error.v8");
+var df = require("dataflower"),
+    ps = require("dataflower/pubsub"),
+    psf = require("dataflower/pubsub.fluent"),
+    v8 = require("dataflower/error.v8");
 
 ps.install();
 psf.install();

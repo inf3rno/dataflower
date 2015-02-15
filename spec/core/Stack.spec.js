@@ -1,4 +1,4 @@
-var df = require("dflo2"),
+var df = require("dataflower"),
     Stack = df.Stack,
     Frame = df.Frame;
 

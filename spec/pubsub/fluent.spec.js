@@ -3,8 +3,8 @@
     so we are testing integration here and not individual classes
 */
 
-var ps = require("dflo2/pubsub"),
-    psf = require("dflo2/pubsub.fluent"),
+var ps = require("dataflower/pubsub"),
+    psf = require("dataflower/pubsub.fluent"),
     Publisher = ps.Publisher,
     Subscriber = ps.Subscriber,
     Subscription = ps.Subscription,

@@ -1,14 +1,15 @@
 {
-  "name": "dflo2",
-  "description": "DataFlow project",
+  "name": "dataflower",
+  "description": "DataFlower - The dataflow project",
   "keywords": [
+    "DataFlower",
     "dataflow",
-    "pub sub",
+    "pub/sub",
     "data binding"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/inf3rno/dflo2"
+    "url": "https://github.com/inf3rno/dataflower"
   },
   "main": "core.js",
   "scripts": {

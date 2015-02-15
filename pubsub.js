@@ -1,4 +1,4 @@
-var df = require("dflo2"),
+var df = require("dataflower"),
     Plugin = df.Plugin,
     Base = df.Base,
     InvalidArguments = df.InvalidArguments,

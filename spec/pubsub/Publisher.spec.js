@@ -1,5 +1,5 @@
-var df = require("dflo2"),
-    ps = require("dflo2/pubsub"),
+var df = require("dataflower"),
+    ps = require("dataflower/pubsub"),
     InvalidArguments = df.InvalidArguments,
     Publisher = ps.Publisher,
     Subscription = ps.Subscription;

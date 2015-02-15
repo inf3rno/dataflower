@@ -1,4 +1,4 @@
-var df = require("dflo2"),
+var df = require("dataflower"),
     id = df.id;
 
 describe("core", function () {

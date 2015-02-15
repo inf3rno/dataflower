@@ -1,6 +1,6 @@
-var ps = require("dflo2/pubsub"),
-    psf = require("dflo2/pubsub.fluent"),
-    v8 = require("dflo2/error.v8");
+var ps = require("dataflower/pubsub"),
+    psf = require("dataflower/pubsub.fluent"),
+    v8 = require("dataflower/error.v8");
 
 ps.install();
 psf.install();
