@@ -4,6 +4,24 @@ describe("example", function () {
 
     describe("2. container, factory, user errors, plugins", function () {
 
+        it("implements wrapper", function () {
+
+            var m = jasmine.createSpy();
+            var o = {
+                m: m
+            };
+            var p = jasmine.createSpy().and.callFake(function () {
+                return arguments;
+            });
+            o.m = new df.Wrapper().wrap({
+                preprocessors: [p],
+                done: o.m
+            });
+            o.m(1, 2, 3);
+            expect(m).toHaveBeenCalledWith(1, 2, 3);
+            expect(p).toHaveBeenCalledWith(1, 2, 3);
+        });
+
         it("implements container, factory", function () {
 
             var log = jasmine.createSpy(),

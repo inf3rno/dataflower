@@ -92,7 +92,29 @@ var id2 = df.id();
 console.log(id1 != id2); //true
 ```
 
-#### 2. container, factory, custom errors, plugins
+#### 2. wrapper, container, factory, custom errors, plugins
+
+```js
+var o = {
+    m: function (a, b, c){
+        console.log("processing", a, b, c);
+        return [a, b, c];
+    }
+};
+o.m = new df.Wrapper().wrap({
+    preprocessors: [
+        function (a, b, c) {
+            console.log("reversing", a, b, c);
+            return [c, b, a];
+        }
+    ],
+    done: o.m
+});
+console.log("results", o.m(1, 2, 3))
+// reversing [1, 2, 3]
+// processing [3, 2, 1]
+// results [3, 2, 1]
+```
 
 ```js
 var Cat = df.Base.extend({
