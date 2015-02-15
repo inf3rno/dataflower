@@ -372,6 +372,7 @@ var Wrapper = Base.extend({
         for (var property in options.properties)
             wrapper[property] = options.properties[property];
         wrapper.wrapper = this;
+        wrapper.options = options;
         return wrapper;
     },
     mergeOptions: function (options) {
