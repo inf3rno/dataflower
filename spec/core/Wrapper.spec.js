@@ -76,18 +76,18 @@ describe("core", function () {
 
             });
 
-            it("accepts only a Function as logic", function () {
+            it("accepts only a Function as algorithm", function () {
 
                 expect(function () {
                     new Wrapper({
-                        logic: function () {
+                        algorithm: function () {
                         }
                     })
                 }).not.toThrow();
 
                 expect(function () {
                     new Wrapper({
-                        logic: {}
+                        algorithm: {}
                     })
                 }).toThrow(new Wrapper.LogicRequired());
 
@@ -169,18 +169,18 @@ describe("core", function () {
 
             });
 
-            it("accepts only a Function as logic", function () {
+            it("accepts only a Function as algorithm", function () {
 
                 expect(function () {
                     new Wrapper().mergeOptions({
-                        logic: function () {
+                        algorithm: function () {
                         }
                     })
                 }).not.toThrow();
 
                 expect(function () {
                     new Wrapper().mergeOptions({
-                        logic: {}
+                        algorithm: {}
                     })
                 }).toThrow(new Wrapper.LogicRequired());
 
@@ -287,30 +287,30 @@ describe("core", function () {
                 expect(merged.done).toBe(b);
             });
 
-            it("inherits logic if not given", function () {
+            it("inherits algorithm if not given", function () {
 
                 var a = function () {
                 };
                 var wrapper = new Wrapper({
-                    logic: a
+                    algorithm: a
                 });
                 var merged = wrapper.mergeOptions({});
-                expect(merged.logic).toBe(a);
+                expect(merged.algorithm).toBe(a);
             });
 
-            it("overrides logic if given", function () {
+            it("overrides algorithm if given", function () {
 
                 var a = function () {
                 };
                 var b = function () {
                 };
                 var wrapper = new Wrapper({
-                    logic: a
+                    algorithm: a
                 });
                 var merged = wrapper.mergeOptions({
-                    logic: b
+                    algorithm: b
                 });
-                expect(merged.logic).toBe(b);
+                expect(merged.algorithm).toBe(b);
             });
 
             it("creates a new properties Object", function () {
@@ -372,7 +372,7 @@ describe("core", function () {
 
             });
 
-            it("calls mergeOptions with the options and logic with the merged options and returns the result of logic", function () {
+            it("calls mergeOptions with the options and algorithm with the merged options and returns the result of algorithm", function () {
 
                 var options1 = {
                     preprocessors: [],
@@ -385,7 +385,7 @@ describe("core", function () {
                     done: function () {
                     },
                     properties: {},
-                    logic: jasmine.createSpy().and.callFake(function (options2) {
+                    algorithm: jasmine.createSpy().and.callFake(function (options2) {
                         return results;
                     })
                 };
@@ -400,13 +400,13 @@ describe("core", function () {
 
                 var wrapper = new MockWrapper();
                 expect(wrapper.mergeOptions).not.toHaveBeenCalled();
-                expect(options2.logic).not.toHaveBeenCalled();
+                expect(options2.algorithm).not.toHaveBeenCalled();
                 expect(wrapper.wrap(options1)).toBe(results);
                 expect(wrapper.mergeOptions).toHaveBeenCalledWith(options1);
-                expect(options2.logic).toHaveBeenCalledWith(options2);
+                expect(options2.algorithm).toHaveBeenCalledWith(options2);
             });
 
-            it("extends the results returned by the logic with the properties given in options", function () {
+            it("extends the results returned by the algorithm with the properties given in options", function () {
 
                 var wrapper = new Wrapper({
                     properties: {
@@ -427,77 +427,192 @@ describe("core", function () {
 
         });
 
-        describe("logic", function () {
+        describe("algorithm.preprocessor", function () {
 
-            describe("preprocessor", function () {
+            describe("cascade", function () {
 
-                describe("cascade", function () {
+                it("applies the preprocessors on the context while using always the return value of the previous preprocessor as arguments", function () {
 
-                    it("applies the preprocessors on the context while using always the return value of the previous preprocessor as arguments", function () {
-
-                        var context = {};
-                        var pp1 = jasmine.createSpy().and.callFake(function (a, b, c) {
-                            expect(this).toBe(context);
-                            return [c, b, a];
-                        });
-                        var pp2 = jasmine.createSpy().and.callFake(function (c, b, a) {
-                            expect(this).toBe(context);
-                            return [c, a, b];
-                        });
-
-                        var wrapper = new Wrapper();
-                        var fn = wrapper.wrap({
-                            preprocessors: [pp1, pp2],
-                            logic: Wrapper.logic.preprocessor.cascade
-                        });
-
-                        expect(pp1).not.toHaveBeenCalled();
-                        expect(pp2).not.toHaveBeenCalled();
-                        fn.call(context, 1, 2, 3);
-                        expect(pp1).toHaveBeenCalledWith(1, 2, 3);
-                        expect(pp2).toHaveBeenCalledWith(3, 2, 1);
+                    var context = {};
+                    var pp1 = jasmine.createSpy().and.callFake(function (a, b, c) {
+                        expect(this).toBe(context);
+                        return [c, b, a];
+                    });
+                    var pp2 = jasmine.createSpy().and.callFake(function (c, b, a) {
+                        expect(this).toBe(context);
+                        return [c, a, b];
                     });
 
-                    it("applies done on the context with the arguments when no preprocessor defined", function () {
-
-                        var context = {};
-                        var done = jasmine.createSpy().and.callFake(function (a, b, c) {
-                            expect(this).toBe(context);
-                            return [c, b, a];
-                        });
-
-                        var wrapper = new Wrapper();
-                        var fn = wrapper.wrap({
-                            done: done,
-                            logic: Wrapper.logic.preprocessor.cascade
-                        });
-
-                        expect(done).not.toHaveBeenCalled();
-                        expect(fn.call(context, 1, 2, 3)).toEqual([3, 2, 1]);
-                        expect(done).toHaveBeenCalledWith(1, 2, 3);
+                    var wrapper = new Wrapper();
+                    var fn = wrapper.wrap({
+                        preprocessors: [pp1, pp2],
+                        algorithm: Wrapper.algorithm.preprocessor.cascade
                     });
 
-                    it("applies done on the context with the return value of the last preprocessor as arguments", function () {
+                    expect(pp1).not.toHaveBeenCalled();
+                    expect(pp2).not.toHaveBeenCalled();
+                    fn.call(context, 1, 2, 3);
+                    expect(pp1).toHaveBeenCalledWith(1, 2, 3);
+                    expect(pp2).toHaveBeenCalledWith(3, 2, 1);
+                });
 
-                        var pp1 = jasmine.createSpy().and.callFake(function (a, b, c) {
-                            return [c, b, a];
-                        });
-                        var pp2 = jasmine.createSpy().and.callFake(function (c, b, a) {
-                            return [c, a, b];
-                        });
-                        var done = jasmine.createSpy();
-                        var wrapper = new Wrapper();
-                        var fn = wrapper.wrap({
-                            preprocessors: [pp1, pp2],
-                            done: done,
-                            logic: Wrapper.logic.preprocessor.cascade
-                        });
+                it("applies done on the context with the arguments when no preprocessor defined", function () {
 
-                        expect(done).not.toHaveBeenCalled();
-                        fn(1, 2, 3);
-                        expect(done).toHaveBeenCalledWith(3, 1, 2);
+                    var context = {};
+                    var done = jasmine.createSpy().and.callFake(function (a, b, c) {
+                        expect(this).toBe(context);
+                        return [c, b, a];
                     });
 
+                    var wrapper = new Wrapper();
+                    var fn = wrapper.wrap({
+                        done: done,
+                        algorithm: Wrapper.algorithm.preprocessor.cascade
+                    });
+
+                    expect(done).not.toHaveBeenCalled();
+                    expect(fn.call(context, 1, 2, 3)).toEqual([3, 2, 1]);
+                    expect(done).toHaveBeenCalledWith(1, 2, 3);
+                });
+
+                it("applies done on the context with the return value of the last preprocessor as arguments", function () {
+
+                    var pp1 = jasmine.createSpy().and.callFake(function (a, b, c) {
+                        return [c, b, a];
+                    });
+                    var pp2 = jasmine.createSpy().and.callFake(function (c, b, a) {
+                        return [c, a, b];
+                    });
+                    var done = jasmine.createSpy();
+                    var wrapper = new Wrapper();
+                    var fn = wrapper.wrap({
+                        preprocessors: [pp1, pp2],
+                        done: done,
+                        algorithm: Wrapper.algorithm.preprocessor.cascade
+                    });
+
+                    expect(pp1).not.toHaveBeenCalled();
+                    expect(pp2).not.toHaveBeenCalled();
+                    expect(done).not.toHaveBeenCalled();
+                    fn(1, 2, 3);
+                    expect(pp1).toHaveBeenCalledWith(1, 2, 3);
+                    expect(pp2).toHaveBeenCalledWith(3, 2, 1);
+                    expect(done).toHaveBeenCalledWith(3, 1, 2);
+                });
+
+            });
+
+            describe("firstMatch", function () {
+
+                it("applies done on the context with the arguments when no preprocessor defined", function () {
+
+                    var context = {};
+                    var done = jasmine.createSpy().and.callFake(function (a, b, c) {
+                        expect(this).toBe(context);
+                        return [c, b, a];
+                    });
+
+                    var wrapper = new Wrapper();
+                    var fn = wrapper.wrap({
+                        done: done,
+                        algorithm: Wrapper.algorithm.preprocessor.firstMatch
+                    });
+
+                    expect(done).not.toHaveBeenCalled();
+                    expect(fn.call(context, 1, 2, 3)).toEqual([3, 2, 1]);
+                    expect(done).toHaveBeenCalledWith(1, 2, 3);
+                });
+
+                it("applies done on the context with the return value of the first matching preprocessor", function () {
+
+                    var pp1 = jasmine.createSpy();
+                    var pp2 = jasmine.createSpy().and.callFake(function (a, b, c) {
+                        return [c, b, a];
+                    });
+                    var pp3 = jasmine.createSpy();
+                    var done = jasmine.createSpy();
+                    var wrapper = new Wrapper();
+                    var fn = wrapper.wrap({
+                        preprocessors: [pp1, pp2, pp3],
+                        done: done,
+                        algorithm: Wrapper.algorithm.preprocessor.firstMatch
+                    });
+
+                    expect(pp1).not.toHaveBeenCalled();
+                    expect(pp2).not.toHaveBeenCalled();
+                    expect(pp3).not.toHaveBeenCalled();
+                    expect(done).not.toHaveBeenCalled();
+                    fn(1, 2, 3);
+                    expect(pp1).toHaveBeenCalledWith(1, 2, 3);
+                    expect(pp2).toHaveBeenCalledWith(1, 2, 3);
+                    expect(pp3).not.toHaveBeenCalled();
+                    expect(done).toHaveBeenCalledWith(3, 2, 1);
+                });
+
+            });
+
+            describe("firstMatchCascade", function () {
+
+                it("applies done on the context with the arguments when no preprocessor defined", function () {
+
+                    var context = {};
+                    var done = jasmine.createSpy().and.callFake(function (a, b, c) {
+                        expect(this).toBe(context);
+                        return [c, b, a];
+                    });
+
+                    var wrapper = new Wrapper();
+                    var fn = wrapper.wrap({
+                        done: done,
+                        algorithm: Wrapper.algorithm.preprocessor.firstMatch
+                    });
+
+                    expect(done).not.toHaveBeenCalled();
+                    expect(fn.call(context, 1, 2, 3)).toEqual([3, 2, 1]);
+                    expect(done).toHaveBeenCalledWith(1, 2, 3);
+                });
+
+                it("applies done on the context with the return value of the first matching preprocessor called in cascade until no match", function () {
+
+                    var pp1 = jasmine.createSpy().and.callFake(function (a) {
+                        if (a == 1)
+                            return [2];
+                    });
+                    var pp2 = jasmine.createSpy().and.callFake(function (a) {
+                        if (a == 3)
+                            return [4];
+                    });
+                    var pp3 = jasmine.createSpy().and.callFake(function (a) {
+                        if (a == 2)
+                            return [3];
+                    });
+                    var done = jasmine.createSpy();
+                    var wrapper = new Wrapper();
+                    var fn = wrapper.wrap({
+                        preprocessors: [pp1, pp2, pp3],
+                        done: done,
+                        algorithm: Wrapper.algorithm.preprocessor.firstMatchCascade
+                    });
+
+                    expect(pp1).not.toHaveBeenCalled();
+                    expect(pp2).not.toHaveBeenCalled();
+                    expect(pp3).not.toHaveBeenCalled();
+                    expect(done).not.toHaveBeenCalled();
+                    fn(1);
+                    expect(pp1.calls.count()).toBe(4);
+                    expect(pp1).toHaveBeenCalledWith(1);
+                    expect(pp1).toHaveBeenCalledWith(2);
+                    expect(pp1).toHaveBeenCalledWith(3);
+                    expect(pp1).toHaveBeenCalledWith(4);
+                    expect(pp2.calls.count()).toBe(3);
+                    expect(pp2).toHaveBeenCalledWith(2);
+                    expect(pp2).toHaveBeenCalledWith(3);
+                    expect(pp2).toHaveBeenCalledWith(4);
+                    expect(pp3.calls.count()).toBe(2);
+                    expect(pp3).toHaveBeenCalledWith(2);
+                    expect(pp3).toHaveBeenCalledWith(4);
+                    expect(done.calls.count()).toBe(1);
+                    expect(done).toHaveBeenCalledWith(4);
                 });
 
             });

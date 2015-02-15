@@ -263,7 +263,7 @@ var Wrapper = Base.extend({
     preprocessors: [],
     done: function () {
     },
-    logic: function (options) {
+    algorithm: function (options) {
         return function () {
         };
     },
@@ -279,7 +279,7 @@ var Wrapper = Base.extend({
         }
         if (!(this.done instanceof Function))
             throw new Wrapper.FunctionRequired();
-        if (!(this.logic instanceof Function))
+        if (!(this.algorithm instanceof Function))
             throw new Wrapper.LogicRequired();
         if (!this.isOptions(this.properties))
             throw new Wrapper.PropertiesRequired();
@@ -290,7 +290,7 @@ var Wrapper = Base.extend({
         if (arguments.length == 1 && !this.isOptions(options))
             throw new InvalidArguments();
         options = this.mergeOptions(options || {});
-        var wrapper = options.logic(options);
+        var wrapper = options.algorithm(options);
         if (!(wrapper instanceof Function))
             throw new Wrapper.InvalidLogic();
         for (var property in options.properties)
@@ -320,11 +320,11 @@ var Wrapper = Base.extend({
         if (options.done)
             done = options.done;
 
-        var logic = this.logic;
-        if (options.logic !== undefined && !(options.logic instanceof Function))
+        var algorithm = this.algorithm;
+        if (options.algorithm !== undefined && !(options.algorithm instanceof Function))
             throw new Wrapper.LogicRequired();
-        if (options.logic)
-            logic = options.logic;
+        if (options.algorithm)
+            algorithm = options.algorithm;
 
         var properties = {};
         for (var property in this.properties)
@@ -338,13 +338,13 @@ var Wrapper = Base.extend({
         var merged = {};
         merged.preprocessors = preprocessors;
         merged.done = done;
-        merged.logic = logic;
+        merged.algorithm = algorithm;
         merged.properties = properties;
 
         return merged;
     }
 }, {
-    logic: {
+    algorithm: {
         preprocessor: {
             cascade: function (options) {
                 return function () {
@@ -353,6 +353,41 @@ var Wrapper = Base.extend({
                         var preprocessor = options.preprocessors[index];
                         parameters = preprocessor.apply(this, parameters);
                     }
+                    return options.done.apply(this, parameters);
+                };
+            },
+            firstMatch: function (options) {
+                return function () {
+                    var parameters = arguments,
+                        match;
+                    for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
+                        var preprocessor = options.preprocessors[index];
+                        match = preprocessor.apply(this, arguments);
+                        if (match !== undefined) {
+                            parameters = match;
+                            break;
+                        }
+                    }
+                    return options.done.apply(this, parameters);
+                };
+            },
+            firstMatchCascade: function (options) {
+                return function () {
+                    var parameters = arguments;
+                    var reduce = function () {
+                        var match;
+                        for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
+                            var preprocessor = options.preprocessors[index];
+                            match = preprocessor.apply(this, parameters);
+                            if (match !== undefined) {
+                                parameters = match;
+                                break;
+                            }
+                        }
+                        if (match !== undefined)
+                            reduce();
+                    };
+                    reduce();
                     return options.done.apply(this, parameters);
                 };
             }
@@ -374,13 +409,13 @@ var Wrapper = Base.extend({
         message: "Native Object instance required."
     }),
     InvalidLogic: InvalidConfiguration.extend({
-        message: "Invalid logic given."
+        message: "Invalid algorithm given."
     })
 });
 
 UserError.prototype.createStack = new Wrapper({
     done: UserError.prototype.createStack,
-    logic: Wrapper.logic.preprocessor.cascade
+    algorithm: Wrapper.algorithm.preprocessor.cascade
 }).wrap();
 
 module.exports = {

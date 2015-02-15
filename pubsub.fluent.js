@@ -29,7 +29,7 @@ var publisherContainer = new Wrapper({
             throw new InvalidArguments();
         return new Publisher(options);
     },
-    logic: Wrapper.logic.preprocessor.cascade
+    algorithm: Wrapper.algorithm.preprocessor.cascade
 }).wrap();
 
 var subscriptionContainer = new Wrapper({
@@ -57,7 +57,7 @@ var subscriptionContainer = new Wrapper({
         options.subscriber = Subscriber.instance(options.subscriber);
         return new Subscription(options);
     },
-    logic: Wrapper.logic.preprocessor.cascade
+    algorithm: Wrapper.algorithm.preprocessor.cascade
 }).wrap();
 
 var subscriberContainer = new Wrapper({
@@ -77,7 +77,7 @@ var subscriberContainer = new Wrapper({
             throw new InvalidArguments();
         return new Subscriber(options);
     },
-    logic: Wrapper.logic.preprocessor.cascade
+    algorithm: Wrapper.algorithm.preprocessor.cascade
 }).wrap();
 
 var o = {
