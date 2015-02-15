@@ -19,7 +19,7 @@ describe("pubsub.fluent", function () {
         it("returns a Publisher instance wrapper using Publisher.instance", function () {
 
             var wrapper = publisher();
-            expect(wrapper.publisher instanceof Publisher).toBe(true);
+            expect(wrapper.component instanceof Publisher).toBe(true);
 
         });
 

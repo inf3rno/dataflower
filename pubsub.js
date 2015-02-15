@@ -3,7 +3,8 @@ var df = require("dflo2"),
     Base = df.Base,
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
-    id = df.id;
+    id = df.id,
+    Wrapper = df.Wrapper;
 
 var Component = Base.extend();
 
@@ -30,14 +31,16 @@ var Publisher = Component.extend({
         }
     },
     wrap: function () {
-        if (this.wrapper)
-            return this.wrapper;
-        var publisher = this;
-        this.wrapper = function () {
-            var parameters = Array.prototype.slice.call(arguments);
-            publisher.publish(parameters);
-        };
-        this.wrapper.publisher = this;
+        if (!this.wrapper)
+            this.wrapper = new Wrapper({
+                done: function () {
+                    var parameters = Array.prototype.slice.call(arguments);
+                    this.publish(parameters);
+                }.bind(this),
+                properties: {
+                    component: this
+                }
+            }).wrap();
         return this.wrapper;
     }
 }, {

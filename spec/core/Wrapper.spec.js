@@ -427,7 +427,7 @@ describe("core", function () {
 
         });
 
-        describe("algorithm.preprocessor", function () {
+        describe("algorithm", function () {
 
             describe("cascade", function () {
 
@@ -446,7 +446,7 @@ describe("core", function () {
                     var wrapper = new Wrapper();
                     var fn = wrapper.wrap({
                         preprocessors: [pp1, pp2],
-                        algorithm: Wrapper.algorithm.preprocessor.cascade
+                        algorithm: Wrapper.algorithm.cascade
                     });
 
                     expect(pp1).not.toHaveBeenCalled();
@@ -467,7 +467,7 @@ describe("core", function () {
                     var wrapper = new Wrapper();
                     var fn = wrapper.wrap({
                         done: done,
-                        algorithm: Wrapper.algorithm.preprocessor.cascade
+                        algorithm: Wrapper.algorithm.cascade
                     });
 
                     expect(done).not.toHaveBeenCalled();
@@ -488,7 +488,7 @@ describe("core", function () {
                     var fn = wrapper.wrap({
                         preprocessors: [pp1, pp2],
                         done: done,
-                        algorithm: Wrapper.algorithm.preprocessor.cascade
+                        algorithm: Wrapper.algorithm.cascade
                     });
 
                     expect(pp1).not.toHaveBeenCalled();
@@ -515,7 +515,7 @@ describe("core", function () {
                     var wrapper = new Wrapper();
                     var fn = wrapper.wrap({
                         done: done,
-                        algorithm: Wrapper.algorithm.preprocessor.firstMatch
+                        algorithm: Wrapper.algorithm.firstMatch
                     });
 
                     expect(done).not.toHaveBeenCalled();
@@ -535,7 +535,7 @@ describe("core", function () {
                     var fn = wrapper.wrap({
                         preprocessors: [pp1, pp2, pp3],
                         done: done,
-                        algorithm: Wrapper.algorithm.preprocessor.firstMatch
+                        algorithm: Wrapper.algorithm.firstMatch
                     });
 
                     expect(pp1).not.toHaveBeenCalled();
@@ -564,7 +564,7 @@ describe("core", function () {
                     var wrapper = new Wrapper();
                     var fn = wrapper.wrap({
                         done: done,
-                        algorithm: Wrapper.algorithm.preprocessor.firstMatch
+                        algorithm: Wrapper.algorithm.firstMatch
                     });
 
                     expect(done).not.toHaveBeenCalled();
@@ -591,7 +591,7 @@ describe("core", function () {
                     var fn = wrapper.wrap({
                         preprocessors: [pp1, pp2, pp3],
                         done: done,
-                        algorithm: Wrapper.algorithm.preprocessor.firstMatchCascade
+                        algorithm: Wrapper.algorithm.firstMatchCascade
                     });
 
                     expect(pp1).not.toHaveBeenCalled();

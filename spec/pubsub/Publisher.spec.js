@@ -179,11 +179,11 @@ describe("pubsub", function () {
                 expect(publisher.publish).toHaveBeenCalledWith([1, 2, 3]);
             });
 
-            it("has a publisher property", function () {
+            it("has a component property", function () {
 
                 var publisher = new Publisher(),
                     wrapper = publisher.wrap();
-                expect(wrapper.publisher).toBe(publisher);
+                expect(wrapper.component).toBe(publisher);
             });
 
         });

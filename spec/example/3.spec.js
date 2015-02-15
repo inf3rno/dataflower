@@ -26,7 +26,7 @@ describe("example", function () {
                 receive: jasmine.createSpy()
             };
             df.Subscription.instance(
-                o.send.publisher,
+                o.send.component,
                 df.Subscriber.instance(o.receive)
             );
             expect(o.receive).not.toHaveBeenCalled();

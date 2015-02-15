@@ -102,14 +102,14 @@ var o = {
     }
 };
 o.m = new df.Wrapper().wrap({
+    algorithm: Wrapper.algorithm.cascade,
     preprocessors: [
         function (a, b, c) {
             console.log("reversing", a, b, c);
             return [c, b, a];
         }
     ],
-    done: o.m,
-    algorithm: Wrapper.algorithm.preprocessor.cascade
+    done: o.m
 });
 console.log("results", o.m(1, 2, 3))
 // reversing [1, 2, 3]

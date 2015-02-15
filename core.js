@@ -262,9 +262,11 @@ var Plugin = Base.extend({
 var Wrapper = Base.extend({
     preprocessors: [],
     done: function () {
+        return Array.prototype.slice(arguments);
     },
     algorithm: function (options) {
         return function () {
+            return options.done.apply(this, arguments);
         };
     },
     properties: {},
@@ -345,52 +347,50 @@ var Wrapper = Base.extend({
     }
 }, {
     algorithm: {
-        preprocessor: {
-            cascade: function (options) {
-                return function () {
-                    var parameters = Array.prototype.slice.apply(arguments);
-                    for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
-                        var preprocessor = options.preprocessors[index];
-                        parameters = preprocessor.apply(this, parameters);
+        cascade: function (options) {
+            return function () {
+                var parameters = Array.prototype.slice.apply(arguments);
+                for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
+                    var preprocessor = options.preprocessors[index];
+                    parameters = preprocessor.apply(this, parameters);
+                }
+                return options.done.apply(this, parameters);
+            };
+        },
+        firstMatch: function (options) {
+            return function () {
+                var parameters = arguments,
+                    match;
+                for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
+                    var preprocessor = options.preprocessors[index];
+                    match = preprocessor.apply(this, arguments);
+                    if (match !== undefined) {
+                        parameters = match;
+                        break;
                     }
-                    return options.done.apply(this, parameters);
-                };
-            },
-            firstMatch: function (options) {
-                return function () {
-                    var parameters = arguments,
-                        match;
+                }
+                return options.done.apply(this, parameters);
+            };
+        },
+        firstMatchCascade: function (options) {
+            return function () {
+                var parameters = arguments;
+                var reduce = function () {
+                    var match;
                     for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
                         var preprocessor = options.preprocessors[index];
-                        match = preprocessor.apply(this, arguments);
+                        match = preprocessor.apply(this, parameters);
                         if (match !== undefined) {
                             parameters = match;
                             break;
                         }
                     }
-                    return options.done.apply(this, parameters);
+                    if (match !== undefined)
+                        reduce.call(this);
                 };
-            },
-            firstMatchCascade: function (options) {
-                return function () {
-                    var parameters = arguments;
-                    var reduce = function () {
-                        var match;
-                        for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
-                            var preprocessor = options.preprocessors[index];
-                            match = preprocessor.apply(this, parameters);
-                            if (match !== undefined) {
-                                parameters = match;
-                                break;
-                            }
-                        }
-                        if (match !== undefined)
-                            reduce();
-                    };
-                    reduce();
-                    return options.done.apply(this, parameters);
-                };
-            }
+                reduce.call(this);
+                return options.done.apply(this, parameters);
+            };
         }
     },
     ArrayRequired: InvalidConfiguration.extend({
@@ -414,8 +414,8 @@ var Wrapper = Base.extend({
 });
 
 UserError.prototype.createStack = new Wrapper({
-    done: UserError.prototype.createStack,
-    algorithm: Wrapper.algorithm.preprocessor.cascade
+    algorithm: Wrapper.algorithm.firstMatch,
+    done: UserError.prototype.createStack
 }).wrap();
 
 module.exports = {
