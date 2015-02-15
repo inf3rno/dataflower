@@ -67,20 +67,24 @@ var UserError = extend(Error, {
         this.configure(options, preprocessor);
 
         var nativeError = new Error();
-        var error = this;
         var stack;
         Object.defineProperty(this, "stack", {
             enumerable: true,
             get: function () {
                 if (stack === undefined) {
                     stack = "";
-                    stack += error.name + " " + error.message + "\n";
-                    stack += Stack.instance(nativeError);
+                    stack += this.name + " " + this.message + "\n";
+                    stack += this.createStack({
+                        string: nativeError.stack || nativeError.stacktrace || ""
+                    });
                     delete(nativeError);
                 }
                 return stack;
-            }
+            }.bind(this)
         });
+    },
+    createStack: function (options) {
+        return new Stack(options);
     }
 }, {
     instance: function () {
@@ -107,7 +111,7 @@ InvalidArguments.Empty = InvalidArguments.extend({
 
 var Base = extend(Object, {
     configure: UserError.prototype.configure,
-    isOptions: UserError.prototype.isOptions,
+    isOptions: UserError.prototype.isOptions
 }, {
     instance: UserError.instance,
     extend: UserError.extend,
@@ -144,11 +148,6 @@ var Stack = Base.extend({
         return this.string;
     }
 }, {
-    instance: function (nativeError) {
-        return new Stack({
-            string: nativeError.stack || nativeError.stacktrace || ""
-        });
-    },
     FramesRequired: InvalidConfiguration.extend({
         message: "An array of frames is required."
     })
@@ -260,80 +259,6 @@ var Plugin = Base.extend({
     })
 });
 
-var Factory = Base.extend({
-    init: function (options, preprocessor) {
-        this.configure(options, preprocessor);
-    },
-    create: function () {
-    }
-});
-
-var Container = Factory.extend({
-    factories: undefined,
-    defaultFactories: undefined,
-    init: function (options, preprocessor) {
-        Factory.prototype.init.call(this, options, preprocessor);
-        this.factories = [];
-        this.defaultFactories = [];
-    },
-    add: function (factory, isDefault) {
-        var options = {
-            factory: factory,
-            isDefault: isDefault
-        };
-        if (this.isOptions(factory))
-            options = factory;
-        if (!(options.factory instanceof Factory))
-            throw new Container.FactoryRequired();
-        var factories = this.factories;
-        if (options.isDefault)
-            factories = this.defaultFactories;
-        factories.push(options.factory);
-        return this;
-    },
-    wrap: function () {
-        var options = {
-            pass: Array.prototype.slice.call(arguments),
-            passContext: false
-        };
-        if (arguments.length == 1 && this.isOptions(arguments[0])) {
-            options = arguments[0];
-            if (!(options.pass instanceof Array))
-                options.pass = [];
-            options.passContext = !!options.passContext;
-        }
-        var container = this;
-        var wrapper = function () {
-            var parameters = [];
-            if (options.passContext)
-                parameters.push(this);
-            parameters.push.apply(parameters, options.pass);
-            parameters.push.apply(parameters, arguments);
-            return container.create.apply(container, parameters);
-        };
-        wrapper.container = container;
-        return wrapper;
-    },
-    create: function () {
-        var instance = this.invokeFactories(this.factories, arguments);
-        if (instance !== undefined)
-            return instance;
-        return this.invokeFactories(this.defaultFactories, arguments);
-    },
-    invokeFactories: function (factories, parameters) {
-        for (var index = 0, length = factories.length; index < length; ++index) {
-            var factory = factories[index];
-            var instance = factory.create.apply(factory, parameters);
-            if (instance !== undefined)
-                return instance;
-        }
-    }
-}, {
-    FactoryRequired: InvalidArguments.extend({
-        message: "Factory instance required."
-    })
-});
-
 var Wrapper = Base.extend({
     preprocessors: [],
     done: function () {
@@ -429,18 +354,9 @@ var Wrapper = Base.extend({
     })
 });
 
-Stack.instance = new Container().add({
-    factory: new Factory({
-        create: (function (instance) {
-            return function (Stack, nativeError) {
-                return instance.call(Stack, nativeError);
-            }
-        })(Stack.instance)
-    }),
-    isDefault: true
-}).wrap({
-    passContext: true
-});
+UserError.prototype.createStack = new Wrapper({
+    done: UserError.prototype.createStack
+}).wrap();
 
 module.exports = {
     id: id,
@@ -451,8 +367,6 @@ module.exports = {
     Stack: Stack,
     Frame: Frame,
     Plugin: Plugin,
-    Factory: Factory,
-    Container: Container,
     Wrapper: Wrapper
 };
 

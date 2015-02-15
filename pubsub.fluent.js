@@ -2,103 +2,80 @@ var df = require("dflo2"),
     ps = require("dflo2/pubsub"),
     Plugin = df.Plugin,
     Base = df.Base,
-    Container = df.Container,
     InvalidArguments = df.InvalidArguments,
-    Factory = df.Factory,
     Publisher = ps.Publisher,
     Subscription = ps.Subscription,
-    Subscriber = ps.Subscriber;
+    Subscriber = ps.Subscriber,
+    Wrapper = df.Wrapper;
 
-var publisherContainer = new Container().add({
-    factory: Factory.extend({
-        create: function (Publisher, options) {
-            if (arguments.length > 2)
-                throw new InvalidArguments();
-            if (arguments.length == 1)
-                return new Publisher();
-            if (!this.isOptions(options))
-                throw new InvalidArguments();
-            return new Publisher(options);
-        }
-    }).instance(),
-    isDefault: true
-}).add({
-    factory: Factory.extend({
-        create: function (Publisher, instance) {
-            if (instance instanceof Publisher)
-                return instance;
+var publisherContainer = new Wrapper({
+    preprocessors: [
+        function (instance) {
+            var Publisher = this;
             if ((instance instanceof Function) && (instance.publisher instanceof Publisher))
-                return instance.publisher;
+                return [instance.publisher];
+            return arguments;
         }
-    }).instance()
-}).wrap({
-    passContext: true
-});
+    ],
+    done: function (options) {
+        var Publisher = this;
+        if (arguments.length > 1)
+            throw new InvalidArguments();
+        if (arguments.length == 0)
+            return new Publisher();
+        if (options instanceof Publisher)
+            return options;
+        if (!Base.prototype.isOptions(options))
+            throw new InvalidArguments();
+        return new Publisher(options);
+    }
+}).wrap();
 
+var subscriptionContainer = new Wrapper({
+    preprocessors: [
+        function (publisher, subscriber) {
+            if (arguments.length != 2)
+                return arguments;
+            return [{
+                publisher: publisher,
+                subscriber: subscriber
+            }];
+        }
+    ],
+    done: function (options) {
+        var Subscription = this;
+        if (!arguments.length)
+            throw new InvalidArguments.Empty();
+        if (arguments.length > 1)
+            throw new InvalidArguments();
+        if (options instanceof Subscription)
+            return options;
+        if (!Base.prototype.isOptions(options))
+            throw new InvalidArguments();
+        options.publisher = Publisher.instance(options.publisher);
+        options.subscriber = Subscriber.instance(options.subscriber);
+        return new Subscription(options);
+    }
+}).wrap();
 
-var subscriptionContainer = new Container().add({
-    factory: new Factory({
-        create: function (Subscription, options) {
-            if (arguments.length == 1)
-                throw new InvalidArguments.Empty();
-            if (arguments.length > 2)
-                throw new InvalidArguments();
-            if (!Base.prototype.isOptions(options))
-                throw new InvalidArguments();
-            options.publisher = Publisher.instance(options.publisher);
-            options.subscriber = Subscriber.instance(options.subscriber);
-            return new Subscription(options);
-        }
-    }),
-    isDefault: true
-}).add({
-    factory: new Factory({
-        create: function (Subscription, instance) {
-            if (instance instanceof Subscription)
-                return instance;
-        }
-    })
-}).add({
-    factory: new Factory({
-        create: function (Subscription, publisher, subscriber) {
-            if (arguments.length == 3)
-                return Subscription.instance({
-                    publisher: publisher,
-                    subscriber: subscriber
-                });
-        }
-    })
-}).wrap({
-    passContext: true
-});
-
-var subscriberContainer = new Container().add({
-    factory: new Factory({
-        create: function (Subscriber, options) {
-            if (arguments.length == 1)
-                throw new InvalidArguments.Empty();
-            if (arguments.length > 2)
-                throw new InvalidArguments();
-            if (options instanceof Function)
-                options = {
-                    callback: options
-                };
-            if (!this.isOptions(options))
-                throw new InvalidArguments();
-            return new Subscriber(options);
-        }
-    }),
-    isDefault: true
-}).add({
-    factory: new Factory({
-        create: function (Subscriber, instance) {
-            if (instance instanceof Subscriber)
-                return instance;
-        }
-    })
-}).wrap({
-    passContext: true
-});
+var subscriberContainer = new Wrapper({
+    done: function (options) {
+        var Subscriber = this;
+        if (arguments.length == 0)
+            throw new InvalidArguments.Empty();
+        if (arguments.length > 1)
+            throw new InvalidArguments();
+        if (options instanceof Subscriber)
+            return options;
+        if (options instanceof Function)
+            options = {
+                callback: options
+            };
+        if (!Base.prototype.isOptions(options))
+            throw new InvalidArguments();
+        return new Subscriber(options);
+    }
+}).wrap();
 
 var o = {
     publisher: function () {

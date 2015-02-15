@@ -1,28 +1,10 @@
 var df = require("dflo2"),
-    Factory = df.Factory,
     Base = df.Base,
-    Stack = df.Stack,
     Frame = df.Frame,
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
-    Plugin = df.Plugin;
-
-var StackFactory = Factory.extend({
-    parser: undefined,
-    init: function (options, preprocessor) {
-        Factory.prototype.init.apply(this, arguments);
-        if (!this.parser)
-            throw new StackFactory.StackStringParserRequired();
-    },
-    create: function (Stack, nativeError) {
-        if (nativeError.stack !== undefined)
-            return this.parser.parse(Stack, nativeError.stack);
-    }
-}, {
-    StackStringParserRequired: InvalidConfiguration.extend({
-        message: "StackStringParser required."
-    })
-});
+    Plugin = df.Plugin,
+    UserError = df.UserError;
 
 var StackStringParser = Base.extend({
     messageFinder: /^[^\n]*\n/,
@@ -52,13 +34,12 @@ var StackStringParser = Base.extend({
         }
 
     ],
-    parse: function (Stack, stackString) {
-        var rawFramesString = this.removeMessage(stackString);
+    parse: function (options) {
+        var rawFramesString = this.removeMessage(options.string);
         var framesString = this.removeInheritanceRelatedFrames(rawFramesString);
-        var frames = this.parseFramesString(framesString);
-        return new Stack({
-            frames: frames
-        });
+        options.frames = this.parseFramesString(framesString);
+        delete(options.string);
+        return options;
     },
     removeMessage: function (stackString) {
         return stackString.replace(this.messageFinder, "");
@@ -93,19 +74,17 @@ var StackStringParser = Base.extend({
 
 module.exports = new Plugin({
     StackStringParser: StackStringParser,
-    StackFactory: StackFactory,
-    stackFactory: StackFactory.instance({
-        parser: StackStringParser.instance()
-    }),
+    parser: new StackStringParser(),
     test: function () {
-        var stack = this.stackFactory.create(Stack, new Error());
-        var string = stack.toString();
-        if (typeof (string) != "string")
+        var options = this.parser.parse({
+            string: new Error().stack
+        });
+        if (!options.frames)
             throw new Error();
     },
     setup: function () {
-        Stack.instance.container.add({
-            factory: this.stackFactory
-        });
+        UserError.prototype.createStack.options.preprocessors.push(function (options) {
+            return [this.parser.parse(options)];
+        }.bind(this));
     }
 });

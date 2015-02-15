@@ -92,7 +92,7 @@ var id2 = df.id();
 console.log(id1 != id2); //true
 ```
 
-#### 2. wrapper, container, factory, custom errors, plugins
+#### 2. wrapper, custom errors, plugins
 
 ```js
 var o = {
@@ -114,54 +114,6 @@ console.log("results", o.m(1, 2, 3))
 // reversing [1, 2, 3]
 // processing [3, 2, 1]
 // results [3, 2, 1]
-```
-
-```js
-var Cat = df.Base.extend({
-    color: undefined,
-    name: undefined,
-    init: function (options) {
-        this.configure(options);
-    },
-    meow: function () {
-        console.log("%s %s: meow", this.color, this.name);
-    }
-}, {
-    instance: new df.Container().add({
-        factory: df.Factory.extend({
-            create: function (Cat, options) {
-                if (arguments.length != 2)
-                    throw new df.InvalidArguments();
-                if (!this.isOptions(options))
-                    throw new df.InvalidArguments();
-                return new Cat(options);
-            }
-        }).instance(),
-        isDefault: true
-    }).wrap({
-        passContext: true
-    })
-});
-
-Cat.instance.container.add({
-    factory: df.Factory.extend({
-        create: function (Cat, color, name) {
-            if (arguments.length == 3)
-                return Cat.instance({
-                    color: color,
-                    name: name
-                });
-        }
-    }).instance()
-});
-
-var kitty = Cat.instance({
-    color: "orange",
-    name: "Kitty"
-});
-var killer = Cat.instance("white", "Killer");
-kitty.meow(); // orange Kitty: meow
-killer.meow(); // white Killer: meow
 ```
 
 ```js

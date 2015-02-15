@@ -1,6 +1,5 @@
 var df = require("dflo2"),
     v8 = require("dflo2/error.v8"),
-    Stack = df.Stack,
     Frame = df.Frame,
     StackStringParser = v8.StackStringParser;
 
@@ -10,7 +9,7 @@ describe("error.v8", function () {
 
         describe("parse", function () {
 
-            it("creates a Stack from the stack string", function () {
+            it("creates frames from the stack string", function () {
                 var stackString = [
                         "Error",
                         "	at module.exports.extend.init (http://example.com/df.js:75:31)",
@@ -19,12 +18,13 @@ describe("error.v8", function () {
                         "	at Base.<anonymous> (http://example.com/spec/example.spec.js:224:13)",
                         "	at http://example.com/spec/example.spec.js:10:20"
                     ].join("\n"),
-                    parser = new StackStringParser(),
-                    StackRelative = Stack.extend();
+                    parser = new StackStringParser();
 
-                var stack = parser.parse(StackRelative, stackString);
-                expect(stack instanceof StackRelative);
-                expect(stack.frames).toEqual([
+                var options = parser.parse({
+                    string: stackString
+                });
+                expect(options.string).not.toBeDefined();
+                expect(options.frames).toEqual([
                     new Frame({
                         description: "custom",
                         path: "http://example.com/spec/example.spec.js",
