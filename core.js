@@ -334,6 +334,100 @@ var Container = Factory.extend({
     })
 });
 
+var Wrapper = Base.extend({
+    preprocessors: [],
+    done: function () {
+    },
+    properties: {},
+    init: function (options) {
+        this.configure(options);
+        if (!(this.preprocessors instanceof Array))
+            throw new Wrapper.ArrayRequired();
+        for (var index = 0, length = this.preprocessors.length; index < length; ++index) {
+            var preprocessor = this.preprocessors[index];
+            if (!(preprocessor instanceof Function))
+                throw new Wrapper.PreprocessorRequired();
+        }
+        if (!(this.done instanceof Function))
+            throw new Wrapper.FunctionRequired();
+        if (!this.isOptions(this.properties))
+            throw new Wrapper.PropertiesRequired();
+    },
+    wrap: function (options) {
+        if (arguments.length > 1)
+            throw new InvalidArguments();
+        if (arguments.length == 1 && !this.isOptions(options))
+            throw new InvalidArguments();
+
+        options = this.mergeOptions(options || {});
+
+        var wrapper = function () {
+            var parameters = Array.prototype.slice.apply(arguments);
+            for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
+                var preprocessor = options.preprocessors[index];
+                parameters = preprocessor.apply(this, parameters);
+            }
+            return options.done.apply(this, parameters);
+        };
+        for (var property in options.properties)
+            wrapper[property] = options.properties[property];
+        wrapper.wrapper = this;
+        return wrapper;
+    },
+    mergeOptions: function (options) {
+        if (arguments.length != 1 || !this.isOptions(options))
+            throw new InvalidArguments();
+
+        var preprocessors = [];
+        preprocessors.push.apply(preprocessors, this.preprocessors);
+        if (options.preprocessors !== undefined && !(options.preprocessors instanceof Array))
+            throw new Wrapper.ArrayRequired();
+        if (options.preprocessors) {
+            for (var index = 0, length = options.preprocessors.length; index < length; ++index)
+                if (!(options.preprocessors[index] instanceof Function))
+                    throw new Wrapper.PreprocessorRequired();
+            preprocessors.push.apply(preprocessors, options.preprocessors);
+        }
+
+        var done = this.done;
+        if (options.done !== undefined && !(options.done instanceof Function))
+            throw new Wrapper.FunctionRequired();
+        if (options.done)
+            done = options.done;
+
+        var properties = {};
+        for (var property in this.properties)
+            properties[property] = this.properties[property];
+        if (options.properties !== undefined && !this.isOptions(options.properties))
+            throw new Wrapper.PropertiesRequired();
+        if (options.properties)
+            for (var property in options.properties)
+                properties[property] = options.properties[property];
+
+        var merged = {};
+        for (var property in options)
+            merged[property] = options[property];
+        merged.preprocessors = preprocessors;
+        merged.done = done;
+        merged.properties = properties;
+
+        return merged;
+    }
+}, {
+    ArrayRequired: InvalidConfiguration.extend({
+        message: "Array required."
+    }),
+    PreprocessorRequired: InvalidConfiguration.extend({
+        message: "Function required as preprocessor."
+    }),
+    FunctionRequired: InvalidConfiguration.extend({
+        message: "Function required."
+    }),
+    PropertiesRequired: InvalidConfiguration.extend({
+        message: "Native Object instance required."
+    })
+});
+
 Stack.instance = new Container().add({
     factory: new Factory({
         create: (function (instance) {
@@ -357,6 +451,7 @@ module.exports = {
     Frame: Frame,
     Plugin: Plugin,
     Factory: Factory,
-    Container: Container
+    Container: Container,
+    Wrapper: Wrapper
 };
 
