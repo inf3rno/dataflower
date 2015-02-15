@@ -15,7 +15,8 @@ describe("example", function () {
             });
             o.m = new df.Wrapper().wrap({
                 preprocessors: [p],
-                done: o.m
+                done: o.m,
+                logic: df.Wrapper.logic.preprocessor.cascade
             });
             o.m(1, 2, 3);
             expect(m).toHaveBeenCalledWith(1, 2, 3);

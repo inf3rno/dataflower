@@ -28,7 +28,8 @@ var publisherContainer = new Wrapper({
         if (!Base.prototype.isOptions(options))
             throw new InvalidArguments();
         return new Publisher(options);
-    }
+    },
+    logic: Wrapper.logic.preprocessor.cascade
 }).wrap();
 
 var subscriptionContainer = new Wrapper({
@@ -55,7 +56,8 @@ var subscriptionContainer = new Wrapper({
         options.publisher = Publisher.instance(options.publisher);
         options.subscriber = Subscriber.instance(options.subscriber);
         return new Subscription(options);
-    }
+    },
+    logic: Wrapper.logic.preprocessor.cascade
 }).wrap();
 
 var subscriberContainer = new Wrapper({
@@ -74,7 +76,8 @@ var subscriberContainer = new Wrapper({
         if (!Base.prototype.isOptions(options))
             throw new InvalidArguments();
         return new Subscriber(options);
-    }
+    },
+    logic: Wrapper.logic.preprocessor.cascade
 }).wrap();
 
 var o = {

@@ -263,6 +263,10 @@ var Wrapper = Base.extend({
     preprocessors: [],
     done: function () {
     },
+    logic: function (options) {
+        return function () {
+        };
+    },
     properties: {},
     init: function (options) {
         this.configure(options);
@@ -275,6 +279,8 @@ var Wrapper = Base.extend({
         }
         if (!(this.done instanceof Function))
             throw new Wrapper.FunctionRequired();
+        if (!(this.logic instanceof Function))
+            throw new Wrapper.LogicRequired();
         if (!this.isOptions(this.properties))
             throw new Wrapper.PropertiesRequired();
     },
@@ -283,17 +289,10 @@ var Wrapper = Base.extend({
             throw new InvalidArguments();
         if (arguments.length == 1 && !this.isOptions(options))
             throw new InvalidArguments();
-
         options = this.mergeOptions(options || {});
-
-        var wrapper = function () {
-            var parameters = Array.prototype.slice.apply(arguments);
-            for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
-                var preprocessor = options.preprocessors[index];
-                parameters = preprocessor.apply(this, parameters);
-            }
-            return options.done.apply(this, parameters);
-        };
+        var wrapper = options.logic(options);
+        if (!(wrapper instanceof Function))
+            throw new Wrapper.InvalidLogic();
         for (var property in options.properties)
             wrapper[property] = options.properties[property];
         wrapper.wrapper = this;
@@ -321,6 +320,12 @@ var Wrapper = Base.extend({
         if (options.done)
             done = options.done;
 
+        var logic = this.logic;
+        if (options.logic !== undefined && !(options.logic instanceof Function))
+            throw new Wrapper.LogicRequired();
+        if (options.logic)
+            logic = options.logic;
+
         var properties = {};
         for (var property in this.properties)
             properties[property] = this.properties[property];
@@ -331,15 +336,28 @@ var Wrapper = Base.extend({
                 properties[property] = options.properties[property];
 
         var merged = {};
-        for (var property in options)
-            merged[property] = options[property];
         merged.preprocessors = preprocessors;
         merged.done = done;
+        merged.logic = logic;
         merged.properties = properties;
 
         return merged;
     }
 }, {
+    logic: {
+        preprocessor: {
+            cascade: function (options) {
+                return function () {
+                    var parameters = Array.prototype.slice.apply(arguments);
+                    for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
+                        var preprocessor = options.preprocessors[index];
+                        parameters = preprocessor.apply(this, parameters);
+                    }
+                    return options.done.apply(this, parameters);
+                };
+            }
+        }
+    },
     ArrayRequired: InvalidConfiguration.extend({
         message: "Array required."
     }),
@@ -349,13 +367,20 @@ var Wrapper = Base.extend({
     FunctionRequired: InvalidConfiguration.extend({
         message: "Function required."
     }),
+    LogicRequired: InvalidConfiguration.extend({
+        message: "Function required."
+    }),
     PropertiesRequired: InvalidConfiguration.extend({
         message: "Native Object instance required."
+    }),
+    InvalidLogic: InvalidConfiguration.extend({
+        message: "Invalid logic given."
     })
 });
 
 UserError.prototype.createStack = new Wrapper({
-    done: UserError.prototype.createStack
+    done: UserError.prototype.createStack,
+    logic: Wrapper.logic.preprocessor.cascade
 }).wrap();
 
 module.exports = {

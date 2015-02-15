@@ -108,7 +108,8 @@ o.m = new df.Wrapper().wrap({
             return [c, b, a];
         }
     ],
-    done: o.m
+    done: o.m,
+    logic: Wrapper.logic.preprocessor.cascade
 });
 console.log("results", o.m(1, 2, 3))
 // reversing [1, 2, 3]
