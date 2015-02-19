@@ -7,8 +7,8 @@ describe("example", function () {
         it("implements inheritance, instantiation, configuration, cloning", function () {
             var log = jasmine.createSpy(),
                 Cat = df.Base.extend({
-                    init: function (name) {
-                        this.name = name;
+                    name: undefined,
+                    init: function () {
                         ++Cat.counter;
                     },
                     meow: function () {
@@ -20,8 +20,8 @@ describe("example", function () {
                         return this.counter;
                     }
                 }),
-                kitty = new Cat("Kitty"),
-                killer = Cat.instance("Killer");
+                kitty = new Cat({name: "Kitty"}),
+                killer = new Cat({name: "Killer"});
 
             kitty.meow();
             expect(log).toHaveBeenCalledWith("Kitty: meow");
@@ -30,11 +30,12 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith("Killer: meow");
             expect(Cat.count()).toBe(2);
 
-            kitty.configure({
+            kitty.mixin({
                 init: function (postfix) {
                     this.name += " " + postfix;
                 }
-            }, {init: ["Cat"]});
+            });
+            kitty.init("Cat");
             kitty.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat: meow");
             kitty.init("from London");

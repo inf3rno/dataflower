@@ -49,8 +49,10 @@ if (v8.compatible())
 #### 1. inheritance, instantiation, configuration, cloning and unique id
 ```js
 var Cat = df.Base.extend({
-    init: function (name) {
-        this.name = name;
+    name: undefined,
+    init: function () {
+        if (typeof(this.name) != "string")
+            throw new df.InvalidConfiguration("Invalid cat name.");
         ++Cat.counter;
     },
     meow: function () {
@@ -65,8 +67,8 @@ var Cat = df.Base.extend({
 ```
 
 ```js
-var kitty = new Cat("Kitty");
-var killer = Cat.instance("Killer");
+var kitty = new Cat({name: "Kitty"});
+var killer = new Cat({name: "Killer"});
 
 kitty.meow(); //Kitty: meow
 killer.meow(); //Killer: meow
@@ -75,13 +77,12 @@ console.log(Cat.count()); //2
 ```
 
 ```js
-kitty.configure({
+kitty.mixin(
     init: function (postfix) {
         this.name += " " + postfix;
     }
-},{
-    init: ["Cat"]
-});
+);
+kitty.init("Cat");
 kitty.meow(); //Kitty Cat: meow
 
 kitty.init("from London");
@@ -214,19 +215,6 @@ publisher.publish([4, 5, 6]); // 4 5 6
 
 ```js
 var o = {
-    send: df.Publisher.instance().wrap(),
-    receive: console.log
-};
-df.Subscription.instance(
-    o.send.publisher,
-    df.Subscriber.instance(o.receive)
-);
-o.send(1, 2, 3); // 1 2 3
-o.send(4, 5, 6); // 4 5 6
-```
-
-```js
-var o = {
     send: df.publisher(),
     receive: console.log
 };
@@ -240,7 +228,7 @@ var o = {
     send: df.publisher(),
     receive: console.log
 };
-df.subscriber(o.receive).subscribe(o.send);
+df.subscriber(o.receive).subscribe(o.send.component);
 o.send(1, 2, 3); // 1 2 3
 o.send(4, 5, 6); // 4 5 6
 ```

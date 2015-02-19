@@ -60,7 +60,7 @@ describe("core", function () {
 
             });
 
-            it("accepts only native Object instance as properties", function () {
+            it("accepts only Object instance as properties", function () {
 
                 expect(function () {
                     new Wrapper({
@@ -68,11 +68,19 @@ describe("core", function () {
                     });
                 }).not.toThrow();
 
-                expect(function () {
-                    new Wrapper({
-                        properties: []
-                    })
-                }).toThrow(new Wrapper.PropertiesRequired());
+                [
+                    null,
+                    undefined,
+                    "string",
+                    1,
+                    false
+                ].forEach(function (value) {
+                        expect(function () {
+                            new Wrapper({
+                                properties: value
+                            })
+                        }).toThrow(new Wrapper.PropertiesRequired());
+                    });
 
             });
 
@@ -186,19 +194,30 @@ describe("core", function () {
 
             });
 
-            it("accepts only native Object instance as properties", function () {
+            it("accepts only Object instance as properties", function () {
 
                 expect(function () {
                     new Wrapper().mergeOptions({
                         properties: {}
                     });
+                    new Wrapper().mergeOptions({
+                        properties: undefined
+                    });
                 }).not.toThrow();
 
-                expect(function () {
-                    new Wrapper().mergeOptions({
-                        properties: []
-                    })
-                }).toThrow(new Wrapper.PropertiesRequired());
+
+                [
+                    null,
+                    "string",
+                    1,
+                    false
+                ].forEach(function (value) {
+                        expect(function () {
+                            new Wrapper().mergeOptions({
+                                properties: value
+                            })
+                        }).toThrow(new Wrapper.PropertiesRequired());
+                    });
 
             });
 

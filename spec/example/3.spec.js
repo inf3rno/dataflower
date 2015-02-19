@@ -20,22 +20,6 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith(4, 5, 6);
         });
 
-        it("implements static factory methods and wrapper functions", function () {
-            var o = {
-                send: df.Publisher.instance().wrap(),
-                receive: jasmine.createSpy()
-            };
-            df.Subscription.instance(
-                o.send.component,
-                df.Subscriber.instance(o.receive)
-            );
-            expect(o.receive).not.toHaveBeenCalled();
-            o.send(1, 2, 3);
-            expect(o.receive).toHaveBeenCalledWith(1, 2, 3);
-            o.send(4, 5, 6);
-            expect(o.receive).toHaveBeenCalledWith(4, 5, 6);
-        });
-
         it("implements factory functions", function () {
             var o = {
                 send: df.publisher(),
@@ -54,7 +38,7 @@ describe("example", function () {
                 send: df.publisher(),
                 receive: jasmine.createSpy()
             };
-            df.subscriber(o.receive).subscribe(o.send);
+            df.subscriber(o.receive).subscribe(o.send.component);
             expect(o.receive).not.toHaveBeenCalled();
             o.send(1, 2, 3);
             expect(o.receive).toHaveBeenCalledWith(1, 2, 3);

@@ -9,13 +9,10 @@ var df = require("dataflower"),
 var Component = Base.extend();
 
 var Publisher = Component.extend({
-    id: undefined,
     subscriptions: undefined,
     wrapper: undefined,
-    init: function (options, preprocessor) {
-        this.id = id();
+    init: function () {
         this.subscriptions = {};
-        this.configure(options, preprocessor);
     },
     addSubscription: function (subscription) {
         if (!(subscription instanceof Subscription))
@@ -56,9 +53,7 @@ var Subscription = Base.extend({
     id: undefined,
     publisher: undefined,
     subscriber: undefined,
-    init: function (options, preprocessor) {
-        this.id = id();
-        this.configure(options, preprocessor);
+    init: function () {
         if (!(this.publisher instanceof Publisher))
             throw new Subscription.PublisherRequired();
         if (!(this.subscriber instanceof Subscriber))
@@ -84,9 +79,7 @@ var Subscription = Base.extend({
 
 var Subscriber = Component.extend({
     id: undefined,
-    init: function (options, preprocessor) {
-        this.id = id();
-        this.configure(options, preprocessor);
+    init: function () {
         if (!(this.callback instanceof Function))
             throw new Subscriber.CallbackRequired();
     },
@@ -98,7 +91,10 @@ var Subscriber = Component.extend({
             throw new InvalidArguments.Empty();
         if (arguments.length > 1)
             throw new InvalidArguments();
-        return Subscription.instance(publisher, this);
+        return new Subscription({
+            publisher: publisher,
+            subscriber: this
+        });
     }
 }, {
     CallbackRequired: InvalidConfiguration.extend({
