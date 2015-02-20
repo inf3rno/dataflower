@@ -90,7 +90,7 @@ kitty.meow(); //Kitty Cat from London: meow
 ```
 
 ```js
-var kittyClone = Cat.clone(kitty);
+var kittyClone = clone(kitty);
 kittyClone.meow(); //Kitty Cat from London: meow
 ```
 
@@ -249,6 +249,8 @@ An ES5 capable environment is required at least with
 
 - `Object.create`
 - `Object.defineProperty`
+
+There is an environment test available in the spec folder.
 
 The framework is written for ES5.
 There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.

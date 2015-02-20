@@ -1,21 +1,45 @@
 var df = require("dataflower"),
     Wrapper = df.Wrapper,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    shallowCopy = df.shallowCopy;
 
 describe("core", function () {
 
     describe("Wrapper", function () {
 
-        describe("init", function () {
+        describe("mixin", function () {
+
+            it("accepts only object, null or undefined as sources", function () {
+
+                expect(function () {
+                    new Wrapper().mixin({});
+                }).not.toThrow();
+
+                expect(function () {
+                    new Wrapper().mixin();
+                }).not.toThrow();
+
+                expect(function () {
+                    new Wrapper().mixin(null);
+                }).not.toThrow();
+
+                expect(function () {
+                    new Wrapper().mixin({}, {});
+                }).not.toThrow();
+
+                expect(function () {
+                    new Wrapper().mixin("a");
+                }).toThrow(new InvalidArguments());
+            });
+
 
             it("accepts only an Array of Functions as preprocessors", function () {
 
                 expect(function () {
-                    new Wrapper();
-                    new Wrapper({
+                    new Wrapper().mixin({
                         preprocessors: []
                     });
-                    new Wrapper({
+                    new Wrapper().mixin({
                         preprocessors: [
                             function () {
                             },
@@ -26,13 +50,13 @@ describe("core", function () {
                 }).not.toThrow();
 
                 expect(function () {
-                    new Wrapper({
+                    new Wrapper().mixin({
                         preprocessors: {}
                     })
                 }).toThrow(new Wrapper.ArrayRequired());
 
                 expect(function () {
-                    new Wrapper({
+                    new Wrapper().mixin({
                         preprocessors: [
                             function () {
                             },
@@ -46,131 +70,14 @@ describe("core", function () {
             it("accepts only a Function as done", function () {
 
                 expect(function () {
-                    new Wrapper({
+                    new Wrapper().mixin({
                         done: function () {
                         }
                     })
                 }).not.toThrow();
 
                 expect(function () {
-                    new Wrapper({
-                        done: {}
-                    })
-                }).toThrow(new Wrapper.FunctionRequired());
-
-            });
-
-            it("accepts only Object instance as properties", function () {
-
-                expect(function () {
-                    new Wrapper({
-                        properties: {}
-                    });
-                }).not.toThrow();
-
-                [
-                    null,
-                    undefined,
-                    "string",
-                    1,
-                    false
-                ].forEach(function (value) {
-                        expect(function () {
-                            new Wrapper({
-                                properties: value
-                            })
-                        }).toThrow(new Wrapper.PropertiesRequired());
-                    });
-
-            });
-
-            it("accepts only a Function as algorithm", function () {
-
-                expect(function () {
-                    new Wrapper({
-                        algorithm: function () {
-                        }
-                    })
-                }).not.toThrow();
-
-                expect(function () {
-                    new Wrapper({
-                        algorithm: {}
-                    })
-                }).toThrow(new Wrapper.LogicRequired());
-
-            });
-
-        });
-
-        describe("mergeOptions", function () {
-
-            it("accepts only a single config object", function () {
-
-                expect(function () {
-                    new Wrapper().mergeOptions({});
-                }).not.toThrow();
-
-                expect(function () {
-                    new Wrapper().mergeOptions();
-                }).toThrow(new InvalidArguments());
-
-                expect(function () {
-                    new Wrapper().mergeOptions(null);
-                }).toThrow(new InvalidArguments());
-
-                expect(function () {
-                    new Wrapper().mergeOptions({}, {});
-                }).toThrow(new InvalidArguments());
-
-            });
-
-
-            it("accepts only an Array of Functions as preprocessors", function () {
-
-                expect(function () {
-                    new Wrapper().mergeOptions({
-                        preprocessors: []
-                    });
-                    new Wrapper().mergeOptions({
-                        preprocessors: [
-                            function () {
-                            },
-                            function () {
-                            }
-                        ]
-                    });
-                }).not.toThrow();
-
-                expect(function () {
-                    new Wrapper().mergeOptions({
-                        preprocessors: {}
-                    })
-                }).toThrow(new Wrapper.ArrayRequired());
-
-                expect(function () {
-                    new Wrapper().mergeOptions({
-                        preprocessors: [
-                            function () {
-                            },
-                            {}
-                        ]
-                    })
-                }).toThrow(new Wrapper.PreprocessorRequired());
-
-            });
-
-            it("accepts only a Function as done", function () {
-
-                expect(function () {
-                    new Wrapper().mergeOptions({
-                        done: function () {
-                        }
-                    })
-                }).not.toThrow();
-
-                expect(function () {
-                    new Wrapper().mergeOptions({
+                    new Wrapper().mixin({
                         done: {}
                     })
                 }).toThrow(new Wrapper.FunctionRequired());
@@ -180,27 +87,27 @@ describe("core", function () {
             it("accepts only a Function as algorithm", function () {
 
                 expect(function () {
-                    new Wrapper().mergeOptions({
+                    new Wrapper().mixin({
                         algorithm: function () {
                         }
                     })
                 }).not.toThrow();
 
                 expect(function () {
-                    new Wrapper().mergeOptions({
+                    new Wrapper().mixin({
                         algorithm: {}
                     })
-                }).toThrow(new Wrapper.LogicRequired());
+                }).toThrow(new Wrapper.AlgorithmRequired());
 
             });
 
             it("accepts only Object instance as properties", function () {
 
                 expect(function () {
-                    new Wrapper().mergeOptions({
+                    new Wrapper().mixin({
                         properties: {}
                     });
-                    new Wrapper().mergeOptions({
+                    new Wrapper().mixin({
                         properties: undefined
                     });
                 }).not.toThrow();
@@ -213,7 +120,7 @@ describe("core", function () {
                     false
                 ].forEach(function (value) {
                         expect(function () {
-                            new Wrapper().mergeOptions({
+                            new Wrapper().mixin({
                                 properties: value
                             })
                         }).toThrow(new Wrapper.PropertiesRequired());
@@ -221,44 +128,30 @@ describe("core", function () {
 
             });
 
-            it("returns a new options Object", function () {
+            it("returns the context itself", function () {
 
-                var options = {};
-                var merged = new Wrapper().mergeOptions(options);
-                expect(merged).not.toBe(options);
-                expect(merged.constructor === Object).toBe(true);
-                expect(merged.preprocessors instanceof Array).toBe(true);
-                expect(merged.done instanceof Function).toBe(true);
-                expect(merged.properties.constructor === Object).toBe(true);
+                var o = {};
+                expect(Wrapper.prototype.mixin.call(o)).toBe(o);
             });
 
-            it("creates a new preprocessors Array", function () {
-                var a = [];
-                var wrapper = new Wrapper({
-                    preprocessors: a
-                });
-                var merged = wrapper.mergeOptions({});
-                expect(merged.preprocessors instanceof Array).toBe(true);
-                expect(merged.preprocessors).not.toBe(a);
-                expect(wrapper.preprocessors).toBe(a);
+            it("creates a new preprocessors Array if it is not an own property", function () {
+                var o = {};
+                Wrapper.prototype.mixin.call(o);
+                expect(o.preprocessors instanceof Array).toBe(true);
+                var f = function () {
+                };
+                o.preprocessors.push(f);
+                var o2 = Object.create(o);
+                Wrapper.prototype.mixin.call(o2);
+                expect(o2.preprocessors instanceof Array).toBe(true);
+                expect(o2.preprocessors).toEqual(o.preprocessors);
+                expect(o2.preprocessors).not.toBe(o.preprocessors);
+                expect(o.preprocessors.length).toBe(1);
+                expect(o.preprocessors[0]).toBe(f);
             });
 
-            it("inherits preprocessors if not given", function () {
-                var a = [
-                    function () {
-                    },
-                    function () {
-                    }
-                ];
-                var wrapper = new Wrapper({
-                    preprocessors: a
-                });
-                var merged = wrapper.mergeOptions({});
-                expect(merged.preprocessors).not.toBe(a);
-                expect(merged.preprocessors).toEqual(a);
-            });
+            it("merges pushes preprocessors if given", function () {
 
-            it("merges preprocessors if given", function () {
                 var x = function () {
                     },
                     y = function () {
@@ -267,28 +160,23 @@ describe("core", function () {
                     },
                     q = function () {
                     },
-                    a = [x, y],
-                    b = [z, q];
-                var wrapper = new Wrapper({
-                    preprocessors: a
-                });
-                var merged = wrapper.mergeOptions({
+                    r = function () {
+                    },
+                    a = [
+                        x
+                    ],
+                    b = [y, z],
+                    c = [q, r],
+                    o = {
+                        preprocessors: a
+                    };
+                Wrapper.prototype.mixin.call(o, {
                     preprocessors: b
+                }, {
+                    preprocessors: c
                 });
-                expect(merged.preprocessors).not.toBe(a);
-                expect(merged.preprocessors).not.toBe(b);
-                expect(merged.preprocessors).toEqual([x, y, z, q]);
-            });
-
-            it("inherits done if not given", function () {
-
-                var a = function () {
-                };
-                var wrapper = new Wrapper({
-                    done: a
-                });
-                var merged = wrapper.mergeOptions({});
-                expect(merged.done).toBe(a);
+                expect(o.preprocessors).toBe(a);
+                expect(o.preprocessors).toEqual([x, y, z, q, r]);
             });
 
             it("overrides done if given", function () {
@@ -297,24 +185,13 @@ describe("core", function () {
                 };
                 var b = function () {
                 };
-                var wrapper = new Wrapper({
+                var o = {
                     done: a
-                });
-                var merged = wrapper.mergeOptions({
+                };
+                Wrapper.prototype.mixin.call(o, {
                     done: b
                 });
-                expect(merged.done).toBe(b);
-            });
-
-            it("inherits algorithm if not given", function () {
-
-                var a = function () {
-                };
-                var wrapper = new Wrapper({
-                    algorithm: a
-                });
-                var merged = wrapper.mergeOptions({});
-                expect(merged.algorithm).toBe(a);
+                expect(o.done).toBe(b);
             });
 
             it("overrides algorithm if given", function () {
@@ -323,106 +200,83 @@ describe("core", function () {
                 };
                 var b = function () {
                 };
-                var wrapper = new Wrapper({
+                var o = {
                     algorithm: a
-                });
-                var merged = wrapper.mergeOptions({
+                };
+                Wrapper.prototype.mixin.call(o, {
                     algorithm: b
                 });
-                expect(merged.algorithm).toBe(b);
+                expect(o.algorithm).toBe(b);
             });
 
-            it("creates a new properties Object", function () {
-                var a = {};
-                var wrapper = new Wrapper({
-                    properties: a
-                });
-                var merged = wrapper.mergeOptions({});
-                expect(merged.properties.constructor === Object).toBe(true);
-                expect(merged.properties).not.toBe(a);
-                expect(wrapper.properties).toBe(a);
-            });
+            it("creates a new properties Object with Object.create if it is not an own property", function () {
 
-            it("inherits properties if not given", function () {
-                var a = {
-                    x: 1,
-                    y: 2
-                };
-                var wrapper = new Wrapper({
-                    properties: a
-                });
-                var merged = wrapper.mergeOptions({});
-                expect(merged.properties).not.toBe(a);
-                expect(merged.properties).toEqual(a);
+                var o = {};
+                Wrapper.prototype.mixin.call(o);
+                expect(o.properties instanceof Object).toBe(true);
+                var p = {};
+                o.properties.p = p;
+                var o2 = Object.create(o);
+                Wrapper.prototype.mixin.call(o2);
+                expect(o2.properties instanceof Object).toBe(true);
+                expect(o2.properties).not.toBe(o.properties);
+                expect(o.properties.p).toBe(p);
+                expect(o2.properties.p).toBe(p);
             });
 
             it("merges properties if given", function () {
                 var a = {a: 1, b: 2},
-                    b = {b: 3, c: 4};
-                var wrapper = new Wrapper({
+                    b = {b: 3, c: 4},
+                    o = {};
+                Wrapper.prototype.mixin.call(o, {
                     properties: a
-                });
-                var merged = wrapper.mergeOptions({
+                }, {
                     properties: b
                 });
-                expect(merged.properties).not.toBe(a);
-                expect(merged.properties).not.toBe(b);
-                expect(merged.properties).toEqual({a: 1, b: 3, c: 4});
+                expect(o.properties).not.toBe(a);
+                expect(o.properties).not.toBe(b);
+                expect(o.properties).toEqual({a: 1, b: 3, c: 4});
             });
 
         });
 
         describe("wrap", function () {
 
-            it("accepts only a single config object or nothing as options", function () {
+            it("calls the mixin on a new options Object with the Wrapper instance properties and the options", function () {
 
-                expect(function () {
-                    new Wrapper().wrap();
-                    new Wrapper().wrap({});
-                }).not.toThrow();
-
-                expect(function () {
-                    new Wrapper().wrap(null);
-                }).toThrow(new InvalidArguments());
-
-                expect(function () {
-                    new Wrapper().wrap({}, {});
-                }).toThrow(new InvalidArguments());
-
-            });
-
-            it("calls mergeOptions with the options and algorithm with the merged options and returns the result of algorithm", function () {
-
-                var options1 = {
-                    preprocessors: [],
+                var f = function () {
+                };
+                var o = {
+                    preprocessors: [function () {
+                    }],
+                    done: function () {
+                    },
+                    algorithm: function () {
+                        return f;
+                    },
+                    properties: {},
+                    mixin: jasmine.createSpy().and.callFake(function (o) {
+                        shallowCopy(this, o);
+                    })
+                };
+                var a = {
                     done: function () {
                     },
                     properties: {}
                 };
-                var options2 = {
-                    preprocessors: [],
-                    done: function () {
-                    },
-                    properties: {},
-                    algorithm: jasmine.createSpy().and.callFake(function (options2) {
-                        return results;
-                    })
-                };
+                var r = Wrapper.prototype.wrap.call(o, a);
 
-                var results = function () {
-                };
-                var MockWrapper = Wrapper.extend({
-                    mergeOptions: jasmine.createSpy().and.callFake(function (options1) {
-                        return options2;
-                    })
-                });
+                expect(o.mixin).toHaveBeenCalledWith(a);
+                expect(o.mixin.calls.count()).toBe(2);
+                expect(o.mixin.calls.first().args).toEqual([{
+                    preprocessors: o.preprocessors,
+                    done: o.done,
+                    algorithm: o.algorithm,
+                    properties: o.properties
+                }]);
+                expect(o.mixin.calls.mostRecent().args).toEqual([a]);
+                expect(r).toBe(f);
 
-                var wrapper = new MockWrapper();
-                expect(wrapper.mergeOptions).not.toHaveBeenCalled();
-                expect(options2.algorithm).not.toHaveBeenCalled();
-                expect(wrapper.wrap(options1)).toBe(results);
-                expect(wrapper.mergeOptions).toHaveBeenCalledWith(options1);
-                expect(options2.algorithm).toHaveBeenCalledWith(options2);
             });
 
             it("extends the results returned by the algorithm with the properties given in options", function () {

@@ -3,7 +3,7 @@ var df = require("dataflower"),
 
 describe("core", function () {
 
-    describe("Frame", function () {
+    describe("Frame.prototype", function () {
 
         describe("init", function () {
 

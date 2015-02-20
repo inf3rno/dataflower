@@ -4,7 +4,7 @@ var df = require("dataflower"),
 
 describe("core", function () {
 
-    describe("Plugin", function () {
+    describe("Plugin.prototype", function () {
 
         describe("init", function () {
 

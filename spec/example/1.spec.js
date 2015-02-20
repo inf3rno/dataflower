@@ -42,7 +42,7 @@ describe("example", function () {
             kitty.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
 
-            var kittyClone = Cat.clone(kitty);
+            var kittyClone = df.clone(kitty);
             kittyClone.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
         });

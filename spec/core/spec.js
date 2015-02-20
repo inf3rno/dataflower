@@ -1,8 +1,9 @@
 var df = require("dataflower"),
     id = df.id,
-    mixin = df.mixin,
     extend = df.extend,
     clone = df.clone,
+    mixin = df.mixin,
+    shallowCopy = df.shallowCopy,
     InvalidArguments = df.InvalidArguments;
 
 describe("core", function () {
@@ -18,70 +19,6 @@ describe("core", function () {
                 store[current] = true;
             }
             expect(i).toBe(10);
-        });
-
-    });
-
-    describe("mixin", function () {
-
-        it("accepts any type of object as subject and sources", function () {
-
-            expect(function () {
-                mixin({});
-                mixin({}, {});
-                mixin({}, {}, {});
-                mixin(function () {
-                }, function () {
-                }, function () {
-                });
-                mixin(new Date(), new RegExp(), function () {
-                }, []);
-                mixin({}, null);
-                mixin({}, undefined);
-            }).not.toThrow();
-
-            expect(function () {
-                mixin({}, 1, 2, 3);
-            }).toThrow(new df.InvalidArguments());
-
-            expect(function () {
-                mixin(null);
-            }).toThrow(new df.InvalidArguments());
-
-            expect(function () {
-                mixin(null, {});
-            }).toThrow(new df.InvalidArguments());
-
-            expect(function () {
-                mixin(1, {});
-            }).toThrow(new df.InvalidArguments());
-
-            expect(function () {
-                mixin({}, false);
-            }).toThrow(new df.InvalidArguments());
-        });
-
-        it("overrides properties of the subject with the properties of the sources", function () {
-
-            var subject = {};
-            mixin(subject, {a: 1}, {b: 2}, {a: 3, c: 4});
-            expect(subject).toEqual({b: 2, a: 3, c: 4});
-        });
-
-        it("overrides native methods of the subject with the ones defined in the sources", function () {
-            var subject = {};
-            var toString = function () {
-                return "";
-            };
-            mixin(subject, {toString: toString});
-            expect(subject.toString).toBe(toString);
-        });
-
-        it("returns the subject", function () {
-
-            var subject = {};
-            expect(mixin(subject)).toBe(subject);
-            expect(mixin(subject, {a: 1}, {b: 2})).toBe(subject);
         });
 
     });
@@ -144,7 +81,7 @@ describe("core", function () {
             expect(Descendant.prototype.x).not.toBe(Ancestor.prototype.x);
         });
 
-        it("overrides the properties of the descendant with the given ones", function () {
+        it("mixins the properties of the descendant with the given ones", function () {
             var Ancestor = function () {
             };
             Ancestor.prototype.x = {};
@@ -154,7 +91,7 @@ describe("core", function () {
             expect(Descendant.prototype.x).toBe(x);
         });
 
-        it("inherits the static properties of the ancestor with simple copy to the descendant", function () {
+        it("mixins the static properties of the ancestor with simple copy to the descendant", function () {
             var Ancestor = function () {
             };
             Ancestor.x = {};
@@ -169,7 +106,7 @@ describe("core", function () {
             expect(Descendant.x).not.toBe(Ancestor.x);
         });
 
-        it("overrides the static properties of the descendant with the given ones", function () {
+        it("mixins the static properties of the descendant with the given ones", function () {
             var Ancestor = function () {
             };
             Ancestor.x = {};
@@ -184,6 +121,7 @@ describe("core", function () {
         describe("the constructor of the descendant", function () {
 
             it("sets unique id automatically", function () {
+
                 var Ancestor = function () {
                 };
                 var Descendant = extend(Ancestor);
@@ -194,6 +132,7 @@ describe("core", function () {
             });
 
             it("calls mixin from the prototype after unique id is set", function () {
+
                 var Ancestor = function () {
                 };
                 var Descendant = extend(Ancestor, {
@@ -201,16 +140,16 @@ describe("core", function () {
                 });
                 var descendant = new Descendant(1, 2, 3);
                 expect(descendant.mixin).toHaveBeenCalledWith(1, 2, 3);
-
             });
 
             it("calls init after mixin if a function is set", function () {
+
                 var Ancestor = function () {
                 };
                 var Descendant = extend(Ancestor, {
                     init: jasmine.createSpy()
                 });
-                var descendant = new Descendant(1, 2, 3);
+                var descendant = new Descendant({}, {}, {});
                 expect(descendant.init).toHaveBeenCalledWith();
             });
 
@@ -285,19 +224,96 @@ describe("core", function () {
             expect(clone(a)).toBe(b);
         });
 
-        it("calls static clone if the constructor has such a method", function () {
+    });
 
-            var A = function () {
+
+    describe("mixin", function () {
+
+        it("calls the mixin function of the subject with the arguments", function () {
+
+            var o = {};
+            var subject = {
+                mixin: jasmine.createSpy().and.callFake(function () {
+                    return o;
+                })
             };
-            A.clone = jasmine.createSpy().and.callFake(function (a) {
-                return b;
-            });
-            var a = new A();
-            var b = {};
-            expect(clone(a)).toBe(b);
-            expect(A.clone).toHaveBeenCalledWith(a);
+            expect(mixin(subject, 1, 2, 3)).toBe(o);
+            expect(subject.mixin).toHaveBeenCalledWith(1, 2, 3);
+        });
+
+        it("calls shallowCopy if no mixin function set", function () {
+
+            var subject = {};
+            expect(mixin(subject, {a: 1}, {b: 2}, {a: 3, c: 4})).toBe(subject);
+            expect(subject).toEqual({b: 2, a: 3, c: 4});
         });
 
     });
+
+
+    describe("shallowCopy", function () {
+
+        it("accepts any type of object as subject and sources", function () {
+
+            expect(function () {
+                shallowCopy({});
+                shallowCopy({}, {});
+                shallowCopy({}, {}, {});
+                shallowCopy(function () {
+                }, function () {
+                }, function () {
+                });
+                shallowCopy(new Date(), new RegExp(), function () {
+                }, []);
+                shallowCopy({}, null);
+                shallowCopy({}, undefined);
+            }).not.toThrow();
+
+            expect(function () {
+                shallowCopy({}, 1, 2, 3);
+            }).toThrow(new df.InvalidArguments());
+
+            expect(function () {
+                shallowCopy(null);
+            }).toThrow(new df.InvalidArguments());
+
+            expect(function () {
+                shallowCopy(null, {});
+            }).toThrow(new df.InvalidArguments());
+
+            expect(function () {
+                shallowCopy(1, {});
+            }).toThrow(new df.InvalidArguments());
+
+            expect(function () {
+                shallowCopy({}, false);
+            }).toThrow(new df.InvalidArguments());
+        });
+
+        it("overrides properties of the subject with the properties of the sources", function () {
+
+            var subject = {};
+            shallowCopy(subject, {a: 1}, {b: 2}, {a: 3, c: 4});
+            expect(subject).toEqual({b: 2, a: 3, c: 4});
+        });
+
+        it("overrides native methods of the subject with the ones defined in the sources", function () {
+            var subject = {};
+            var toString = function () {
+                return "";
+            };
+            shallowCopy(subject, {toString: toString});
+            expect(subject.toString).toBe(toString);
+        });
+
+        it("returns the subject", function () {
+
+            var subject = {};
+            expect(shallowCopy(subject)).toBe(subject);
+            expect(shallowCopy(subject, {a: 1}, {b: 2})).toBe(subject);
+        });
+
+    });
+
 
 });

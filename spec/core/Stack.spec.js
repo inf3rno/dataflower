@@ -4,7 +4,7 @@ var df = require("dataflower"),
 
 describe("core", function () {
 
-    describe("Stack", function () {
+    describe("Stack.prototype", function () {
 
         describe("init", function () {
 

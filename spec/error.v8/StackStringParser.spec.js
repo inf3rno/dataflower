@@ -5,7 +5,7 @@ var df = require("dataflower"),
 
 describe("error.v8", function () {
 
-    describe("StackStringParser", function () {
+    describe("StackStringParser.prototype", function () {
 
         describe("parse", function () {
 

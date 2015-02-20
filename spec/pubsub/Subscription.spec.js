@@ -7,7 +7,7 @@ var df = require("dataflower"),
 
 describe("pubsub", function () {
 
-    describe("Subscription", function () {
+    describe("Subscription.prototype", function () {
 
         describe("init", function () {
 

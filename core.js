@@ -3,7 +3,57 @@ var id = function () {
     return ++last;
 };
 
+var extend = function (Ancestor, properties, staticProperties) {
+    if (!(Ancestor instanceof Function))
+        throw new InvalidArguments();
+    if (arguments.length > 3)
+        throw new InvalidArguments();
+    var Descendant = function (source) {
+        Object.defineProperty(this, "id", {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: id()
+        });
+        var parameters = [this];
+        parameters.push.apply(parameters, arguments);
+        mixin.apply(null, parameters);
+        if (this.init instanceof Function)
+            this.init();
+    };
+    Descendant.prototype = clone(Ancestor.prototype);
+    if (properties)
+        mixin(Descendant.prototype, properties);
+    Descendant.prototype.constructor = Descendant;
+    mixin(Descendant, Ancestor);
+    if (staticProperties)
+        mixin(Descendant, staticProperties);
+    return Descendant;
+};
+
+var clone = function (subject) {
+    if (typeof (subject) != "object" || subject === null)
+        return subject;
+    if (subject instanceof Array)
+        return subject.slice();
+    if (subject instanceof Date)
+        return new Date(subject);
+    if (subject instanceof RegExp)
+        return new RegExp(subject);
+    if (subject.clone instanceof Function)
+        return subject.clone();
+    return Object.create(subject);
+};
+
 var mixin = function (subject, source) {
+    if (!(subject instanceof Object) || subject === null)
+        throw new InvalidArguments();
+    if (subject.mixin instanceof Function)
+        return subject.mixin.apply(subject, Array.prototype.slice.call(arguments, 1));
+    return shallowCopy.apply(null, arguments);
+};
+
+var shallowCopy = function (subject, source) {
     if (!(subject instanceof Object) || subject === null)
         throw new InvalidArguments();
     var sources = Array.prototype.slice.call(arguments, 1);
@@ -19,71 +69,32 @@ var mixin = function (subject, source) {
     return subject;
 };
 
-var extend = function (Ancestor, properties, staticProperties) {
-    if (!(Ancestor instanceof Function))
-        throw new InvalidArguments();
-    if (arguments.length > 3)
-        throw new InvalidArguments();
-    var Descendant = function (source) {
-        Object.defineProperty(this, "id", {
-            configurable: false,
-            enumerable: false,
-            writable: false,
-            value: id()
-        });
-        if (this.mixin instanceof Function)
-            this.mixin.apply(this, arguments);
-        if (this.init instanceof Function)
-            this.init();
-    };
-    Descendant.prototype = Object.create(Ancestor.prototype);
-    if (properties)
-        mixin(Descendant.prototype, properties);
-    Descendant.prototype.constructor = Descendant;
-    mixin(Descendant, Ancestor);
-    if (staticProperties)
-        mixin(Descendant, staticProperties);
-    return Descendant;
-};
-
-var clone = function (subject) {
-    if (!(subject instanceof Object))
-        return subject;
-    if (subject === null)
-        return subject;
-    if (subject instanceof Function)
-        return subject;
-    if (subject instanceof Array)
-        return subject.slice();
-    if (subject instanceof Date)
-        return new Date(subject);
-    if (subject instanceof RegExp)
-        return new RegExp(subject);
-    if (subject.clone instanceof Function)
-        return subject.clone();
-    if (subject.constructor.clone instanceof Function)
-        return subject.constructor.clone(subject);
-    return Object.create(subject);
-};
-
+var Base = extend(Object, {
+    clone: function () {
+        return Object.create(this);
+    }
+}, {
+    extend: function (properties, staticProperties) {
+        return extend(this, properties, staticProperties);
+    },
+    mixin: function (source) {
+        var parameters = [this];
+        parameters.push.apply(parameters, arguments);
+        return shallowCopy.apply(null, parameters);
+    }
+});
+Base.prototype.mixin = Base.mixin;
 
 var UserError = extend(Error, {
     name: "Error",
     message: "",
-    mixin: function (source) {
-        var parameters = [this];
-        parameters.push.apply(parameters, arguments);
-        return mixin.apply(null, parameters);
-    },
-    clone: function () {
-        return this;
-    },
+    mixin: Base.prototype.mixin,
     init: function () {
         var nativeError = new Error();
         var stack;
         Object.defineProperty(this, "stack", {
             configurable: false,
-            enumerable: true,
+            enumerable: false,
             get: function () {
                 if (stack === undefined) {
                     stack = "";
@@ -101,19 +112,8 @@ var UserError = extend(Error, {
         return new Stack(options);
     }
 }, {
-    extend: function (properties, staticProperties) {
-        return extend(this, properties, staticProperties);
-    },
-    mixin: function (source) {
-        var parameters = [this];
-        parameters.push.apply(parameters, arguments);
-        return mixin.apply(null, parameters);
-    },
-    clone: function (instance) {
-        if (!(instance instanceof UserError))
-            throw new InvalidArguments();
-        return instance.clone();
-    }
+    extend: Base.extend,
+    mixin: Base.mixin
 });
 
 var InvalidConfiguration = UserError.extend({
@@ -126,22 +126,6 @@ var InvalidArguments = UserError.extend({
 
 InvalidArguments.Empty = InvalidArguments.extend({
     message: "Arguments required."
-});
-
-
-var Base = extend(Object, {
-    mixin: UserError.mixin,
-    clone: function () {
-        return Object.create(this);
-    }
-}, {
-    extend: UserError.extend,
-    mixin: UserError.mixin,
-    clone: function (instance) {
-        if (!(instance instanceof Base))
-            throw new InvalidArguments();
-        return instance.clone();
-    }
 });
 
 var Stack = Base.extend({
@@ -281,78 +265,80 @@ var Wrapper = Base.extend({
         };
     },
     properties: {},
-    init: function () {
-        if (!(this.preprocessors instanceof Array))
-            throw new Wrapper.ArrayRequired();
-        for (var index = 0, length = this.preprocessors.length; index < length; ++index) {
-            var preprocessor = this.preprocessors[index];
-            if (!(preprocessor instanceof Function))
-                throw new Wrapper.PreprocessorRequired();
+    mixin: function (source) {
+        if (!this.hasOwnProperty("preprocessors"))
+            this.preprocessors = clone(this.preprocessors) || [];
+        if (!this.hasOwnProperty("properties"))
+            this.properties = clone(this.properties) || {};
+        var sources = [];
+        for (var sourceIndex = 0, sourceCount = arguments.length; sourceIndex < sourceCount; ++sourceIndex) {
+            source = arguments[sourceIndex];
+            if (source === undefined || source === null)
+                continue;
+            if (!(source instanceof Object))
+                throw new InvalidArguments();
+
+            if (source.preprocessors !== undefined) {
+                if (!(source.preprocessors instanceof Array))
+                    throw new Wrapper.ArrayRequired();
+                for (var preprocessorIndex = 0, preprocessorCount = source.preprocessors.length; preprocessorIndex < preprocessorCount; ++preprocessorIndex)
+                    if (!(source.preprocessors[preprocessorIndex] instanceof Function))
+                        throw new Wrapper.PreprocessorRequired();
+                this.preprocessors.push.apply(this.preprocessors, source.preprocessors);
+            }
+
+            if (source.done !== undefined && !(source.done instanceof Function))
+                throw new Wrapper.FunctionRequired();
+
+            if (source.algorithm !== undefined && !(source.algorithm instanceof Function))
+                throw new Wrapper.AlgorithmRequired();
+
+            if (source.properties !== undefined) {
+                if (!(source.properties instanceof Object))
+                    throw new Wrapper.PropertiesRequired();
+                shallowCopy(this.properties, source.properties);
+            }
+
+            var backup = {
+                preprocessors: this.preprocessors,
+                properties: this.properties
+            };
+            shallowCopy(this, source);
+            shallowCopy(this, backup);
         }
-        if (!(this.done instanceof Function))
-            throw new Wrapper.FunctionRequired();
-        if (!(this.algorithm instanceof Function))
-            throw new Wrapper.LogicRequired();
-        if (!(this.properties instanceof Object))
-            throw new Wrapper.PropertiesRequired();
+        return this;
     },
-    wrap: function (options) {
-        if (arguments.length > 1)
-            throw new InvalidArguments();
-        if (arguments.length == 1 && !(options instanceof Object))
-            throw new InvalidArguments();
-        options = this.mergeOptions(options || {});
+    wrap: function (source) {
+        var options = {
+            mixin: this.mixin
+        };
+        options.mixin({
+            preprocessors: this.preprocessors,
+            done: this.done,
+            algorithm: this.algorithm,
+            properties: this.properties
+        });
+        options.mixin.apply(options, arguments);
         var wrapper = options.algorithm(options);
         if (!(wrapper instanceof Function))
-            throw new Wrapper.InvalidLogic();
-        mixin(wrapper, options.properties);
-        wrapper.wrapper = this;
-        wrapper.options = options;
+            throw new Wrapper.InvalidAlgorithm();
+        shallowCopy(wrapper,
+            {
+                wrapper: this,
+                options: options
+            },
+            options.properties
+        );
         return wrapper;
-    },
-    mergeOptions: function (options) {
-        if (arguments.length != 1 || !(options instanceof Object))
-            throw new InvalidArguments();
-
-        var preprocessors = [];
-        preprocessors.push.apply(preprocessors, this.preprocessors);
-        if (options.preprocessors !== undefined && !(options.preprocessors instanceof Array))
-            throw new Wrapper.ArrayRequired();
-        if (options.preprocessors) {
-            for (var index = 0, length = options.preprocessors.length; index < length; ++index)
-                if (!(options.preprocessors[index] instanceof Function))
-                    throw new Wrapper.PreprocessorRequired();
-            preprocessors.push.apply(preprocessors, options.preprocessors);
-        }
-
-        var done = this.done;
-        if (options.done !== undefined && !(options.done instanceof Function))
-            throw new Wrapper.FunctionRequired();
-        if (options.done)
-            done = options.done;
-
-        var algorithm = this.algorithm;
-        if (options.algorithm !== undefined && !(options.algorithm instanceof Function))
-            throw new Wrapper.LogicRequired();
-        if (options.algorithm)
-            algorithm = options.algorithm;
-
-        var properties = {};
-        mixin(properties, this.properties);
-        if (options.properties !== undefined && !(options.properties instanceof Object))
-            throw new Wrapper.PropertiesRequired();
-        if (options.properties)
-            mixin(properties, options.properties);
-
-        var merged = {};
-        merged.preprocessors = preprocessors;
-        merged.done = done;
-        merged.algorithm = algorithm;
-        merged.properties = properties;
-
-        return merged;
     }
 }, {
+    done: {
+        dummy: function () {
+        },
+        echo: function () {
+            return Array.prototype.slice(arguments);
+        }
+    },
     algorithm: {
         cascade: function (options) {
             return function () {
@@ -409,13 +395,13 @@ var Wrapper = Base.extend({
     FunctionRequired: InvalidConfiguration.extend({
         message: "Function required."
     }),
-    LogicRequired: InvalidConfiguration.extend({
+    AlgorithmRequired: InvalidConfiguration.extend({
         message: "Function required."
     }),
     PropertiesRequired: InvalidConfiguration.extend({
         message: "Native Object instance required."
     }),
-    InvalidLogic: InvalidConfiguration.extend({
+    InvalidAlgorithm: InvalidConfiguration.extend({
         message: "Invalid algorithm given."
     })
 });
@@ -438,9 +424,10 @@ UserError.prototype.mixin = new Wrapper({
 
 module.exports = {
     id: id,
-    mixin: mixin,
     extend: extend,
     clone: clone,
+    mixin: mixin,
+    shallowCopy: shallowCopy,
     Base: Base,
     UserError: UserError,
     InvalidConfiguration: InvalidConfiguration,
