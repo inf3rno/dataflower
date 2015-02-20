@@ -99,7 +99,7 @@ var UserError = extend(Error, {
                 if (stack === undefined) {
                     stack = "";
                     stack += this.name + " " + this.message + "\n";
-                    stack += this.createStack({
+                    stack += new Stack({
                         string: nativeError.stack || nativeError.stacktrace || ""
                     });
                     delete(nativeError);
@@ -107,9 +107,6 @@ var UserError = extend(Error, {
                 return stack;
             }.bind(this)
         });
-    },
-    createStack: function (options) {
-        return new Stack(options);
     }
 }, {
     extend: Base.extend,
@@ -406,11 +403,6 @@ var Wrapper = Base.extend({
     })
 });
 
-UserError.prototype.createStack = new Wrapper({
-    algorithm: Wrapper.algorithm.firstMatch,
-    done: UserError.prototype.createStack
-}).wrap();
-
 UserError.prototype.mixin = new Wrapper({
     algorithm: Wrapper.algorithm.firstMatch,
     preprocessors: [
@@ -420,6 +412,11 @@ UserError.prototype.mixin = new Wrapper({
         }
     ],
     done: UserError.prototype.mixin
+}).wrap();
+
+Stack.prototype.mixin = new Wrapper({
+    algorithm: Wrapper.algorithm.firstMatch,
+    done: Stack.prototype.mixin
 }).wrap();
 
 module.exports = {

@@ -4,7 +4,7 @@ var df = require("dataflower"),
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
     Plugin = df.Plugin,
-    UserError = df.UserError,
+    Stack = df.Stack,
     Wrapper = df.Wrapper;
 
 var StackStringParser = Base.extend({
@@ -78,8 +78,15 @@ module.exports = new Plugin({
             throw new Error();
     },
     setup: function () {
-        UserError.prototype.createStack.options.preprocessors.push(function (options) {
-            return [this.parser.parse(options)];
-        }.bind(this));
+        Stack.prototype.mixin.options.mixin({
+            preprocessors: [
+                function (options) {
+                    if (options && typeof (options.string) == "string")
+                        return [
+                            this.parser.parse(options)
+                        ];
+                }.bind(this)
+            ]
+        });
     }
 });
