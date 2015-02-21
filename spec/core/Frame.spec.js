@@ -1,5 +1,5 @@
 var df = require("dataflower"),
-    Frame = df.Frame;
+    Frame = df.StackFrame;
 
 describe("core", function () {
 

@@ -133,14 +133,33 @@ InvalidArguments.Empty = InvalidArguments.extend({
 var Stack = Base.extend({
     frames: [],
     string: undefined,
-    init: function () {
-        if (!(this.frames instanceof Array))
-            throw new Stack.FramesRequired();
-        for (var index = 0, length = this.frames.length; index < length; ++index) {
-            var frame = this.frames[index];
-            if (!(frame instanceof Frame))
-                throw new Stack.FramesRequired();
+    prepare: function () {
+        this.frames = clone(this.frames);
+    },
+    mixin: function (source) {
+        var sources = [];
+        for (var sourceIndex = 0, sourceCount = arguments.length; sourceIndex < sourceCount; ++sourceIndex) {
+            source = arguments[sourceIndex];
+            if (source === undefined || source === null)
+                continue;
+            if (!(source instanceof Object))
+                throw new InvalidArguments();
+
+            if (source.frames !== undefined) {
+                if (!(source.frames instanceof Array))
+                    throw new Stack.StackFramesRequired();
+                for (var frameIndex = 0, frameCount = source.frames.length; frameIndex < frameCount; ++frameIndex)
+                    if (!(source.frames[frameIndex] instanceof StackFrame))
+                        throw new Stack.StackFrameRequired();
+                this.frames.push.apply(this.frames, source.frames);
+            }
+            var backup = {
+                frames: this.frames
+            };
+            shallowCopy(this, source);
+            shallowCopy(this, backup);
         }
+        return this;
     },
     toString: function () {
         if (this.string === undefined)
@@ -148,12 +167,15 @@ var Stack = Base.extend({
         return this.string;
     }
 }, {
-    FramesRequired: InvalidConfiguration.extend({
+    StackFramesRequired: InvalidConfiguration.extend({
         message: "An array of frames is required."
+    }),
+    StackFrameRequired: InvalidConfiguration.extend({
+        message: "StackFrame required as frames member."
     })
 });
 
-var Frame = Base.extend({
+var StackFrame = Base.extend({
     description: undefined,
     path: undefined,
     row: undefined,
@@ -161,13 +183,13 @@ var Frame = Base.extend({
     string: undefined,
     init: function () {
         if (typeof (this.description) != "string")
-            throw new Frame.DescriptionRequired();
+            throw new StackFrame.DescriptionRequired();
         if (typeof (this.path) != "string")
-            throw new Frame.PathRequired();
+            throw new StackFrame.PathRequired();
         if (isNaN(this.row))
-            throw new Frame.RowRequired();
+            throw new StackFrame.RowRequired();
         if (isNaN(this.col))
-            throw new Frame.ColRequired();
+            throw new StackFrame.ColRequired();
     },
     toString: function () {
         if (this.string !== undefined)
@@ -261,9 +283,9 @@ var Wrapper = Base.extend({
     done: function () {
         return Array.prototype.slice(arguments);
     },
-    algorithm: function (options) {
+    algorithm: function (wrapper) {
         return function () {
-            return options.done.apply(this, arguments);
+            return wrapper.done.apply(this, arguments);
         };
     },
     properties: {},
@@ -424,7 +446,7 @@ module.exports = {
     InvalidConfiguration: InvalidConfiguration,
     InvalidArguments: InvalidArguments,
     Stack: Stack,
-    Frame: Frame,
+    StackFrame: StackFrame,
     Plugin: Plugin,
     Wrapper: Wrapper
 };

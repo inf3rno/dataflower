@@ -1,6 +1,6 @@
 var df = require("dataflower"),
     Base = df.Base,
-    Frame = df.Frame,
+    StackFrame = df.StackFrame,
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
     Plugin = df.Plugin,
@@ -57,7 +57,7 @@ var StackStringParser = Base.extend({
         done: function (result) {
             if (typeof (result) == "string")
                 throw new StackStringParser.UnknownFrameFormat();
-            return new Frame(result);
+            return new StackFrame(result);
         }
     }).toFunction()
 }, {

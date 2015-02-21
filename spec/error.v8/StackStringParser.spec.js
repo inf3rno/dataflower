@@ -1,6 +1,6 @@
 var df = require("dataflower"),
     v8 = require("dataflower/error.v8"),
-    Frame = df.Frame,
+    Frame = df.StackFrame,
     StackStringParser = v8.StackStringParser;
 
 describe("error.v8", function () {

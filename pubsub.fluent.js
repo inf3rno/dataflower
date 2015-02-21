@@ -1,7 +1,6 @@
 var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     Plugin = df.Plugin,
-    Base = df.Base,
     InvalidArguments = df.InvalidArguments,
     Publisher = ps.Publisher,
     Subscription = ps.Subscription,

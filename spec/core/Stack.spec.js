@@ -1,21 +1,28 @@
 var df = require("dataflower"),
     Stack = df.Stack,
-    Frame = df.Frame;
+    Frame = df.StackFrame;
 
 describe("core", function () {
 
     describe("Stack.prototype", function () {
 
-        describe("init", function () {
+        describe("prepare", function (){
 
-            it("accepts configuration options", function () {
-
-                var o = {
-                        x: {}
-                    },
-                    stack = new Stack(o);
-                expect(stack.x).toBe(o.x);
+            it("clones the frames array", function (){
+                var frames = [
+                    Object.create(Frame.prototype),
+                    Object.create(Frame.prototype)
+                ];
+                var stack = new Stack({
+                    frames: frames
+                });
+                expect(stack.frames).not.toBe(frames);
+                expect(stack.frames).toEqual(frames);
             });
+
+        });
+
+        describe("mixin", function () {
 
             it("accepts only a valid frames array", function () {
 
@@ -23,7 +30,7 @@ describe("core", function () {
                     new Stack({
                         frames: {}
                     });
-                }).toThrow(new Stack.FramesRequired());
+                }).toThrow(new Stack.StackFramesRequired());
 
                 expect(function () {
                     new Stack({
@@ -32,7 +39,7 @@ describe("core", function () {
                             {}
                         ]
                     });
-                }).toThrow(new Stack.FramesRequired());
+                }).toThrow(new Stack.StackFrameRequired());
 
             });
 
