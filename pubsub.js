@@ -27,7 +27,7 @@ var Publisher = Component.extend({
             subscription.notify(parameters);
         }
     },
-    wrap: function () {
+    toFunction: function () {
         if (!this.wrapper)
             this.wrapper = new Wrapper({
                 done: function () {
@@ -37,7 +37,7 @@ var Publisher = Component.extend({
                 properties: {
                     component: this
                 }
-            }).wrap();
+            }).toFunction();
         return this.wrapper;
     }
 }, {

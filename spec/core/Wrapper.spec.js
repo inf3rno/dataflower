@@ -7,6 +7,37 @@ describe("core", function () {
 
     describe("Wrapper", function () {
 
+        describe("prepare", function () {
+
+            it("clones the preprocessors Array", function () {
+
+                var wrapper = new Wrapper({
+                    preprocessors: [function () {
+                    }]
+                });
+                var wrapper2 = Object.create(wrapper);
+                expect(wrapper2.preprocessors).toBe(wrapper.preprocessors);
+                wrapper2.prepare();
+                expect(wrapper2.preprocessors).not.toBe(wrapper.preprocessors);
+                expect(wrapper2.preprocessors).toEqual(wrapper.preprocessors);
+            });
+
+            it("clones the properties Object", function () {
+
+                var wrapper = new Wrapper({
+                    properties: {
+                        a: {}
+                    }
+                });
+                var wrapper2 = Object.create(wrapper);
+                expect(wrapper2.properties).toBe(wrapper.properties);
+                wrapper2.prepare();
+                expect(wrapper2.properties).not.toBe(wrapper.properties);
+                expect(wrapper2.properties.a).toBe(wrapper.properties.a);
+            });
+
+        });
+
         describe("mixin", function () {
 
             it("accepts only object, null or undefined as sources", function () {
@@ -134,22 +165,6 @@ describe("core", function () {
                 expect(Wrapper.prototype.mixin.call(o)).toBe(o);
             });
 
-            it("creates a new preprocessors Array if it is not an own property", function () {
-                var o = {};
-                Wrapper.prototype.mixin.call(o);
-                expect(o.preprocessors instanceof Array).toBe(true);
-                var f = function () {
-                };
-                o.preprocessors.push(f);
-                var o2 = Object.create(o);
-                Wrapper.prototype.mixin.call(o2);
-                expect(o2.preprocessors instanceof Array).toBe(true);
-                expect(o2.preprocessors).toEqual(o.preprocessors);
-                expect(o2.preprocessors).not.toBe(o.preprocessors);
-                expect(o.preprocessors.length).toBe(1);
-                expect(o.preprocessors[0]).toBe(f);
-            });
-
             it("merges pushes preprocessors if given", function () {
 
                 var x = function () {
@@ -209,25 +224,12 @@ describe("core", function () {
                 expect(o.algorithm).toBe(b);
             });
 
-            it("creates a new properties Object with Object.create if it is not an own property", function () {
-
-                var o = {};
-                Wrapper.prototype.mixin.call(o);
-                expect(o.properties instanceof Object).toBe(true);
-                var p = {};
-                o.properties.p = p;
-                var o2 = Object.create(o);
-                Wrapper.prototype.mixin.call(o2);
-                expect(o2.properties instanceof Object).toBe(true);
-                expect(o2.properties).not.toBe(o.properties);
-                expect(o.properties.p).toBe(p);
-                expect(o2.properties.p).toBe(p);
-            });
-
             it("merges properties if given", function () {
                 var a = {a: 1, b: 2},
                     b = {b: 3, c: 4},
-                    o = {};
+                    o = {
+                        properties: {}
+                    };
                 Wrapper.prototype.mixin.call(o, {
                     properties: a
                 }, {
@@ -240,62 +242,27 @@ describe("core", function () {
 
         });
 
-        describe("wrap", function () {
-
-            it("calls the mixin on a new options Object with the Wrapper instance properties and the options", function () {
-
-                var f = function () {
-                };
-                var o = {
-                    preprocessors: [function () {
-                    }],
-                    done: function () {
-                    },
-                    algorithm: function () {
-                        return f;
-                    },
-                    properties: {},
-                    mixin: jasmine.createSpy().and.callFake(function (o) {
-                        shallowCopy(this, o);
-                    })
-                };
-                var a = {
-                    done: function () {
-                    },
-                    properties: {}
-                };
-                var r = Wrapper.prototype.wrap.call(o, a);
-
-                expect(o.mixin).toHaveBeenCalledWith(a);
-                expect(o.mixin.calls.count()).toBe(2);
-                expect(o.mixin.calls.first().args).toEqual([{
-                    preprocessors: o.preprocessors,
-                    done: o.done,
-                    algorithm: o.algorithm,
-                    properties: o.properties
-                }]);
-                expect(o.mixin.calls.mostRecent().args).toEqual([a]);
-                expect(r).toBe(f);
-
-            });
+        describe("toFunction", function () {
 
             it("extends the results returned by the algorithm with the properties given in options", function () {
 
+                var log = jasmine.createSpy();
                 var wrapper = new Wrapper({
+                    algorithm: function (wrapper) {
+                        log(wrapper);
+                        return log;
+                    },
                     properties: {
                         a: 1,
                         b: 2
                     }
                 });
-                var fn = wrapper.wrap({
-                    properties: {
-                        b: 3,
-                        c: 4
-                    }
-                });
+                expect(log).not.toHaveBeenCalled();
+                var fn = wrapper.toFunction();
+                expect(log).toHaveBeenCalledWith(wrapper);
+                expect(fn).toBe(log);
                 expect(fn.a).toBe(1);
-                expect(fn.b).toBe(3);
-                expect(fn.c).toBe(4);
+                expect(fn.b).toBe(2);
             });
 
         });
@@ -316,11 +283,11 @@ describe("core", function () {
                         return [c, a, b];
                     });
 
-                    var wrapper = new Wrapper();
-                    var fn = wrapper.wrap({
+                    var wrapper = new Wrapper({
                         preprocessors: [pp1, pp2],
                         algorithm: Wrapper.algorithm.cascade
                     });
+                    var fn = wrapper.toFunction();
 
                     expect(pp1).not.toHaveBeenCalled();
                     expect(pp2).not.toHaveBeenCalled();
@@ -337,11 +304,11 @@ describe("core", function () {
                         return [c, b, a];
                     });
 
-                    var wrapper = new Wrapper();
-                    var fn = wrapper.wrap({
+                    var wrapper = new Wrapper({
                         done: done,
                         algorithm: Wrapper.algorithm.cascade
                     });
+                    var fn = wrapper.toFunction();
 
                     expect(done).not.toHaveBeenCalled();
                     expect(fn.call(context, 1, 2, 3)).toEqual([3, 2, 1]);
@@ -357,12 +324,12 @@ describe("core", function () {
                         return [c, a, b];
                     });
                     var done = jasmine.createSpy();
-                    var wrapper = new Wrapper();
-                    var fn = wrapper.wrap({
+                    var wrapper = new Wrapper({
                         preprocessors: [pp1, pp2],
                         done: done,
                         algorithm: Wrapper.algorithm.cascade
                     });
+                    var fn = wrapper.toFunction();
 
                     expect(pp1).not.toHaveBeenCalled();
                     expect(pp2).not.toHaveBeenCalled();
@@ -385,11 +352,11 @@ describe("core", function () {
                         return [c, b, a];
                     });
 
-                    var wrapper = new Wrapper();
-                    var fn = wrapper.wrap({
+                    var wrapper = new Wrapper({
                         done: done,
                         algorithm: Wrapper.algorithm.firstMatch
                     });
+                    var fn = wrapper.toFunction();
 
                     expect(done).not.toHaveBeenCalled();
                     expect(fn.call(context, 1, 2, 3)).toEqual([3, 2, 1]);
@@ -404,12 +371,12 @@ describe("core", function () {
                     });
                     var pp3 = jasmine.createSpy();
                     var done = jasmine.createSpy();
-                    var wrapper = new Wrapper();
-                    var fn = wrapper.wrap({
+                    var wrapper = new Wrapper({
                         preprocessors: [pp1, pp2, pp3],
                         done: done,
                         algorithm: Wrapper.algorithm.firstMatch
                     });
+                    var fn = wrapper.toFunction();
 
                     expect(pp1).not.toHaveBeenCalled();
                     expect(pp2).not.toHaveBeenCalled();
@@ -434,11 +401,11 @@ describe("core", function () {
                         return [c, b, a];
                     });
 
-                    var wrapper = new Wrapper();
-                    var fn = wrapper.wrap({
+                    var wrapper = new Wrapper({
                         done: done,
                         algorithm: Wrapper.algorithm.firstMatch
                     });
+                    var fn = wrapper.toFunction();
 
                     expect(done).not.toHaveBeenCalled();
                     expect(fn.call(context, 1, 2, 3)).toEqual([3, 2, 1]);
@@ -460,12 +427,12 @@ describe("core", function () {
                             return [3];
                     });
                     var done = jasmine.createSpy();
-                    var wrapper = new Wrapper();
-                    var fn = wrapper.wrap({
+                    var wrapper = new Wrapper({
                         preprocessors: [pp1, pp2, pp3],
                         done: done,
                         algorithm: Wrapper.algorithm.firstMatchCascade
                     });
+                    var fn = wrapper.toFunction();
 
                     expect(pp1).not.toHaveBeenCalled();
                     expect(pp2).not.toHaveBeenCalled();

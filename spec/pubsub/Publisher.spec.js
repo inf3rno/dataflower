@@ -82,19 +82,19 @@ describe("pubsub", function () {
 
         });
 
-        describe("wrap", function () {
+        describe("toFunction", function () {
 
             it("returns a wrapper", function () {
 
                 var publisher = new Publisher();
-                expect(publisher.wrap() instanceof Function).toBe(true);
+                expect(publisher.toFunction() instanceof Function).toBe(true);
 
             });
 
             it("returns always the same wrapper", function () {
 
                 var publisher = new Publisher();
-                expect(publisher.wrap()).toBe(publisher.wrap());
+                expect(publisher.toFunction()).toBe(publisher.toFunction());
 
             });
 
@@ -107,7 +107,7 @@ describe("pubsub", function () {
                 var publisher = new Publisher();
                 publisher.publish = jasmine.createSpy();
 
-                var wrapper = publisher.wrap();
+                var wrapper = publisher.toFunction();
                 expect(publisher.publish).not.toHaveBeenCalled();
                 wrapper(1, 2, 3);
                 expect(publisher.publish).toHaveBeenCalledWith([1, 2, 3]);
@@ -116,7 +116,7 @@ describe("pubsub", function () {
             it("has a component property", function () {
 
                 var publisher = new Publisher(),
-                    wrapper = publisher.wrap();
+                    wrapper = publisher.toFunction();
                 expect(wrapper.component).toBe(publisher);
             });
 

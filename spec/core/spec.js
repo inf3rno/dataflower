@@ -131,6 +131,17 @@ describe("core", function () {
                 expect(descendant.id).not.toBe(new Descendant().id);
             });
 
+            it("calls init before mixin if a function is set", function () {
+
+                var Ancestor = function () {
+                };
+                var Descendant = extend(Ancestor, {
+                    prepare: jasmine.createSpy()
+                });
+                var descendant = new Descendant({}, {}, {});
+                expect(descendant.prepare).toHaveBeenCalledWith();
+            });
+
             it("calls mixin from the prototype after unique id is set", function () {
 
                 var Ancestor = function () {

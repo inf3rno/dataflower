@@ -110,7 +110,7 @@ var o = {
         return [a, b, c];
     }
 };
-o.m = new df.Wrapper().wrap({
+o.m = new df.Wrapper({
     algorithm: Wrapper.algorithm.cascade,
     preprocessors: [
         function (a, b, c) {
@@ -119,7 +119,7 @@ o.m = new df.Wrapper().wrap({
         }
     ],
     done: o.m
-});
+}).toFunction();
 console.log("results", o.m(1, 2, 3))
 // reversing [1, 2, 3]
 // processing [3, 2, 1]

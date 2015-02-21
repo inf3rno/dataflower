@@ -30,9 +30,9 @@ var o = {
                 throw new InvalidArguments();
             if (!(publisher instanceof Publisher))
                 throw new InvalidArguments();
-            return publisher.wrap();
+            return publisher.toFunction();
         }
-    }).wrap(),
+    }).toFunction(),
     subscriber: new Wrapper({
         algorithm: Wrapper.algorithm.firstMatchCascade,
         preprocessors: [
@@ -56,7 +56,7 @@ var o = {
                 throw new InvalidArguments();
             return subscriber;
         }
-    }).wrap(),
+    }).toFunction(),
     subscribe: new Wrapper({
         algorithm: Wrapper.algorithm.firstMatchCascade,
         preprocessors: [
@@ -84,7 +84,7 @@ var o = {
                 throw new InvalidArguments();
             return subscription;
         }
-    }).wrap()
+    }).toFunction()
 };
 o.flow = o.subscribe;
 

@@ -59,7 +59,7 @@ var StackStringParser = Base.extend({
                 throw new StackStringParser.UnknownFrameFormat();
             return new Frame(result);
         }
-    }).wrap()
+    }).toFunction()
 }, {
     UnknownFrameFormat: InvalidArguments.extend({
         message: "Unknown frame format"
@@ -78,7 +78,7 @@ module.exports = new Plugin({
             throw new Error();
     },
     setup: function () {
-        Stack.prototype.mixin.options.mixin({
+        Stack.prototype.mixin.wrapper.mixin({
             preprocessors: [
                 function (options) {
                     if (options && typeof (options.string) == "string")

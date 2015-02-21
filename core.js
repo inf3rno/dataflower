@@ -15,6 +15,8 @@ var extend = function (Ancestor, properties, staticProperties) {
             writable: false,
             value: id()
         });
+        if (this.prepare instanceof Function)
+            this.prepare();
         var parameters = [this];
         parameters.push.apply(parameters, arguments);
         mixin.apply(null, parameters);
@@ -71,7 +73,10 @@ var shallowCopy = function (subject, source) {
 
 var Base = extend(Object, {
     clone: function () {
-        return Object.create(this);
+        var instance = Object.create(this);
+        if (instance.prepare instanceof Function)
+            instance.prepare();
+        return instance;
     }
 }, {
     extend: function (properties, staticProperties) {
@@ -262,11 +267,11 @@ var Wrapper = Base.extend({
         };
     },
     properties: {},
+    prepare: function () {
+        this.preprocessors = clone(this.preprocessors);
+        this.properties = clone(this.properties);
+    },
     mixin: function (source) {
-        if (!this.hasOwnProperty("preprocessors"))
-            this.preprocessors = clone(this.preprocessors) || [];
-        if (!this.hasOwnProperty("properties"))
-            this.properties = clone(this.properties) || {};
         var sources = [];
         for (var sourceIndex = 0, sourceCount = arguments.length; sourceIndex < sourceCount; ++sourceIndex) {
             source = arguments[sourceIndex];
@@ -305,28 +310,17 @@ var Wrapper = Base.extend({
         }
         return this;
     },
-    wrap: function (source) {
-        var options = {
-            mixin: this.mixin
-        };
-        options.mixin({
-            preprocessors: this.preprocessors,
-            done: this.done,
-            algorithm: this.algorithm,
-            properties: this.properties
-        });
-        options.mixin.apply(options, arguments);
-        var wrapper = options.algorithm(options);
-        if (!(wrapper instanceof Function))
+    toFunction: function () {
+        var func = this.algorithm(this);
+        if (!(func instanceof Function))
             throw new Wrapper.InvalidAlgorithm();
-        shallowCopy(wrapper,
+        shallowCopy(func,
             {
-                wrapper: this,
-                options: options
+                wrapper: this
             },
-            options.properties
+            this.properties
         );
-        return wrapper;
+        return func;
     }
 }, {
     done: {
@@ -337,38 +331,38 @@ var Wrapper = Base.extend({
         }
     },
     algorithm: {
-        cascade: function (options) {
+        cascade: function (wrapper) {
             return function () {
                 var parameters = Array.prototype.slice.apply(arguments);
-                for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
-                    var preprocessor = options.preprocessors[index];
+                for (var index = 0, length = wrapper.preprocessors.length; index < length; ++index) {
+                    var preprocessor = wrapper.preprocessors[index];
                     parameters = preprocessor.apply(this, parameters);
                 }
-                return options.done.apply(this, parameters);
+                return wrapper.done.apply(this, parameters);
             };
         },
-        firstMatch: function (options) {
+        firstMatch: function (wrapper) {
             return function () {
                 var parameters = arguments,
                     match;
-                for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
-                    var preprocessor = options.preprocessors[index];
+                for (var index = 0, length = wrapper.preprocessors.length; index < length; ++index) {
+                    var preprocessor = wrapper.preprocessors[index];
                     match = preprocessor.apply(this, arguments);
                     if (match !== undefined) {
                         parameters = match;
                         break;
                     }
                 }
-                return options.done.apply(this, parameters);
+                return wrapper.done.apply(this, parameters);
             };
         },
-        firstMatchCascade: function (options) {
+        firstMatchCascade: function (wrapper) {
             return function () {
                 var parameters = arguments;
                 var reduce = function () {
                     var match;
-                    for (var index = 0, length = options.preprocessors.length; index < length; ++index) {
-                        var preprocessor = options.preprocessors[index];
+                    for (var index = 0, length = wrapper.preprocessors.length; index < length; ++index) {
+                        var preprocessor = wrapper.preprocessors[index];
                         match = preprocessor.apply(this, parameters);
                         if (match !== undefined) {
                             parameters = match;
@@ -379,7 +373,7 @@ var Wrapper = Base.extend({
                         reduce.call(this);
                 };
                 reduce.call(this);
-                return options.done.apply(this, parameters);
+                return wrapper.done.apply(this, parameters);
             };
         }
     },
@@ -412,12 +406,12 @@ UserError.prototype.mixin = new Wrapper({
         }
     ],
     done: UserError.prototype.mixin
-}).wrap();
+}).toFunction();
 
 Stack.prototype.mixin = new Wrapper({
     algorithm: Wrapper.algorithm.firstMatch,
     done: Stack.prototype.mixin
-}).wrap();
+}).toFunction();
 
 module.exports = {
     id: id,

@@ -68,6 +68,16 @@ describe("core", function () {
                     expect(b.y).not.toBe(a.y);
                 });
 
+                it("calls prepare on the cloned instance if a Function given", function () {
+
+                    var a = {
+                        prepare: jasmine.createSpy()
+                    };
+                    var b = Base.prototype.clone.call(a);
+                    expect(a.prepare).toHaveBeenCalled();
+                    expect(a.prepare.calls.first().object).toBe(b);
+                });
+
             });
 
         });
