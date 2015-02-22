@@ -19,9 +19,13 @@ The projects concentrates on solving some general issues like inheritance, error
 
 **Most of the dataflow components are not yet implemented! I am working on the utils currently.**
 
+I frequently create and close issues and I write a lot of comments, so watching the repo on github is not a good idea if you don't want to get about 10 emails daily.
+
 ## Documentation
 
-A detailed documentation will be available on GitHub Pages by the first release. Until then all I can provide are low quality examples.
+No documentation yet.
+
+*A detailed documentation will be available on GitHub Pages by the first release. Until then all I can provide are low quality examples.*
 
 ### Examples
 
@@ -263,13 +267,21 @@ o.send(4, 5, 6); // 4 5 6
 
 ### Installation
 
-Node.js with manual copy & paste is available.
-Npm and bower support will be available by 1.0.
+Current version is 0.2.0.
 
-#### Versioning
+*I'll increase the minor version number only until I start to use a nested git branching model and auto versioning.*
 
-I decided to not give version numbers until the implementation reaches 0.9. You can follow the progress in the issue tracker. I write a low, so watching the repo is not a good idea if you don't want to get about 10 emails daily.
-I could add auto-versioning by using git branches, but my experience that by a single developer project branching only slows me down. After version 1.0 (or probably later) I'll add branching and auto-versioning.
+```bash
+npm install dataflower
+```
+
+```bash
+bower install dataflower
+```
+
+Only node.js is supported yet.
+
+*I'll add browserify support and karma tests by 1.1.0.*
 
 #### Environment
 
@@ -281,25 +293,28 @@ An ES5 capable environment is required at least with
 There is an environment test available in the spec folder.
 
 The framework is written for ES5.
-There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.
-Probably there won't be ES7 support, because it defines `async` functions, which will make this framework obsolete.
+
+*There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.
+Probably there won't be ES7 support, because it defines `async` functions, which will make this framework obsolete.*
 
 #### Testing
 
-[Jasmine](https://github.com/jasmine/jasmine) 2.2 tests are available.
+I test with [Jasmine](https://github.com/jasmine/jasmine) 2.2.
 
 By node.js 0.10.36 I used [jasmine-npm](https://github.com/jasmine/jasmine-npm) 2.2.0.
 
-By browsers I will use [karma](https://github.com/karma-runner/karma) x.x.x & [karma-jasmine](https://github.com/karma-runner/karma-jasmine) x.x.x.
-Browser tests will be available by 1.1 and data binding tests will be available by 1.2.
+*By browsers I will use [karma](https://github.com/karma-runner/karma) x.x.x & [karma-jasmine](https://github.com/karma-runner/karma-jasmine) x.x.x.
+Browser tests will be available by 1.1 and data binding tests will be available by 1.2.*
 
-There will be a DataFlow specific Jasmine helper available by 1.1.
-Probably integration with other testing frameworks will be supported as well by 1.1.
+*There will be a DataFlow specific Jasmine helper available by 1.1.
+Probably integration with other testing frameworks will be supported as well by 1.1.*
 
 #### Code completion
 
-[WebStorm](https://www.jetbrains.com/webstorm/) support will be available by 1.1.
-Probably other IDEs and editors will be supported in later 1.3+ versions.
+Node code completion support yet.
+
+*[WebStorm](https://www.jetbrains.com/webstorm/) support will be available by 1.1.
+Probably other IDEs and editors will be supported in later 1.3+ versions.*
 
 
 ## License
