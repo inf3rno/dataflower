@@ -25,7 +25,7 @@ I frequently create and close issues and I write a lot of comments, so watching 
 
 No real documentation yet.
 
-*A detailed documentation will be available on GitHub Pages by the first release. Until then all I can provide are low quality examples.*
+*A detailed documentation will be available on GitHub Pages by 0.9.0 at the very latest. Until then all I can provide are low quality examples.*
 
 ### Installation
 
@@ -232,7 +232,7 @@ try {
             myCause: cause
         });
     }
-catch (composite) {
+catch (err) {
     console.log(err.toString());
     // CompositeError Something really bad caused this.
 
