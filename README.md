@@ -182,7 +182,7 @@ try {
     catch (cause) {
         throw new df.CompositeError({
             message: "Something really bad caused this.",
-            cause: cause
+            myCause: cause
         });
     }
 catch (composite) {
@@ -195,7 +195,7 @@ catch (composite) {
         CompositeError Something really bad caused this.
             at null.<anonymous> (/README.md:71:11)
             ...
-        UserError cause Something really bad happened.
+        caused by <myCause> UserError Something really bad happened.
             at null.<anonymous> (/README.md:68:9)
             ...
     */

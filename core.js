@@ -106,11 +106,9 @@ var UserError = extend(Error, {
             get: this.toStackString.bind(this)
         });
     },
-    toStackString: function (key) {
+    toStackString: function () {
         var string = "";
         string += this.name;
-        if (typeof (key) == "string")
-            string += " " + key;
         string += " " + this.message + "\n";
         string += this.stackTrace;
         return string;
@@ -139,16 +137,20 @@ var InvalidResult = UserError.extend({
 var CompositeError = UserError.extend({
     name: "CompositeError",
     toStackString: function (key) {
-        var string = UserError.prototype.toStackString.call(this, key);
+        var string = UserError.prototype.toStackString.call(this);
         if (typeof (key) == "string")
             key += ".";
         else
             key = "";
         for (var property in this) {
             var error = this[property];
-            if (!(error instanceof UserError))
+            if (!(error instanceof Error))
                 continue;
-            string += "\n" + error.toStackString(key + property);
+            string += "\ncaused by <" + key + property + "> ";
+            if (error instanceof CompositeError)
+                string += error.toStackString(key + property);
+            else
+                string += error.stack;
         }
         return string;
     }

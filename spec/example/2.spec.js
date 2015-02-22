@@ -49,6 +49,9 @@ describe("example", function () {
                 expect(err instanceof SyntaxError).toBe(false);
 
                 expect(err.stack).toBeDefined();
+                expect(err.stack).toContain(err.name);
+                expect(err.stack).toContain(err.message);
+                expect(err.stack).toContain("throwMyErrorDescendant");
             }
 
         });
@@ -58,13 +61,16 @@ describe("example", function () {
                     name: "MyError",
                     message: "Something really bad caused this."
                 }),
+                throwMyUserError = function () {
+                    throw new df.UserError("Something really bad happened.");
+                },
                 throwMyCompositeError = function () {
                     try {
-                        throw new df.UserError("Something really bad happened.");
+                        throwMyUserError();
                     }
                     catch (cause) {
                         throw new MyCompositeError({
-                            cause: cause
+                            myCause: cause
                         });
                     }
                 };
@@ -77,12 +83,13 @@ describe("example", function () {
                 expect(err instanceof MyCompositeError).toBe(true);
                 expect(err instanceof df.CompositeError).toBe(true);
                 expect(err instanceof df.UserError).toBe(true);
-                expect(err.cause instanceof df.UserError).toBe(true);
+                expect(err.myCause instanceof df.UserError).toBe(true);
                 expect(err.stack).toBeDefined();
-                expect(err.stack.match(err.name)).not.toBe(null);
-                expect(err.stack.match(err.message)).not.toBe(null);
-                expect(err.stack.match(err.cause.name)).not.toBe(null);
-                expect(err.stack.match(err.cause.message)).not.toBe(null);
+                expect(err.stack).toContain(err.name);
+                expect(err.stack).toContain(err.message);
+                expect(err.stack).toContain(err.myCause.stack);
+                expect(err.stack).toContain("throwMyCompositeError");
+                expect(err.stack).toContain("throwMyUserError");
             }
 
         });

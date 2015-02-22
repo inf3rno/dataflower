@@ -65,16 +65,39 @@ describe("core", function () {
                     expect(root.stack).toBe([
                         "CompositeError message",
                         "stack",
-                        "CompositeError x message.x",
+                        "caused by <x> CompositeError message.x",
                         "stack.x",
-                        "UserError x.a message.x.a",
+                        "caused by <x.a> UserError message.x.a",
                         "stack.x.a",
-                        "UserError x.b message.x.b",
+                        "caused by <x.b> UserError message.x.b",
                         "stack.x.b",
-                        "UserError y message.y",
+                        "caused by <y> UserError message.y",
                         "stack.y"
                     ].join("\n"));
 
+                });
+
+                it("supports native errors as well", function () {
+
+                    var nativeError;
+                    try {
+                        (null).x();
+                    }
+                    catch (err) {
+                        nativeError = err;
+                    }
+
+                    var composite = new CompositeError({
+                        message: "message",
+                        native: nativeError
+                    }).mixin({
+                            stackTrace: new StackTrace({
+                                toString: function () {
+                                    return "stack";
+                                }
+                            })
+                        });
+                    expect(composite.stack).toContain(nativeError.stack);
                 });
 
             });
