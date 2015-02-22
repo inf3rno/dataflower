@@ -23,13 +23,35 @@ I frequently create and close issues and I write a lot of comments, so watching 
 
 ## Documentation
 
-No documentation yet.
+No real documentation yet.
 
 *A detailed documentation will be available on GitHub Pages by the first release. Until then all I can provide are low quality examples.*
 
-### Examples
+### Installation
 
-#### 0. setting environment variables, installing plugins, testing
+Current version is 0.2.0.
+
+*I'll increase the minor version number only until I start to use a nested git branching model and auto versioning.*
+
+Only node.js is supported yet.
+
+*I'll add browserify support and karma tests by 1.1.0.*
+
+#### Package managers
+
+You can install the lib from npm and bower:
+
+```bash
+npm install dataflower
+```
+
+```bash
+bower install dataflower
+```
+
+#### Manual installation
+
+You should add the parent lib to NODE_PATH by manual installation (copy-paste).
 
 ```bash
 export NODE_PATH=../
@@ -37,11 +59,32 @@ export NODE_PATH=../
 # another possible solutions are npm link and symlink
 ```
 
+#### Environment requirements
+
+An ES5 capable environment is required at least with
+
+- `Object.create`
+- `Object.defineProperty`
+
+There is an environment test available in the spec folder.
+
+The framework is written for ES5.
+
+*There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.
+Probably there won't be ES7 support, because it defines `async` functions, which will make this framework obsolete.*
+
+
+### Examples
+
+#### 0. installing plugins before using the lib
+
+*I'll probably turn on auto plugin installation later, but until then you have to do it manually.*
+
 ```js
-var df = require("dataflower"),
-    ps = require("dataflower/pubsub"),
-    psf = require("dataflower/pubsub.fluent"),
-    v8 = require("dataflower/error.v8");
+var df = require("dataflower"), // inheritance, error handling, function/method wrapper, plugin
+    ps = require("dataflower/pubsub"), // pub/sub components
+    psf = require("dataflower/pubsub.fluent"), // fluent interface for pub/sub components
+    v8 = require("dataflower/error.v8"); // v8 error stack parser, not necessary
 
 ps.install();
 psf.install();
@@ -265,37 +308,7 @@ o.send(1, 2, 3); // 1 2 3
 o.send(4, 5, 6); // 4 5 6
 ```
 
-### Installation
-
-Current version is 0.2.0.
-
-*I'll increase the minor version number only until I start to use a nested git branching model and auto versioning.*
-
-```bash
-npm install dataflower
-```
-
-```bash
-bower install dataflower
-```
-
-Only node.js is supported yet.
-
-*I'll add browserify support and karma tests by 1.1.0.*
-
-#### Environment
-
-An ES5 capable environment is required at least with
-
-- `Object.create`
-- `Object.defineProperty`
-
-There is an environment test available in the spec folder.
-
-The framework is written for ES5.
-
-*There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.
-Probably there won't be ES7 support, because it defines `async` functions, which will make this framework obsolete.*
+### Integration
 
 #### Testing
 
