@@ -1,7 +1,9 @@
 var df = require("dataflower"),
     UserError = df.UserError,
     InvalidArguments = df.InvalidArguments,
-    InvalidConfiguration = df.InvalidConfiguration;
+    InvalidResult = df.InvalidResult,
+    InvalidConfiguration = df.InvalidConfiguration,
+    StackTrace = df.StackTrace;
 
 describe("core", function () {
 
@@ -40,7 +42,7 @@ describe("core", function () {
 
         });
 
-        describe("prototpye", function () {
+        describe("prototype", function () {
 
             describe("mixin", function () {
 
@@ -54,14 +56,28 @@ describe("core", function () {
                     expect(UserError.prototype.a).toBeUndefined();
                 });
 
+                it("transforms message string to source object", function () {
+
+                    var err = new UserError();
+                    err.mixin("message");
+                    expect(err.message).toBe("message");
+                });
+
             });
 
             describe("init", function () {
 
-                it("creates the stack", function () {
+                it("creates the stack getter", function () {
 
                     var err = new UserError();
                     expect(typeof (err.stack)).toBe("string");
+                });
+
+                it("creates the stackTrace object", function () {
+
+                    var err = new UserError();
+                    expect(err.stackTrace instanceof StackTrace).toBe(true);
+
                 });
             });
 
@@ -84,6 +100,15 @@ describe("core", function () {
 
             });
 
+        });
+
+    });
+
+    describe("InvalidResult", function () {
+
+        it("is an UserError descendant", function () {
+
+            expect(InvalidResult.prototype instanceof UserError).toBe(true);
         });
 
     });

@@ -1,11 +1,11 @@
 var df = require("dataflower"),
     Base = df.Base,
-    StackFrame = df.StackFrame,
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
-    Plugin = df.Plugin,
-    Stack = df.Stack,
-    Wrapper = df.Wrapper;
+    StackTrace = df.StackTrace,
+    StackFrame = df.StackFrame,
+    Wrapper = df.Wrapper,
+    Plugin = df.Plugin;
 
 var StackStringParser = Base.extend({
     messageFinder: /^[^\n]*\n/,
@@ -52,6 +52,16 @@ var StackStringParser = Base.extend({
                         row: Number(match[2]),
                         col: Number(match[3])
                     }];
+            },
+            function (frameString) {
+                var match = frameString.match(/^\s*at\s+(?:\s*(.*?)\s*)\((.+)\)\s*$/);
+                if (match)
+                    return [{
+                        description: match[1],
+                        path: match[2],
+                        row: -1,
+                        col: -1
+                    }];
             }
         ],
         done: function (result) {
@@ -78,7 +88,7 @@ module.exports = new Plugin({
             throw new Error();
     },
     setup: function () {
-        Stack.prototype.mixin.wrapper.mixin({
+        StackTrace.prototype.mixin.wrapper.mixin({
             preprocessors: [
                 function (options) {
                     if (options && typeof (options.string) == "string")

@@ -1,6 +1,6 @@
 var df = require("dataflower"),
     v8 = require("dataflower/error.v8"),
-    Frame = df.StackFrame,
+    StackFrame = df.StackFrame,
     StackStringParser = v8.StackStringParser;
 
 describe("error.v8", function () {
@@ -16,7 +16,8 @@ describe("error.v8", function () {
                         "	at new Descendant (http://example.com/df.js:11:27)",
                         "	at custom (http://example.com/spec/example.spec.js:222:23)",
                         "	at Base.<anonymous> (http://example.com/spec/example.spec.js:224:13)",
-                        "	at http://example.com/spec/example.spec.js:10:20"
+                        "	at http://example.com/spec/example.spec.js:10:20",
+                        "	at Array.forEach (native)"
                     ].join("\n"),
                     parser = new StackStringParser();
 
@@ -25,23 +26,29 @@ describe("error.v8", function () {
                 });
                 expect(options.string).not.toBeDefined();
                 expect(options.frames).toEqual([
-                    new Frame({
+                    new StackFrame({
                         description: "custom",
                         path: "http://example.com/spec/example.spec.js",
                         row: 222,
                         col: 23
                     }),
-                    new Frame({
+                    new StackFrame({
                         description: "Base.<anonymous>",
                         path: "http://example.com/spec/example.spec.js",
                         row: 224,
                         col: 13
                     }),
-                    new Frame({
+                    new StackFrame({
                         description: "",
                         path: "http://example.com/spec/example.spec.js",
                         row: 10,
                         col: 20
+                    }),
+                    new StackFrame({
+                        description: "Array.forEach",
+                        path: "native",
+                        row: -1,
+                        col: -1
                     })
                 ]);
 

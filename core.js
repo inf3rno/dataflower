@@ -91,27 +91,29 @@ var Base = extend(Object, {
 Base.prototype.mixin = Base.mixin;
 
 var UserError = extend(Error, {
-    name: "Error",
+    name: "UserError",
     message: "",
+    stackTrace: undefined,
     mixin: Base.prototype.mixin,
     init: function () {
         var nativeError = new Error();
-        var stack;
+        this.stackTrace = new StackTrace({
+            string: nativeError.stack || nativeError.stacktrace || ""
+        });
         Object.defineProperty(this, "stack", {
             configurable: false,
             enumerable: false,
-            get: function () {
-                if (stack === undefined) {
-                    stack = "";
-                    stack += this.name + " " + this.message + "\n";
-                    stack += new Stack({
-                        string: nativeError.stack || nativeError.stacktrace || ""
-                    });
-                    delete(nativeError);
-                }
-                return stack;
-            }.bind(this)
+            get: this.toStackString.bind(this)
         });
+    },
+    toStackString: function (key) {
+        var string = "";
+        string += this.name;
+        if (typeof (key) == "string")
+            string += " " + key;
+        string += " " + this.message + "\n";
+        string += this.stackTrace;
+        return string;
     }
 }, {
     extend: Base.extend,
@@ -130,7 +132,29 @@ InvalidArguments.Empty = InvalidArguments.extend({
     message: "Arguments required."
 });
 
-var Stack = Base.extend({
+var InvalidResult = UserError.extend({
+    name: "InvalidResult"
+});
+
+var CompositeError = UserError.extend({
+    name: "CompositeError",
+    toStackString: function (key) {
+        var string = UserError.prototype.toStackString.call(this, key);
+        if (typeof (key) == "string")
+            key += ".";
+        else
+            key = "";
+        for (var property in this) {
+            var error = this[property];
+            if (!(error instanceof UserError))
+                continue;
+            string += "\n" + error.toStackString(key + property);
+        }
+        return string;
+    }
+});
+
+var StackTrace = Base.extend({
     frames: [],
     string: undefined,
     prepare: function () {
@@ -147,10 +171,10 @@ var Stack = Base.extend({
 
             if (source.frames !== undefined) {
                 if (!(source.frames instanceof Array))
-                    throw new Stack.StackFramesRequired();
+                    throw new StackTrace.StackFramesRequired();
                 for (var frameIndex = 0, frameCount = source.frames.length; frameIndex < frameCount; ++frameIndex)
                     if (!(source.frames[frameIndex] instanceof StackFrame))
-                        throw new Stack.StackFrameRequired();
+                        throw new StackTrace.StackFrameRequired();
                 this.frames.push.apply(this.frames, source.frames);
             }
             var backup = {
@@ -194,7 +218,7 @@ var StackFrame = Base.extend({
     toString: function () {
         if (this.string !== undefined)
             return this.string;
-        this.string = "at " + this.description + " (" + this.path + ":" + this.row + ":" + this.col + ")";
+        this.string = "\tat " + this.description + " (" + this.path + ":" + this.row + ":" + this.col + ")";
         if (this.description === "")
             this.string = this.string.replace("  ", " ");
 
@@ -359,6 +383,8 @@ var Wrapper = Base.extend({
                 for (var index = 0, length = wrapper.preprocessors.length; index < length; ++index) {
                     var preprocessor = wrapper.preprocessors[index];
                     parameters = preprocessor.apply(this, parameters);
+                    if (!(parameters instanceof Array))
+                        throw new Wrapper.InvalidPreprocessor();
                 }
                 return wrapper.done.apply(this, parameters);
             };
@@ -372,6 +398,8 @@ var Wrapper = Base.extend({
                     match = preprocessor.apply(this, arguments);
                     if (match !== undefined) {
                         parameters = match;
+                        if (!(parameters instanceof Array))
+                            throw new Wrapper.InvalidPreprocessor();
                         break;
                     }
                 }
@@ -388,6 +416,8 @@ var Wrapper = Base.extend({
                         match = preprocessor.apply(this, parameters);
                         if (match !== undefined) {
                             parameters = match;
+                            if (!(parameters instanceof Array))
+                                throw new Wrapper.InvalidPreprocessor();
                             break;
                         }
                     }
@@ -416,6 +446,9 @@ var Wrapper = Base.extend({
     }),
     InvalidAlgorithm: InvalidConfiguration.extend({
         message: "Invalid algorithm given."
+    }),
+    InvalidPreprocessor: InvalidResult.extend({
+        message: "Preprocessor must return Array as result."
     })
 });
 
@@ -424,15 +457,15 @@ UserError.prototype.mixin = new Wrapper({
     preprocessors: [
         function (message) {
             if (typeof (message) == "string")
-                return {message: message};
+                return [{message: message}];
         }
     ],
     done: UserError.prototype.mixin
 }).toFunction();
 
-Stack.prototype.mixin = new Wrapper({
+StackTrace.prototype.mixin = new Wrapper({
     algorithm: Wrapper.algorithm.firstMatch,
-    done: Stack.prototype.mixin
+    done: StackTrace.prototype.mixin
 }).toFunction();
 
 module.exports = {
@@ -443,9 +476,11 @@ module.exports = {
     shallowCopy: shallowCopy,
     Base: Base,
     UserError: UserError,
+    CompositeError: CompositeError,
     InvalidConfiguration: InvalidConfiguration,
     InvalidArguments: InvalidArguments,
-    Stack: Stack,
+    InvalidResult: InvalidResult,
+    StackTrace: StackTrace,
     StackFrame: StackFrame,
     Plugin: Plugin,
     Wrapper: Wrapper

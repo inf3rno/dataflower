@@ -153,16 +153,16 @@ console.log(
 ```
 
 ```js
-console.log(err.toString());
-// CustomError Something really bad happened.
+  console.log(err.toString());
+  // CustomError Something really bad happened.
 
-console.log(err.stack);
-// prints the stack, something like:
-/*
-    CustomError Something really bad happened.
-    at null.<anonymous> (/README.md:71:11)
-    ...
-*/
+  console.log(err.stack);
+  // prints the stack, something like:
+  /*
+      CustomError Something really bad happened.
+          at null.<anonymous> (/README.md:71:11)
+          ...
+  */
 
 ```
 
@@ -171,6 +171,34 @@ try {
     throw err;
 } catch (err) {
 
+}
+```
+
+```js
+try {
+    try {
+        throw new df.UserError("Something really bad happened.");
+    }
+    catch (cause) {
+        throw new df.CompositeError({
+            message: "Something really bad caused this.",
+            cause: cause
+        });
+    }
+catch (composite) {
+    console.log(err.toString());
+    // CompositeError Something really bad caused this.
+
+    console.log(err.stack);
+    // prints the stack, something like:
+    /*
+        CompositeError Something really bad caused this.
+            at null.<anonymous> (/README.md:71:11)
+            ...
+        UserError cause Something really bad happened.
+            at null.<anonymous> (/README.md:68:9)
+            ...
+    */
 }
 ```
 

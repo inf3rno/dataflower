@@ -1,19 +1,19 @@
 var df = require("dataflower"),
-    Stack = df.Stack,
-    Frame = df.StackFrame;
+    StackTrace = df.StackTrace,
+    StackFrame = df.StackFrame;
 
 describe("core", function () {
 
-    describe("Stack.prototype", function () {
+    describe("StackTrace.prototype", function () {
 
         describe("prepare", function (){
 
             it("clones the frames array", function (){
                 var frames = [
-                    Object.create(Frame.prototype),
-                    Object.create(Frame.prototype)
+                    Object.create(StackFrame.prototype),
+                    Object.create(StackFrame.prototype)
                 ];
-                var stack = new Stack({
+                var stack = new StackTrace({
                     frames: frames
                 });
                 expect(stack.frames).not.toBe(frames);
@@ -27,19 +27,19 @@ describe("core", function () {
             it("accepts only a valid frames array", function () {
 
                 expect(function () {
-                    new Stack({
+                    new StackTrace({
                         frames: {}
                     });
-                }).toThrow(new Stack.StackFramesRequired());
+                }).toThrow(new StackTrace.StackFramesRequired());
 
                 expect(function () {
-                    new Stack({
+                    new StackTrace({
                         frames: [
                             {},
                             {}
                         ]
                     });
-                }).toThrow(new Stack.StackFrameRequired());
+                }).toThrow(new StackTrace.StackFrameRequired());
 
             });
 
@@ -49,13 +49,13 @@ describe("core", function () {
 
             it("converts the frames into string", function () {
 
-                var mockFrame = Object.create(Frame.prototype),
+                var mockFrame = Object.create(StackFrame.prototype),
                     cnt = 0;
                 mockFrame.toString = function () {
                     return String(++cnt);
                 };
 
-                var stack = new Stack({
+                var stack = new StackTrace({
                     frames: [
                         mockFrame,
                         mockFrame,

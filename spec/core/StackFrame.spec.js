@@ -1,49 +1,49 @@
 var df = require("dataflower"),
-    Frame = df.StackFrame;
+    StackFrame = df.StackFrame;
 
 describe("core", function () {
 
-    describe("Frame.prototype", function () {
+    describe("StackFrame.prototype", function () {
 
         describe("init", function () {
 
             it("accepts only valid configuration", function () {
 
                 expect(function () {
-                    new Frame();
+                    new StackFrame();
                 }).toThrow();
 
                 expect(function () {
-                    new Frame({
+                    new StackFrame({
                         path: "",
                         row: 0,
                         col: 0
                     });
-                }).toThrow(new Frame.DescriptionRequired());
+                }).toThrow(new StackFrame.DescriptionRequired());
 
                 expect(function () {
-                    new Frame({
+                    new StackFrame({
                         description: "",
                         row: 0,
                         col: 0
                     });
-                }).toThrow(new Frame.PathRequired());
+                }).toThrow(new StackFrame.PathRequired());
 
                 expect(function () {
-                    new Frame({
+                    new StackFrame({
                         description: "",
                         path: "",
                         col: 0
                     });
-                }).toThrow(new Frame.RowRequired());
+                }).toThrow(new StackFrame.RowRequired());
 
                 expect(function () {
-                    new Frame({
+                    new StackFrame({
                         description: "",
                         path: "",
                         row: 0
                     });
-                }).toThrow(new Frame.ColRequired());
+                }).toThrow(new StackFrame.ColRequired());
 
             });
 
@@ -53,24 +53,24 @@ describe("core", function () {
 
             it("converts the frame into string", function () {
 
-                var frame = new Frame({
+                var frame = new StackFrame({
                     description: "x.y",
                     path: "d:\\test.js",
                     row: 10,
                     col: 20
                 });
-                expect(frame.toString()).toBe("at x.y (d:\\test.js:10:20)");
+                expect(frame.toString()).toBe("\tat x.y (d:\\test.js:10:20)");
             });
 
             it("clears double spaces", function () {
 
-                var frame = new Frame({
+                var frame = new StackFrame({
                     description: "",
                     path: "d:\\test.js",
                     row: 10,
                     col: 20
                 });
-                expect(frame.toString()).toBe("at (d:\\test.js:10:20)");
+                expect(frame.toString()).toBe("\tat (d:\\test.js:10:20)");
 
             });
 

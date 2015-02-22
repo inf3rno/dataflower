@@ -11,7 +11,7 @@ describe("example", function () {
                 m: m
             };
             var p = jasmine.createSpy().and.callFake(function () {
-                return arguments;
+                return Array.prototype.slice.apply(arguments);
             });
             o.m = new df.Wrapper({
                 algorithm: df.Wrapper.algorithm.cascade,
@@ -24,24 +24,24 @@ describe("example", function () {
         });
 
         it("implements UserError", function () {
-            var MyUserError = df.UserError.extend({
+            var MyError = df.UserError.extend({
                     name: "MyError"
                 }),
-                MyUserErrorDescendant = MyUserError.extend({
+                MyErrorDescendant = MyError.extend({
                     message: "Something really bad happened."
                 }),
-                AnotherDescendant = MyUserError.extend(),
+                AnotherDescendant = MyError.extend(),
                 throwMyErrorDescendant = function () {
-                    throw new MyUserErrorDescendant();
+                    throw new MyErrorDescendant();
                 };
 
-            expect(throwMyErrorDescendant).toThrow(new MyUserErrorDescendant());
+            expect(throwMyErrorDescendant).toThrow(new MyErrorDescendant());
 
             try {
                 throwMyErrorDescendant();
             } catch (err) {
-                expect(err instanceof MyUserErrorDescendant).toBe(true);
-                expect(err instanceof MyUserError).toBe(true);
+                expect(err instanceof MyErrorDescendant).toBe(true);
+                expect(err instanceof MyError).toBe(true);
                 expect(err instanceof df.UserError).toBe(true);
                 expect(err instanceof Error).toBe(true);
 
@@ -52,6 +52,41 @@ describe("example", function () {
             }
 
         });
+
+        it("implements CompositeError", function () {
+            var MyCompositeError = df.CompositeError.extend({
+                    name: "MyError",
+                    message: "Something really bad caused this."
+                }),
+                throwMyCompositeError = function () {
+                    try {
+                        throw new df.UserError("Something really bad happened.");
+                    }
+                    catch (cause) {
+                        throw new MyCompositeError({
+                            cause: cause
+                        });
+                    }
+                };
+
+            expect(throwMyCompositeError).toThrow(new MyCompositeError());
+
+            try {
+                throwMyCompositeError();
+            } catch (err) {
+                expect(err instanceof MyCompositeError).toBe(true);
+                expect(err instanceof df.CompositeError).toBe(true);
+                expect(err instanceof df.UserError).toBe(true);
+                expect(err.cause instanceof df.UserError).toBe(true);
+                expect(err.stack).toBeDefined();
+                expect(err.stack.match(err.name)).not.toBe(null);
+                expect(err.stack.match(err.message)).not.toBe(null);
+                expect(err.stack.match(err.cause.name)).not.toBe(null);
+                expect(err.stack.match(err.cause.message)).not.toBe(null);
+            }
+
+        });
+
 
         it("implements Plugin", function () {
 
