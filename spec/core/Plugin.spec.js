@@ -6,23 +6,6 @@ describe("core", function () {
 
     describe("Plugin.prototype", function () {
 
-        describe("init", function () {
-
-            it("generates an id", function () {
-                expect(new Plugin().id).not.toBe(new Plugin().id);
-            });
-
-            it("accepts configuration options", function () {
-
-                var o = {
-                        x: {}
-                    },
-                    plugin = new Plugin(o);
-                expect(plugin.x).toBe(o.x);
-            });
-
-        });
-
         describe("compatible", function () {
 
             it("calls test once", function () {

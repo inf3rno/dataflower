@@ -37,17 +37,6 @@ describe("pubsub", function () {
                 }).not.toThrow();
             });
 
-            it("generates an id", function () {
-
-                var publisher = new Publisher(),
-                    mockSubscriber = Object.create(Subscriber.prototype),
-                    options = {
-                        publisher: publisher,
-                        subscriber: mockSubscriber
-                    };
-                expect(new Subscription(options).id).not.toBe(new Subscription(options).id);
-            });
-
             it("adds the subscription to the publisher", function () {
 
                 var mockPublisher = Object.create(Publisher.prototype);
@@ -81,7 +70,7 @@ describe("pubsub", function () {
 
             });
 
-            it("notifies the subscriber", function () {
+            it("notifies the Subscriber in the context of the Publisher", function () {
 
                 var publisher = new Publisher(),
                     mockSubscriber = Object.create(Subscriber.prototype);
@@ -94,7 +83,27 @@ describe("pubsub", function () {
 
                 expect(mockSubscriber.receive).not.toHaveBeenCalled();
                 subscription.notify([1, 2, 3]);
-                expect(mockSubscriber.receive).toHaveBeenCalledWith([1, 2, 3]);
+                expect(mockSubscriber.receive).toHaveBeenCalledWith([1, 2, 3], undefined);
+            });
+
+            it("notifies the Subscriber in the context if given", function () {
+
+                var publisher = new Publisher(),
+                    mockSubscriber = Object.create(Subscriber.prototype);
+                mockSubscriber.receive = jasmine.createSpy();
+
+                var o = {};
+                var subscription = new Subscription({
+                    publisher: publisher,
+                    subscriber: mockSubscriber,
+                    context: o
+                });
+
+                expect(mockSubscriber.receive).not.toHaveBeenCalled();
+                subscription.notify([1, 2, 3]);
+                expect(mockSubscriber.receive).toHaveBeenCalledWith([1, 2, 3], o);
+                subscription.notify([4, 5, 6], {});
+                expect(mockSubscriber.receive).toHaveBeenCalledWith([4, 5, 6], o);
             });
 
         });

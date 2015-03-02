@@ -48,7 +48,7 @@ var clone = function (subject) {
 };
 
 var mixin = function (subject, source) {
-    if (!(subject instanceof Object) || subject === null)
+    if (!(subject instanceof Object))
         throw new InvalidArguments();
     if (subject.mixin instanceof Function)
         return subject.mixin.apply(subject, Array.prototype.slice.call(arguments, 1));
@@ -56,7 +56,7 @@ var mixin = function (subject, source) {
 };
 
 var shallowCopy = function (subject, source) {
-    if (!(subject instanceof Object) || subject === null)
+    if (!(subject instanceof Object))
         throw new InvalidArguments();
     var sources = Array.prototype.slice.call(arguments, 1);
     for (var index = 0, length = sources.length; index < length; ++index) {

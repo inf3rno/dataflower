@@ -19,25 +19,27 @@ var Publisher = Component.extend({
             throw new Publisher.SubscriptionRequired();
         this.subscriptions[subscription.id] = subscription;
     },
-    publish: function (parameters) {
+    publish: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Publisher.ArrayRequired();
         for (var id in this.subscriptions) {
             var subscription = this.subscriptions[id];
-            subscription.notify(parameters);
+            subscription.notify(parameters, context);
         }
     },
     toFunction: function () {
-        if (!this.wrapper)
+        if (!this.wrapper) {
+            var publisher = this;
             this.wrapper = new Wrapper({
                 done: function () {
                     var parameters = Array.prototype.slice.call(arguments);
-                    this.publish(parameters);
-                }.bind(this),
+                    publisher.publish(parameters, this);
+                },
                 properties: {
                     component: this
                 }
             }).toFunction();
+        }
         return this.wrapper;
     }
 }, {
@@ -53,6 +55,7 @@ var Subscription = Base.extend({
     id: undefined,
     publisher: undefined,
     subscriber: undefined,
+    context: undefined,
     init: function () {
         if (!(this.publisher instanceof Publisher))
             throw new Subscription.PublisherRequired();
@@ -60,10 +63,10 @@ var Subscription = Base.extend({
             throw new Subscription.SubscriberRequired();
         this.publisher.addSubscription(this);
     },
-    notify: function (parameters) {
+    notify: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Subscription.ArrayRequired();
-        this.subscriber.receive(parameters);
+        this.subscriber.receive(parameters, this.context || context);
     }
 }, {
     PublisherRequired: InvalidConfiguration.extend({
@@ -79,12 +82,16 @@ var Subscription = Base.extend({
 
 var Subscriber = Component.extend({
     id: undefined,
+    callback: undefined,
+    context: undefined,
     init: function () {
         if (!(this.callback instanceof Function))
             throw new Subscriber.CallbackRequired();
+        if (this.context !== undefined && !(this.context instanceof Object))
+            throw new Subscriber.InvalidContext();
     },
-    receive: function (parameters) {
-        this.callback.apply(null, parameters);
+    receive: function (parameters, context) {
+        this.callback.apply(context, parameters);
     },
     subscribe: function (publisher) {
         if (!arguments.length)
@@ -99,6 +106,9 @@ var Subscriber = Component.extend({
 }, {
     CallbackRequired: InvalidConfiguration.extend({
         message: "Callback function required."
+    }),
+    InvalidContext: InvalidConfiguration.extend({
+        message: "Object instance required."
     })
 });
 

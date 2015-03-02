@@ -80,4 +80,18 @@ describe("environment", function () {
         });
     });
 
+    describe("null", function () {
+
+        it("is has object type", function () {
+
+            expect(typeof (null)).toBe("object");
+
+        });
+
+        it("is not an Object instance", function () {
+            expect(null instanceof Object).toBe(false);
+        });
+
+    });
+
 });

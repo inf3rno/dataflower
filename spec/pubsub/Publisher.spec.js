@@ -8,23 +8,6 @@ describe("pubsub", function () {
 
     describe("Publisher.prototype", function () {
 
-        describe("init", function () {
-
-            it("generates an id", function () {
-                expect(new Publisher().id).not.toBe(new Publisher().id);
-            });
-
-            it("accepts configuration options", function () {
-
-                var o = {
-                        x: {}
-                    },
-                    publisher = new Publisher(o);
-                expect(publisher.x).toBe(o.x);
-            });
-
-        });
-
         describe("addSubscription", function () {
 
             it("requires a subscription", function () {
@@ -73,10 +56,11 @@ describe("pubsub", function () {
                 expect(mockSubscription.notify).not.toHaveBeenCalled();
 
                 publisher.publish([1, 2, 3]);
-                expect(mockSubscription.notify).toHaveBeenCalledWith([1, 2, 3]);
+                expect(mockSubscription.notify).toHaveBeenCalledWith([1, 2, 3], undefined);
 
-                publisher.publish([4, 5, 6]);
-                expect(mockSubscription.notify).toHaveBeenCalledWith([4, 5, 6]);
+                var o = {};
+                publisher.publish([4, 5, 6], o);
+                expect(mockSubscription.notify).toHaveBeenCalledWith([4, 5, 6], o);
 
             });
 
@@ -110,7 +94,15 @@ describe("pubsub", function () {
                 var wrapper = publisher.toFunction();
                 expect(publisher.publish).not.toHaveBeenCalled();
                 wrapper(1, 2, 3);
-                expect(publisher.publish).toHaveBeenCalledWith([1, 2, 3]);
+                var global = (function () {
+                    return this;
+                })();
+                expect(publisher.publish).toHaveBeenCalledWith([1, 2, 3], global);
+                var o = {
+                    m: wrapper
+                };
+                o.m(4, 5, 6);
+                expect(publisher.publish).toHaveBeenCalledWith([4, 5, 6], o);
             });
 
             it("has a component property", function () {

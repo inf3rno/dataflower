@@ -14,42 +14,34 @@ describe("pubsub", function () {
             it("requires a callback", function () {
 
                 expect(function () {
-                    var subscriber = new Subscriber();
+                    new Subscriber();
                 }).toThrow(new Subscriber.CallbackRequired());
 
                 expect(function () {
-                    var subscriber = new Subscriber({
+                    new Subscriber({
                         callback: function () {
                         }
                     });
                 }).not.toThrow();
             });
 
-            it("generates an id", function () {
-
-                var options = {
-                    callback: function () {
-                    }
-                };
-                expect(new Subscriber(options).id).not.toBe(new Subscriber(options).id);
-            });
-
         });
 
         describe("receive", function () {
 
-            it("calls the callback with the parameters", function () {
+            it("calls the callback with the parameters in the given context", function () {
 
                 var subscriber = new Subscriber({
                     callback: jasmine.createSpy()
                 });
+                var o = {};
 
                 expect(subscriber.callback).not.toHaveBeenCalled();
-                subscriber.receive([1, 2, 3]);
+                subscriber.receive([1, 2, 3], o);
+                expect(subscriber.callback.calls.first().object).toBe(o);
                 expect(subscriber.callback).toHaveBeenCalledWith(1, 2, 3);
                 subscriber.receive([4, 5, 6]);
                 expect(subscriber.callback).toHaveBeenCalledWith(4, 5, 6);
-
             });
 
         });
