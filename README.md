@@ -278,34 +278,27 @@ plugin.install(); // installs dependency before setup
 
 ```js
 var publisher = new df.Publisher();
-new df.Subscription({
+var subscriber = new df.Subscriber({
+     callback: console.log
+ });
+var subscription = new df.Subscription({
     publisher: publisher,
-    subscriber: new df.Subscriber({
-        callback: console.log
-    })
+    subscriber: subscriber
 });
 publisher.publish([1, 2, 3]); // 1 2 3
 publisher.publish([4, 5, 6]); // 4 5 6
+subscriber.receive([7, 8, 9]); // 7 8 9
 ```
 
 ```js
 var o = {
     send: df.publisher(),
-    receive: console.log
+    receive: df.subscriber(console.log)
 };
 df.subscribe(o.send, o.receive);
 o.send(1, 2, 3); // 1 2 3
 o.send(4, 5, 6); // 4 5 6
-```
-
-```js
-var o = {
-    send: df.publisher(),
-    receive: console.log
-};
-df.subscriber(o.receive).subscribe(o.send.component);
-o.send(1, 2, 3); // 1 2 3
-o.send(4, 5, 6); // 4 5 6
+o.receive(7, 8, 9); // 7 8 9
 ```
 
 ### Integration

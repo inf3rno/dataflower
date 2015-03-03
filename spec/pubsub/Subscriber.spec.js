@@ -82,5 +82,65 @@ describe("pubsub", function () {
 
         });
 
+        describe("toFunction", function () {
+
+            it("returns a wrapper", function () {
+
+                var subscriber = new Subscriber({
+                    callback: function () {
+                    }
+                });
+                expect(subscriber.toFunction() instanceof Function).toBe(true);
+
+            });
+
+            it("returns always the same wrapper", function () {
+
+                var subscriber = new Subscriber({
+                    callback: function () {
+                    }
+                });
+                expect(subscriber.toFunction()).toBe(subscriber.toFunction());
+
+            });
+
+        });
+
+        describe("wrapper", function () {
+
+            it("calls receive with the arguments", function () {
+
+                var subscriber = new Subscriber({
+                    callback: function () {
+                    }
+                });
+                subscriber.receive = jasmine.createSpy();
+
+                var wrapper = subscriber.toFunction();
+                expect(subscriber.receive).not.toHaveBeenCalled();
+                wrapper(1, 2, 3);
+                var global = (function () {
+                    return this;
+                })();
+                expect(subscriber.receive).toHaveBeenCalledWith([1, 2, 3], global);
+                var o = {
+                    m: wrapper
+                };
+                o.m(4, 5, 6);
+                expect(subscriber.receive).toHaveBeenCalledWith([4, 5, 6], o);
+            });
+
+            it("has a component property", function () {
+
+                var subscriber = new Subscriber({
+                        callback: function () {
+                        }
+                    }),
+                    wrapper = subscriber.toFunction();
+                expect(wrapper.component).toBe(subscriber);
+            });
+
+        });
+
     });
 });

@@ -1,7 +1,7 @@
 /*
-    psf need to be installed on ps to pass
-    so we are testing integration here and not individual classes
-*/
+ psf need to be installed on ps to pass
+ so we are testing integration here and not individual classes
+ */
 
 var ps = require("dataflower/pubsub"),
     psf = require("dataflower/pubsub.fluent"),
@@ -29,9 +29,9 @@ describe("pubsub.fluent", function () {
 
         it("returns a Subscriber instance using Subscriber.instance", function () {
 
-            var instance = subscriber(function () {
+            var wrapper = subscriber(function () {
             });
-            expect(instance instanceof Subscriber).toBe(true);
+            expect(wrapper.component instanceof Subscriber).toBe(true);
 
         });
 

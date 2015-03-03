@@ -3,7 +3,6 @@ var df = require("dataflower"),
     Base = df.Base,
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
-    id = df.id,
     Wrapper = df.Wrapper;
 
 var Component = Base.extend();
@@ -83,12 +82,10 @@ var Subscription = Base.extend({
 var Subscriber = Component.extend({
     id: undefined,
     callback: undefined,
-    context: undefined,
+    wrapper: undefined,
     init: function () {
         if (!(this.callback instanceof Function))
             throw new Subscriber.CallbackRequired();
-        if (this.context !== undefined && !(this.context instanceof Object))
-            throw new Subscriber.InvalidContext();
     },
     receive: function (parameters, context) {
         this.callback.apply(context, parameters);
@@ -102,13 +99,25 @@ var Subscriber = Component.extend({
             publisher: publisher,
             subscriber: this
         });
+    },
+    toFunction: function () {
+        if (!this.wrapper) {
+            var subscriber = this;
+            this.wrapper = new Wrapper({
+                done: function () {
+                    var parameters = Array.prototype.slice.call(arguments);
+                    subscriber.receive(parameters, this);
+                },
+                properties: {
+                    component: this
+                }
+            }).toFunction();
+        }
+        return this.wrapper;
     }
 }, {
     CallbackRequired: InvalidConfiguration.extend({
         message: "Callback function required."
-    }),
-    InvalidContext: InvalidConfiguration.extend({
-        message: "Object instance required."
     })
 });
 

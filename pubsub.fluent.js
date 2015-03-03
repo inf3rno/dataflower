@@ -35,6 +35,10 @@ var o = {
     subscriber: new Wrapper({
         algorithm: Wrapper.algorithm.firstMatchCascade,
         preprocessors: [
+            function (wrapper) {
+                if ((wrapper instanceof Function) && (wrapper.component instanceof Subscriber))
+                    return [wrapper.component];
+            },
             function (callback) {
                 if (arguments.length == 1 && (callback instanceof Function))
                     return [{
@@ -53,23 +57,24 @@ var o = {
                 throw new InvalidArguments();
             if (!(subscriber instanceof Subscriber))
                 throw new InvalidArguments();
-            return subscriber;
+            return subscriber.toFunction();
         }
     }).toFunction(),
     subscribe: new Wrapper({
         algorithm: Wrapper.algorithm.firstMatchCascade,
         preprocessors: [
-            function (publisher, subscriber) {
-                if (arguments.length == 2)
+            function (publisher, subscriber, context) {
+                if (arguments.length == 2 || arguments.length == 3)
                     return [{
                         publisher: publisher,
-                        subscriber: subscriber
+                        subscriber: subscriber,
+                        context: context
                     }];
             },
             function (options) {
                 if (arguments.length == 1 && (options instanceof Object) && !(options instanceof Subscription)) {
                     options.publisher = o.publisher(options.publisher).component;
-                    options.subscriber = o.subscriber(options.subscriber);
+                    options.subscriber = o.subscriber(options.subscriber).component;
                     return [new Subscription(options)];
                 }
             }
