@@ -46,42 +46,6 @@ describe("pubsub", function () {
 
         });
 
-        describe("subscribe", function () {
-
-            it("subscribes to the given publisher", function () {
-
-                var subscriber = new Subscriber({
-                        callback: jasmine.createSpy()
-                    }),
-                    publisher = new Publisher(),
-                    subscription = subscriber.subscribe(publisher);
-
-                expect(subscription instanceof Subscription);
-
-                expect(subscriber.callback).not.toHaveBeenCalled();
-                publisher.publish([1, 2, 3]);
-                expect(subscriber.callback).toHaveBeenCalledWith(1, 2, 3);
-            });
-
-            it("declines zero and multiple arguments", function () {
-
-                var subscriber = new Subscriber({
-                    callback: function () {
-                    }
-                });
-
-                expect(function () {
-                    subscriber.subscribe();
-                }).toThrow(new InvalidArguments.Empty());
-
-                expect(function () {
-                    subscriber.subscribe(new Publisher(), new Publisher());
-                }).toThrow(new InvalidArguments());
-
-            });
-
-        });
-
         describe("toFunction", function () {
 
             it("returns a wrapper", function () {

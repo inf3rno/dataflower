@@ -90,16 +90,6 @@ var Subscriber = Component.extend({
     receive: function (parameters, context) {
         this.callback.apply(context, parameters);
     },
-    subscribe: function (publisher) {
-        if (!arguments.length)
-            throw new InvalidArguments.Empty();
-        if (arguments.length > 1)
-            throw new InvalidArguments();
-        return new Subscription({
-            publisher: publisher,
-            subscriber: this
-        });
-    },
     toFunction: function () {
         if (!this.wrapper) {
             var subscriber = this;
