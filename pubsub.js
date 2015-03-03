@@ -111,23 +111,39 @@ var Subscriber = Component.extend({
     })
 });
 
-module.exports = new Plugin({
+var Listener = Publisher.extend({
+    subject: undefined,
+    event: undefined,
+    init: function () {
+        Publisher.prototype.init.apply(this, arguments);
+        if (!(this.subject instanceof Object))
+            throw new Listener.SubjectRequired();
+        if (typeof(this.event) != "string")
+            throw new Listener.EventRequired();
+        this.subject.on(this.event, this.toFunction());
+    }
+}, {
+    SubjectRequired: InvalidConfiguration.extend({
+        message: "Subject required."
+    }),
+    EventRequired: InvalidConfiguration.extend({
+        message: "Event type required."
+    })
+});
+
+var o = {
     Component: Component,
     Publisher: Publisher,
     Subscription: Subscription,
     Flow: Subscription,
     Subscriber: Subscriber,
+    Listener: Listener
+};
+
+module.exports = new Plugin(o, {
     test: function () {
     },
     setup: function () {
-        var o = {
-            Component: Component,
-            Publisher: Publisher,
-            Subscription: Subscription,
-            Flow: Subscription,
-            Subscriber: Subscriber
-        };
-
         for (var p in o) {
             df[p] = o[p];
         }

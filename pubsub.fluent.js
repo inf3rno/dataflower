@@ -92,11 +92,7 @@ var o = {
 };
 o.flow = o.subscribe;
 
-module.exports = new Plugin({
-    publisher: o.publisher,
-    subscriber: o.subscriber,
-    subscribe: o.subscribe,
-    flow: o.flow,
+module.exports = new Plugin(o, {
     test: function () {
     },
     setup: function () {

@@ -23,20 +23,35 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith(7, 8, 9);
         });
 
-        it("implements factory functions", function () {
-            var log = jasmine.createSpy();
+        it("implements Listener", function () {
+
             var o = {
-                send: df.publisher(),
-                receive: df.subscriber(log)
-            };
-            df.subscribe(o.send, o.receive);
+                    listeners: {},
+                    on: function (type, listener) {
+                        this.listeners[type] = listener;
+                    },
+                    trigger: function (type, event) {
+                        var listener = this.listeners[type];
+                        var parameters = Array.prototype.slice.call(arguments, 1);
+                        listener.apply(this, parameters);
+                    }
+                },
+                listener = new df.Listener({
+                    subject: o,
+                    event: "myEvent"
+                }),
+                log = jasmine.createSpy(),
+                subscriber = new df.Subscriber({
+                    callback: log
+                }),
+                subscription = new df.Subscription({
+                    publisher: listener,
+                    subscriber: subscriber
+                });
             expect(log).not.toHaveBeenCalled();
-            o.send(1, 2, 3);
+            o.trigger("myEvent", 1, 2, 3);
             expect(log).toHaveBeenCalledWith(1, 2, 3);
-            o.send(4, 5, 6);
-            expect(log).toHaveBeenCalledWith(4, 5, 6);
-            o.receive(7, 8, 9);
-            expect(log).toHaveBeenCalledWith(7, 8, 9);
+
         });
 
     });

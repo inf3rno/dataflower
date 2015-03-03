@@ -279,8 +279,8 @@ plugin.install(); // installs dependency before setup
 ```js
 var publisher = new df.Publisher();
 var subscriber = new df.Subscriber({
-     callback: console.log
- });
+    callback: console.log
+});
 var subscription = new df.Subscription({
     publisher: publisher,
     subscriber: subscriber
@@ -289,6 +289,34 @@ publisher.publish([1, 2, 3]); // 1 2 3
 publisher.publish([4, 5, 6]); // 4 5 6
 subscriber.receive([7, 8, 9]); // 7 8 9
 ```
+
+```js
+var o = {
+    listeners: {},
+    on: function (type, listener) {
+        this.listeners[type] = listener;
+    },
+    trigger: function (type, event) {
+        var listener = this.listeners[type];
+        var parameters = Array.prototype.slice.call(arguments, 1);
+        listener.apply(this, parameters);
+    }
+};
+var listener = new df.Listener({
+    subject: o,
+    event: "myEvent"
+});
+var subscriber = new df.Subscriber({
+    callback: console.log
+});
+var subscription = new df.Subscription({
+    publisher: listener,
+    subscriber: subscriber
+});
+o.trigger("myEvent", 1, 2, 3); // 1 2 3
+```
+
+#### 4. pub/sub fluent interface
 
 ```js
 var o = {
