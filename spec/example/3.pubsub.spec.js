@@ -64,26 +64,29 @@ describe("example", function () {
 
         it("implements Getter", function () {
 
-            var o = {
+            var o1 = {
                     prop: "value"
                 },
+                o2 = {
+                    another: "x"
+                },
                 getter = new df.Getter({
-                    subject: o,
+                    subject: o1,
                     property: "prop"
                 }),
-                wrapper = getter.toFunction(),
-                log = jasmine.createSpy(),
-                subscriber = new df.Subscriber({
-                    callback: log
+                setter = new df.Setter({
+                    subject: o2,
+                    property: "another"
                 }),
                 subscription = new df.Subscription({
                     publisher: getter,
-                    subscriber: subscriber
-                });
+                    subscriber: setter
+                }),
+                transfer = getter.toFunction();
 
-            expect(log).not.toHaveBeenCalled();
-            wrapper(1, 2, 3);
-            expect(log).toHaveBeenCalledWith("value", 1, 2, 3);
+            expect(o2.another).toBe("x");
+            transfer();
+            expect(o2.another).toBe("value");
 
         });
 

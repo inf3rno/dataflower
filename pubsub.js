@@ -184,7 +184,29 @@ var Getter = Publisher.extend({
         message: "Subject required."
     }),
     PropertyRequired: InvalidConfiguration.extend({
-        message: "Event type required."
+        message: "Property name required."
+    })
+});
+
+var Setter = Subscriber.extend({
+    subject: undefined,
+    property: undefined,
+    init: function () {
+        if (!(this.subject instanceof Object))
+            throw new Setter.SubjectRequired();
+        if (typeof(this.property) != "string")
+            throw new Setter.PropertyRequired();
+        this.callback = function (value) {
+            this.subject[this.property] = value;
+        }.bind(this);
+        Subscriber.prototype.init.apply(this, arguments);
+    }
+}, {
+    SubjectRequired: InvalidConfiguration.extend({
+        message: "Subject required."
+    }),
+    PropertyRequired: InvalidConfiguration.extend({
+        message: "Property name required."
     })
 });
 
@@ -196,7 +218,8 @@ var o = {
     Subscriber: Subscriber,
     Listener: Listener,
     Emitter: Emitter,
-    Getter: Getter
+    Getter: Getter,
+    Setter: Setter
 };
 
 module.exports = new Plugin(o, {

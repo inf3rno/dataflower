@@ -318,25 +318,30 @@ o1.trigger("myEvent", 1, 2, 3); // 1 2 3
 ```
 
 ```js
-var o = {
+var o1 = {
     prop: "value"
 };
+var o2 = {
+    another: "x"
+};
 var getter = new df.Getter({
-    subject: o,
+    subject: o1,
     property: "prop"
 });
-
-var subscriber = new df.Subscriber({
-    callback: console.log
+var setter = new df.Setter({
+    subject: o2,
+    property: "another"
 });
 var subscription = new df.Subscription({
     publisher: getter,
-    subscriber: subscriber
+    subscriber: setter
 });
 
+console.log(o2.another); // "x"
 
 var wrapper = getter.toFunction();
-wrapper(1, 2, 3); // "value" 1 2 3
+wrapper();
+console.log(o2.another); // "value"
 ```
 
 #### 4. pub/sub fluent interface
