@@ -31,6 +31,7 @@ describe("pubsub", function () {
                     }).not.toThrow();
 
                     [
+                        null,
                         undefined,
                         "string",
                         123,
@@ -56,6 +57,7 @@ describe("pubsub", function () {
                     };
 
                     [
+                        null,
                         undefined,
                         123,
                         false,

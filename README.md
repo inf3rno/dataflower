@@ -117,10 +117,10 @@ var Cat = df.Base.extend({
 var kitty = new Cat({name: "Kitty"});
 var killer = new Cat({name: "Killer"});
 
-kitty.meow(); //Kitty: meow
-killer.meow(); //Killer: meow
+kitty.meow(); // Kitty: meow
+killer.meow(); // Killer: meow
 
-console.log(Cat.count()); //2
+console.log(Cat.count()); // 2
 ```
 
 ```js
@@ -130,22 +130,22 @@ kitty.mixin(
     }
 );
 kitty.init("Cat");
-kitty.meow(); //Kitty Cat: meow
+kitty.meow(); // Kitty Cat: meow
 
 kitty.init("from London");
-kitty.meow(); //Kitty Cat from London: meow
+kitty.meow(); // Kitty Cat from London: meow
 ```
 
 ```js
 var kittyClone = clone(kitty);
-kittyClone.meow(); //Kitty Cat from London: meow
+kittyClone.meow(); // Kitty Cat from London: meow
 ```
 
 ```js
 var id1 = df.id();
 var id2 = df.id();
 
-console.log(id1 != id2); //true
+console.log(id1 != id2); // true
 ```
 
 #### 2. wrapper, custom errors, plugins
@@ -262,13 +262,13 @@ var plugin = new df.Plugin({
 if (plugin.compatible())
     plugin.install(); // won't install because of failing test
 
-console.log(plugin.installed); //false
+console.log(plugin.installed); // false
 ```
 
 ```js
 var dependency = require("dependency");
 var plugin = new df.Plugin({
-    //...
+    // ...
 });
 plugin.dependency(dependency);
 plugin.install(); // installs dependency before setup
@@ -315,6 +315,28 @@ var subscription = new df.Subscription({
 o2.on("anotherEvent", console.log);
 
 o1.trigger("myEvent", 1, 2, 3); // 1 2 3
+```
+
+```js
+var o = {
+    prop: "value"
+};
+var getter = new df.Getter({
+    subject: o,
+    property: "prop"
+});
+
+var subscriber = new df.Subscriber({
+    callback: console.log
+});
+var subscription = new df.Subscription({
+    publisher: getter,
+    subscriber: subscriber
+});
+
+
+var wrapper = getter.toFunction();
+wrapper(1, 2, 3); // "value" 1 2 3
 ```
 
 #### 4. pub/sub fluent interface

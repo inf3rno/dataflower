@@ -1,7 +1,9 @@
 var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     Publisher = ps.Publisher,
-    Listener = ps.Listener;
+    Listener = ps.Listener,
+    Subscriber = ps.Subscriber,
+    Subscription = ps.Subscription;
 
 describe("pubsub", function () {
 
@@ -31,6 +33,7 @@ describe("pubsub", function () {
                     }).not.toThrow();
 
                     [
+                        null,
                         undefined,
                         "string",
                         123,
@@ -56,6 +59,7 @@ describe("pubsub", function () {
                     };
 
                     [
+                        null,
                         undefined,
                         123,
                         false,
@@ -86,6 +90,40 @@ describe("pubsub", function () {
                     });
                     expect(subject.on).toHaveBeenCalledWith("x", listener.toFunction());
 
+                });
+
+                it("uses the subject as context", function () {
+
+                    var subject = {
+                        on: function (type, listener) {
+                            this.listener = listener;
+                        },
+                        trigger: function () {
+                            this.listener.apply(null, []);
+                        }
+                    };
+                    var listener = new Listener({
+                        subject: subject,
+                        event: "x"
+                    });
+                    var log = jasmine.createSpy();
+                    var subscriber = new Subscriber({
+                        callback: log
+                    });
+                    var subscription = new Subscription({
+                        publisher: listener,
+                        subscriber: subscriber
+                    });
+
+                    expect(log).not.toHaveBeenCalled();
+
+                    subject.trigger();
+                    expect(log).toHaveBeenCalled();
+                    expect(log.calls.first().object).toBe(subject);
+
+                    var context = {};
+                    listener.publish([], context);
+                    expect(log.calls.mostRecent().object).toBe(subject);
                 });
 
             });

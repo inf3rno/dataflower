@@ -62,6 +62,31 @@ describe("example", function () {
 
         });
 
+        it("implements Getter", function () {
+
+            var o = {
+                    prop: "value"
+                },
+                getter = new df.Getter({
+                    subject: o,
+                    property: "prop"
+                }),
+                wrapper = getter.toFunction(),
+                log = jasmine.createSpy(),
+                subscriber = new df.Subscriber({
+                    callback: log
+                }),
+                subscription = new df.Subscription({
+                    publisher: getter,
+                    subscriber: subscriber
+                });
+
+            expect(log).not.toHaveBeenCalled();
+            wrapper(1, 2, 3);
+            expect(log).toHaveBeenCalledWith("value", 1, 2, 3);
+
+        });
+
     });
 
 

@@ -3,7 +3,8 @@ var df = require("dataflower"),
     Base = df.Base,
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
-    Wrapper = df.Wrapper;
+    Wrapper = df.Wrapper,
+    clone = df.clone;
 
 var Component = Base.extend();
 
@@ -121,6 +122,10 @@ var Listener = Publisher.extend({
         if (typeof(this.event) != "string")
             throw new Listener.EventRequired();
         this.subject.on(this.event, this.toFunction());
+    },
+    publish: function (parameters, context) {
+        context = this.subject;
+        Publisher.prototype.publish.call(this, parameters, context);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -156,6 +161,33 @@ var Emitter = Subscriber.extend({
     })
 });
 
+var Getter = Publisher.extend({
+    subject: undefined,
+    property: undefined,
+    init: function () {
+        Publisher.prototype.init.apply(this, arguments);
+        if (!(this.subject instanceof Object))
+            throw new Getter.SubjectRequired();
+        if (typeof(this.property) != "string")
+            throw new Getter.PropertyRequired();
+    },
+    publish: function (parameters, context) {
+        if (!(parameters instanceof Array))
+            throw new Publisher.ArrayRequired();
+        parameters = clone(parameters);
+        parameters.unshift(this.subject[this.property]);
+        context = this.subject;
+        Publisher.prototype.publish.call(this, parameters, context);
+    }
+}, {
+    SubjectRequired: InvalidConfiguration.extend({
+        message: "Subject required."
+    }),
+    PropertyRequired: InvalidConfiguration.extend({
+        message: "Event type required."
+    })
+});
+
 var o = {
     Component: Component,
     Publisher: Publisher,
@@ -163,7 +195,8 @@ var o = {
     Flow: Subscription,
     Subscriber: Subscriber,
     Listener: Listener,
-    Emitter: Emitter
+    Emitter: Emitter,
+    Getter: Getter
 };
 
 module.exports = new Plugin(o, {
