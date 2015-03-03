@@ -25,17 +25,17 @@ I frequently create and close issues and I write a lot of comments, so watching 
 
 No real documentation yet.
 
-*A detailed documentation will be available on GitHub Pages by 0.9.0 at the very latest. Until then all I can provide are low quality examples.*
+*A detailed documentation will be available on GitHub Pages by 1.0.0 at the very latest. Until then all I can provide are low quality examples.*
 
 ### Installation
 
-Current version is 0.2.0.
+Current version is 0.6.0.
 
-*I'll increase the minor version number only until I start to use a nested git branching model and auto versioning.*
+*I'll use auto-versioning after I started to use a nested git branching model. Until then the versioning will be erratic.*
 
 Only node.js is supported yet.
 
-*I'll add browserify support and karma tests by 1.1.0.*
+*I'll add browserify support and karma tests by 1.0.0
 
 #### Package managers
 
@@ -314,7 +314,7 @@ var subscription = new df.Subscription({
 
 o2.on("anotherEvent", console.log);
 
-o.trigger("myEvent", 1, 2, 3); // 1 2 3
+o1.trigger("myEvent", 1, 2, 3); // 1 2 3
 ```
 
 #### 4. pub/sub fluent interface
@@ -339,7 +339,7 @@ I test with [Jasmine](https://github.com/jasmine/jasmine) 2.2.
 By node.js 0.10.36 I used [jasmine-npm](https://github.com/jasmine/jasmine-npm) 2.2.0.
 
 *By browsers I will use [karma](https://github.com/karma-runner/karma) x.x.x & [karma-jasmine](https://github.com/karma-runner/karma-jasmine) x.x.x.
-Browser tests will be available by 1.1 and data binding tests will be available by 1.2.*
+Browser tests will be available by 1.0 and data binding tests will be available by 1.2.*
 
 *There will be a DataFlow specific Jasmine helper available by 1.1.
 Probably integration with other testing frameworks will be supported as well by 1.1.*
