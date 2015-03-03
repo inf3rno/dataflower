@@ -25,7 +25,7 @@ I frequently create and close issues and I write a lot of comments, so watching 
 
 No real documentation yet.
 
-*A detailed documentation will be available on GitHub Pages by 1.0.0 at the very latest. Until then all I can provide are low quality examples.*
+*A detailed documentation will be available on GitHub Pages by 1.0 at the very latest. Until then all I can provide are low quality examples.*
 
 ### Installation
 
@@ -35,7 +35,7 @@ Current version is 0.6.0.
 
 Only node.js is supported yet.
 
-*I'll add browserify support and karma tests by 1.0.0
+*I'll add browserify support and karma tests by 1.0*
 
 #### Package managers
 
