@@ -23,33 +23,41 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith(7, 8, 9);
         });
 
-        it("implements Listener", function () {
+        it("implements Emitter, Listener", function () {
 
-            var o = {
-                    listeners: {},
-                    on: function (type, listener) {
-                        this.listeners[type] = listener;
-                    },
-                    trigger: function (type, event) {
-                        var listener = this.listeners[type];
-                        var parameters = Array.prototype.slice.call(arguments, 1);
-                        listener.apply(this, parameters);
-                    }
+            var MockEventEmitter = df.Base.extend({
+                listeners: undefined,
+                init: function () {
+                    this.listeners = {};
                 },
+                on: function (type, listener) {
+                    this.listeners[type] = listener;
+                },
+                trigger: function (type, event) {
+                    var listener = this.listeners[type];
+                    var parameters = Array.prototype.slice.call(arguments, 1);
+                    listener.apply(this, parameters);
+                }
+            });
+
+            var o1 = new MockEventEmitter(),
+                o2 = new MockEventEmitter(),
                 listener = new df.Listener({
-                    subject: o,
+                    subject: o1,
                     event: "myEvent"
                 }),
-                log = jasmine.createSpy(),
-                subscriber = new df.Subscriber({
-                    callback: log
+                emitter = new df.Emitter({
+                    subject: o2,
+                    event: "anotherEvent"
                 }),
                 subscription = new df.Subscription({
                     publisher: listener,
-                    subscriber: subscriber
-                });
+                    subscriber: emitter
+                }),
+                log = jasmine.createSpy();
+            o2.on("anotherEvent", log);
             expect(log).not.toHaveBeenCalled();
-            o.trigger("myEvent", 1, 2, 3);
+            o1.trigger("myEvent", 1, 2, 3);
             expect(log).toHaveBeenCalledWith(1, 2, 3);
 
         });

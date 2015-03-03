@@ -281,38 +281,39 @@ var publisher = new df.Publisher();
 var subscriber = new df.Subscriber({
     callback: console.log
 });
+
 var subscription = new df.Subscription({
     publisher: publisher,
     subscriber: subscriber
 });
+
 publisher.publish([1, 2, 3]); // 1 2 3
 publisher.publish([4, 5, 6]); // 4 5 6
 subscriber.receive([7, 8, 9]); // 7 8 9
 ```
 
 ```js
-var o = {
-    listeners: {},
-    on: function (type, listener) {
-        this.listeners[type] = listener;
-    },
-    trigger: function (type, event) {
-        var listener = this.listeners[type];
-        var parameters = Array.prototype.slice.call(arguments, 1);
-        listener.apply(this, parameters);
-    }
-};
+var EventEmitter = require('events').EventEmitter;
+
+var o1 = new EventEmitter();
+var o2 = new EventEmitter();
+
 var listener = new df.Listener({
-    subject: o,
+    subject: o1,
     event: "myEvent"
 });
-var subscriber = new df.Subscriber({
-    callback: console.log
+var emitter = new df.Emitter({
+    subject: o2,
+    event: "anotherEvent"
 });
+
 var subscription = new df.Subscription({
-    publisher: listener,
+    publisher: emitter,
     subscriber: subscriber
 });
+
+o2.on("anotherEvent", console.log);
+
 o.trigger("myEvent", 1, 2, 3); // 1 2 3
 ```
 

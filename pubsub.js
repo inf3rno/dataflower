@@ -131,13 +131,39 @@ var Listener = Publisher.extend({
     })
 });
 
+var Emitter = Subscriber.extend({
+    subject: undefined,
+    event: undefined,
+    init: function () {
+        if (!(this.subject instanceof Object))
+            throw new Emitter.SubjectRequired();
+        if (typeof(this.event) != "string")
+            throw new Emitter.EventRequired();
+        this.callback = function () {
+            var parameters = [];
+            parameters.push(this.event);
+            parameters.push.apply(parameters, arguments);
+            this.subject.trigger.apply(this.subject, parameters);
+        }.bind(this);
+        Subscriber.prototype.init.apply(this, arguments);
+    }
+}, {
+    SubjectRequired: InvalidConfiguration.extend({
+        message: "Subject required."
+    }),
+    EventRequired: InvalidConfiguration.extend({
+        message: "Event type required."
+    })
+});
+
 var o = {
     Component: Component,
     Publisher: Publisher,
     Subscription: Subscription,
     Flow: Subscription,
     Subscriber: Subscriber,
-    Listener: Listener
+    Listener: Listener,
+    Emitter: Emitter
 };
 
 module.exports = new Plugin(o, {

@@ -1,15 +1,15 @@
 var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
-    Publisher = ps.Publisher,
-    Listener = ps.Listener;
+    Subscriber = ps.Subscriber,
+    Emitter = ps.Emitter;
 
 describe("pubsub", function () {
 
-    describe("Listener", function () {
+    describe("Emitter", function () {
 
-        it("is a Publisher descendant", function () {
+        it("is a Subscriber descendant", function () {
 
-            expect(Listener.prototype instanceof Publisher).toBe(true);
+            expect(Emitter.prototype instanceof Subscriber).toBe(true);
 
         });
 
@@ -21,7 +21,7 @@ describe("pubsub", function () {
 
                     var validEvent = "x";
                     expect(function () {
-                        new Listener({
+                        new Emitter({
                             subject: {
                                 on: function () {
                                 }
@@ -38,11 +38,11 @@ describe("pubsub", function () {
                     ].forEach(function (subject) {
 
                             expect(function () {
-                                new Listener({
+                                new Emitter({
                                     subject: subject,
                                     event: validEvent
                                 });
-                            }).toThrow(new Listener.SubjectRequired());
+                            }).toThrow(new Emitter.SubjectRequired());
 
                         });
 
@@ -65,32 +65,32 @@ describe("pubsub", function () {
                     ].forEach(function (event) {
 
                             expect(function () {
-                                new Listener({
+                                new Emitter({
                                     subject: validSubject,
                                     event: event
                                 });
-                            }).toThrow(new Listener.EventRequired());
+                            }).toThrow(new Emitter.EventRequired());
 
                         });
 
                 });
 
-                it("adds the wrapper as an event listener of the subject", function () {
+                it("emits messages as subject events", function () {
 
                     var subject = {
-                        on: jasmine.createSpy()
+                        trigger: jasmine.createSpy()
                     };
-                    var listener = new Listener({
+                    var emitter = new Emitter({
                         subject: subject,
                         event: "x"
                     });
-                    expect(subject.on).toHaveBeenCalledWith("x", listener.toFunction());
+                    emitter.receive([1, 2, 3]);
+                    expect(subject.trigger).toHaveBeenCalledWith("x", 1, 2, 3);
 
                 });
 
             });
 
         });
-
     });
 });
