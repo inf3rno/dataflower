@@ -315,6 +315,23 @@ subscriber.receive([7, 8, 9]); // 7 8 9
 ```
 
 ```js
+var publisher = new df.Publisher();
+var subscriber = new df.Subscriber({
+    callback: console.log
+});
+var o1 = {
+    output: publisher.toFunction()
+};
+var o2 = {
+    input: subscriber.toFunction()
+};
+
+o1.output([1, 2, 3]); // 1 2 3
+o1.output([4, 5, 6]); // 4 5 6
+o2.input([7, 8, 9]); // 7 8 9
+```
+
+```js
 var EventEmitter = require('events').EventEmitter;
 
 var o1 = new EventEmitter();
@@ -398,9 +415,21 @@ var o = {
     receive: df.subscriber(console.log)
 };
 df.subscribe(o.send, o.receive);
+
 o.send(1, 2, 3); // 1 2 3
 o.send(4, 5, 6); // 4 5 6
 o.receive(7, 8, 9); // 7 8 9
+```
+
+```js
+var o = {
+    send: df.publisher()
+};
+df.subscribe(o.send, console.log);
+
+o.send(1, 2, 3); // 1 2 3
+o.send(4, 5, 6); // 4 5 6
+o.send(7, 8, 9); // 7 8 9
 ```
 
 ### Integration
