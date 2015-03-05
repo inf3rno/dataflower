@@ -331,7 +331,7 @@ var emitter = new df.Emitter({
 
 var subscription = new df.Subscription({
     publisher: emitter,
-    subscriber: subscriber
+    subscriber: listener
 });
 
 o2.on("anotherEvent", console.log);
