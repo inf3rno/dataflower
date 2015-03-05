@@ -12,7 +12,6 @@ describe("pubsub", function () {
         it("is a Publisher descendant", function () {
 
             expect(Getter.prototype instanceof Publisher).toBe(true);
-
         });
 
         describe("prototype", function () {
@@ -21,11 +20,11 @@ describe("pubsub", function () {
 
                 it("accepts only object as subject", function () {
 
-                    var validProperty = "x";
+                    var property = "x";
                     expect(function () {
                         new Getter({
                             subject: {},
-                            property: validProperty
+                            property: property
                         });
                     }).not.toThrow();
 
@@ -35,22 +34,19 @@ describe("pubsub", function () {
                         "string",
                         123,
                         false
-                    ].forEach(function (subject) {
-
+                    ].forEach(function (invalidSubject) {
                             expect(function () {
                                 new Getter({
-                                    subject: subject,
-                                    property: validProperty
+                                    subject: invalidSubject,
+                                    property: property
                                 });
                             }).toThrow(new Getter.SubjectRequired());
-
                         });
-
                 });
 
                 it("accepts only string as property", function () {
 
-                    var validSubject = {};
+                    var subject = {};
 
                     [
                         undefined,
@@ -59,17 +55,14 @@ describe("pubsub", function () {
                         {},
                         function () {
                         }
-                    ].forEach(function (property) {
-
+                    ].forEach(function (invalidProperty) {
                             expect(function () {
                                 new Getter({
-                                    subject: validSubject,
-                                    property: property
+                                    subject: subject,
+                                    property: invalidProperty
                                 });
                             }).toThrow(new Getter.PropertyRequired());
-
                         });
-
                 });
 
                 it("publishes the value of the subject's property", function () {

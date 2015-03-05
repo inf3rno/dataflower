@@ -10,7 +10,6 @@ describe("pubsub", function () {
         it("is a Subscriber descendant", function () {
 
             expect(Setter.prototype instanceof Subscriber).toBe(true);
-
         });
 
         describe("prototype", function () {
@@ -34,21 +33,18 @@ describe("pubsub", function () {
                         123,
                         false
                     ].forEach(function (subject) {
-
                             expect(function () {
                                 new Setter({
                                     subject: subject,
                                     property: validProperty
                                 });
                             }).toThrow(new Setter.SubjectRequired());
-
                         });
-
                 });
 
                 it("accepts only string as property", function () {
 
-                    var validSubject = {
+                    var subject = {
                         on: function () {
                         }
                     };
@@ -61,17 +57,14 @@ describe("pubsub", function () {
                         {},
                         function () {
                         }
-                    ].forEach(function (property) {
-
+                    ].forEach(function (invalidProperty) {
                             expect(function () {
                                 new Setter({
-                                    subject: validSubject,
-                                    property: property
+                                    subject: subject,
+                                    property: invalidProperty
                                 });
                             }).toThrow(new Setter.PropertyRequired());
-
                         });
-
                 });
 
                 it("sets the property on the subject", function () {
@@ -83,7 +76,6 @@ describe("pubsub", function () {
                     });
                     setter.receive([123]);
                     expect(subject.x).toBe(123);
-
                 });
 
             });

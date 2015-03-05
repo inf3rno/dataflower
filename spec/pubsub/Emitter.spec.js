@@ -1,7 +1,8 @@
 var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     Subscriber = ps.Subscriber,
-    Emitter = ps.Emitter;
+    Emitter = ps.Emitter,
+    EventEmitter = require("events").EventEmitter;
 
 describe("pubsub", function () {
 
@@ -10,7 +11,6 @@ describe("pubsub", function () {
         it("is a Subscriber descendant", function () {
 
             expect(Emitter.prototype instanceof Subscriber).toBe(true);
-
         });
 
         describe("prototype", function () {
@@ -19,14 +19,11 @@ describe("pubsub", function () {
 
                 it("accepts only object as subject", function () {
 
-                    var validEvent = "x";
+                    var event = "x";
                     expect(function () {
                         new Emitter({
-                            subject: {
-                                on: function () {
-                                }
-                            },
-                            event: validEvent
+                            subject: new EventEmitter(),
+                            event: event
                         });
                     }).not.toThrow();
 
@@ -36,25 +33,20 @@ describe("pubsub", function () {
                         "string",
                         123,
                         false
-                    ].forEach(function (subject) {
+                    ].forEach(function (invalidSubject) {
 
                             expect(function () {
                                 new Emitter({
-                                    subject: subject,
-                                    event: validEvent
+                                    subject: invalidSubject,
+                                    event: event
                                 });
                             }).toThrow(new Emitter.SubjectRequired());
-
                         });
-
                 });
 
                 it("accepts only string as event", function () {
 
-                    var validSubject = {
-                        on: function () {
-                        }
-                    };
+                    var eventEmitter = new EventEmitter();
 
                     [
                         null,
@@ -64,31 +56,27 @@ describe("pubsub", function () {
                         {},
                         function () {
                         }
-                    ].forEach(function (event) {
-
+                    ].forEach(function (invalidEvent) {
                             expect(function () {
                                 new Emitter({
-                                    subject: validSubject,
-                                    event: event
+                                    subject: eventEmitter,
+                                    event: invalidEvent
                                 });
                             }).toThrow(new Emitter.EventRequired());
-
                         });
-
                 });
 
                 it("emits messages as subject events", function () {
 
-                    var subject = {
-                        trigger: jasmine.createSpy()
+                    var mockEventEmitter = {
+                        emit: jasmine.createSpy()
                     };
                     var emitter = new Emitter({
-                        subject: subject,
+                        subject: mockEventEmitter,
                         event: "x"
                     });
                     emitter.receive([1, 2, 3]);
-                    expect(subject.trigger).toHaveBeenCalledWith("x", 1, 2, 3);
-
+                    expect(mockEventEmitter.emit).toHaveBeenCalledWith("x", 1, 2, 3);
                 });
 
             });

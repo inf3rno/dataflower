@@ -53,6 +53,27 @@ describe("example", function () {
             expect(id1).not.toBe(id2);
         });
 
+        it("implements watch, unwatch", function (){
+
+            var o = {};
+            var log = jasmine.createSpy();
+            df.watch(o, "x", log);
+
+            expect(log).not.toHaveBeenCalled();
+
+            o.x = 1;
+            expect(log).toHaveBeenCalledWith(1, undefined, "x", o);
+            o.x = 2;
+            expect(log).toHaveBeenCalledWith(2, 1, "x", o);
+
+            log.calls.reset();
+            expect(log).not.toHaveBeenCalled();
+
+            df.unwatch(o, "x", log);
+            o.x = 3;
+            expect(log).not.toHaveBeenCalled();
+        });
+
     });
 
 });

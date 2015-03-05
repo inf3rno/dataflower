@@ -4,7 +4,8 @@ var df = require("dataflower"),
     InvalidArguments = df.InvalidArguments,
     InvalidConfiguration = df.InvalidConfiguration,
     Wrapper = df.Wrapper,
-    clone = df.clone;
+    clone = df.clone,
+    watch = df.watch;
 
 var Component = Base.extend();
 
@@ -148,7 +149,7 @@ var Emitter = Subscriber.extend({
             var parameters = [];
             parameters.push(this.event);
             parameters.push.apply(parameters, arguments);
-            this.subject.trigger.apply(this.subject, parameters);
+            this.subject.emit.apply(this.subject, parameters);
         }.bind(this);
         Subscriber.prototype.init.apply(this, arguments);
     }
@@ -210,6 +211,28 @@ var Setter = Subscriber.extend({
     })
 });
 
+var Watcher = Publisher.extend({
+    init: function () {
+        Publisher.prototype.init.apply(this, arguments);
+        if (!(this.subject instanceof Object))
+            throw new Watcher.SubjectRequired();
+        if (typeof(this.property) != "string")
+            throw new Watcher.PropertyRequired();
+        watch(this.subject, this.property, this.toFunction());
+    },
+    publish: function (parameters, context) {
+        context = this.subject;
+        Publisher.prototype.publish.call(this, parameters, context);
+    }
+}, {
+    SubjectRequired: InvalidConfiguration.extend({
+        message: "Subject required."
+    }),
+    PropertyRequired: InvalidConfiguration.extend({
+        message: "Property name required."
+    })
+});
+
 var o = {
     Component: Component,
     Publisher: Publisher,
@@ -219,7 +242,8 @@ var o = {
     Listener: Listener,
     Emitter: Emitter,
     Getter: Getter,
-    Setter: Setter
+    Setter: Setter,
+    Watcher: Watcher
 };
 
 module.exports = new Plugin(o, {

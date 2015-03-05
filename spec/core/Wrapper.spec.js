@@ -150,14 +150,13 @@ describe("core", function () {
                         "string",
                         1,
                         false
-                    ].forEach(function (value) {
+                    ].forEach(function (invalidProperties) {
                             expect(function () {
                                 new Wrapper().mixin({
-                                    properties: value
+                                    properties: invalidProperties
                                 })
                             }).toThrow(new Wrapper.PropertiesRequired());
                         });
-
                 });
 
                 it("returns the context itself", function () {

@@ -59,12 +59,17 @@ export NODE_PATH=../
 # another possible solutions are npm link and symlink
 ```
 
-#### Environment requirements
+#### Requirements
+
+##### Environment requirements
 
 An ES5 capable environment is required at least with
 
 - `Object.create`
 - `Object.defineProperty`
+- `Object.getOwnPropertyDescriptor`
+- `Object.prototype.hasOwnProperty`
+- `Array.prototype.forEach`
 
 There is an environment test available in the spec folder.
 
@@ -73,6 +78,11 @@ The framework is written for ES5.
 *There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.
 Probably there won't be ES7 support, because it defines `async` functions, which will make this framework obsolete.*
 
+##### Module dependencies
+
+The core requires `events.EventEmitter` for watching property changes.
+
+*By ES7 capable environments with `Object.observe` the `events.EventEmitter` won't be needed.*
 
 ### Examples
 
@@ -93,7 +103,7 @@ if (v8.compatible())
     v8.install();
 ```
 
-#### 1. inheritance, instantiation, configuration, cloning and unique id
+#### 1. inheritance, instantiation, configuration, cloning, unique id, watch, unwatch
 ```js
 var Cat = df.Base.extend({
     name: undefined,
@@ -146,6 +156,18 @@ var id1 = df.id();
 var id2 = df.id();
 
 console.log(id1 != id2); // true
+```
+
+```js
+var o = {x:0};
+
+df.watch(o, "x", console.log);
+o.x = 1; // 1 0 x {x:1}
+o.x = 2; // 2 1 x {x:2}
+
+df.unwatch(o, "x", log);
+o.x = 3; // not logged
+o.x = 4; // not logged
 ```
 
 #### 2. wrapper, custom errors, plugins
@@ -314,7 +336,7 @@ var subscription = new df.Subscription({
 
 o2.on("anotherEvent", console.log);
 
-o1.trigger("myEvent", 1, 2, 3); // 1 2 3
+o1.emit("myEvent", 1, 2, 3); // 1 2 3
 ```
 
 ```js
@@ -342,6 +364,30 @@ console.log(o2.another); // "x"
 var wrapper = getter.toFunction();
 wrapper();
 console.log(o2.another); // "value"
+```
+
+```js
+var o1 = {
+    prop: "a"
+};
+var o2 = {
+    another: "x"
+};
+var watcher = new df.Watcher({
+    subject: o1,
+    property: "prop"
+});
+var setter = new df.Setter({
+    subject: o2,
+    property: "another"
+});
+var subscription = new df.Subscription({
+    publisher: watcher,
+    subscriber: setter
+});
+
+o1.prop = "b";
+console.log(o2.another); // b
 ```
 
 #### 4. pub/sub fluent interface

@@ -1,4 +1,5 @@
-var df = require("dataflower");
+var df = require("dataflower"),
+    EventEmitter = require("events").EventEmitter;
 
 describe("example", function () {
 
@@ -24,24 +25,8 @@ describe("example", function () {
         });
 
         it("implements Emitter, Listener", function () {
-
-            var MockEventEmitter = df.Base.extend({
-                listeners: undefined,
-                init: function () {
-                    this.listeners = {};
-                },
-                on: function (type, listener) {
-                    this.listeners[type] = listener;
-                },
-                trigger: function (type, event) {
-                    var listener = this.listeners[type];
-                    var parameters = Array.prototype.slice.call(arguments, 1);
-                    listener.apply(this, parameters);
-                }
-            });
-
-            var o1 = new MockEventEmitter(),
-                o2 = new MockEventEmitter(),
+            var o1 = new EventEmitter(),
+                o2 = new EventEmitter(),
                 listener = new df.Listener({
                     subject: o1,
                     event: "myEvent"
@@ -57,13 +42,11 @@ describe("example", function () {
                 log = jasmine.createSpy();
             o2.on("anotherEvent", log);
             expect(log).not.toHaveBeenCalled();
-            o1.trigger("myEvent", 1, 2, 3);
+            o1.emit("myEvent", 1, 2, 3);
             expect(log).toHaveBeenCalledWith(1, 2, 3);
-
         });
 
-        it("implements Getter", function () {
-
+        it("implements Getter, Setter", function () {
             var o1 = {
                     prop: "value"
                 },
@@ -82,12 +65,36 @@ describe("example", function () {
                     publisher: getter,
                     subscriber: setter
                 }),
-                transfer = getter.toFunction();
+                sync = getter.toFunction();
 
             expect(o2.another).toBe("x");
-            transfer();
+            sync();
             expect(o2.another).toBe("value");
+        });
 
+        it("implements Watcher", function () {
+            var o1 = {
+                    prop: "a"
+                },
+                o2 = {
+                    another: "x"
+                },
+                watcher = new df.Watcher({
+                    subject: o1,
+                    property: "prop"
+                }),
+                setter = new df.Setter({
+                    subject: o2,
+                    property: "another"
+                }),
+                subscription = new df.Subscription({
+                    publisher: watcher,
+                    subscriber: setter
+                });
+
+            expect(o2.another).toBe("x");
+            o1.prop = "b";
+            expect(o2.another).toBe("b");
         });
 
     });

@@ -1,6 +1,69 @@
+var EventEmitter = require("events").EventEmitter;
+
 var last = 0;
 var id = function () {
     return ++last;
+};
+
+var watch = function (subject, property, listener) {
+    if (!(subject instanceof Object))
+        throw new InvalidArguments();
+    if (typeof (property) != "string")
+        throw new InvalidArguments();
+    if (!(listener instanceof Function))
+        throw new InvalidArguments();
+
+    var observer = subject._observer;
+    if (!subject.hasOwnProperty("_observer")) {
+        observer = new EventEmitter();
+        observer.values = {};
+        Object.defineProperty(subject, "_observer", {
+            writable: false,
+            enumerable: false,
+            configurable: false,
+            value: observer
+        });
+    }
+    if (!observer.values.hasOwnProperty(property)) {
+        var enumerable = true;
+        if (subject.hasOwnProperty(property)) {
+            var descriptor = Object.getOwnPropertyDescriptor(subject, property);
+            if (!descriptor.configurable)
+                throw new InvalidArguments();
+            if (descriptor.set || descriptor.get)
+                throw new InvalidArguments();
+            if (!descriptor.writable)
+                throw new InvalidArguments();
+            enumerable = descriptor.enumerable;
+        }
+        observer.values[property] = subject[property];
+        Object.defineProperty(subject, property, {
+            set: function (value) {
+                var oldValue = observer.values[property];
+                observer.values[property] = value;
+                if (value !== oldValue)
+                    observer.emit(property, value, oldValue, property, subject);
+            },
+            get: function () {
+                return observer.values[property];
+            },
+            enumerable: enumerable,
+            configurable: false
+        });
+    }
+    observer.on(property, listener);
+};
+
+var unwatch = function (subject, property, listener) {
+    if (!(subject instanceof Object))
+        throw new InvalidArguments();
+    if (typeof (property) != "string")
+        throw new InvalidArguments();
+    if (!(listener instanceof Function))
+        throw new InvalidArguments();
+
+    if (subject.hasOwnProperty("_observer"))
+        subject._observer.removeListener(property, listener);
 };
 
 var extend = function (Ancestor, properties, staticProperties) {
@@ -59,7 +122,7 @@ var shallowCopy = function (subject, source) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
     var sources = Array.prototype.slice.call(arguments, 1);
-    for (var index = 0, length = sources.length; index < length; ++index) {
+    for (var index in sources) {
         source = sources[index];
         if (source === undefined || source === null)
             continue;
@@ -164,7 +227,7 @@ var StackTrace = Base.extend({
     },
     mixin: function (source) {
         var sources = [];
-        for (var sourceIndex = 0, sourceCount = arguments.length; sourceIndex < sourceCount; ++sourceIndex) {
+        for (var sourceIndex in arguments) {
             source = arguments[sourceIndex];
             if (source === undefined || source === null)
                 continue;
@@ -174,7 +237,7 @@ var StackTrace = Base.extend({
             if (source.frames !== undefined) {
                 if (!(source.frames instanceof Array))
                     throw new StackTrace.StackFramesRequired();
-                for (var frameIndex = 0, frameCount = source.frames.length; frameIndex < frameCount; ++frameIndex)
+                for (var frameIndex in source.frames)
                     if (!(source.frames[frameIndex] instanceof StackFrame))
                         throw new StackTrace.StackFrameRequired();
                 this.frames.push.apply(this.frames, source.frames);
@@ -287,7 +350,7 @@ var Plugin = Base.extend({
         return this.error;
     },
     dependency: function () {
-        for (var index = 0, length = arguments.length; index < length; ++index) {
+        for (var index in arguments) {
             var plugin = arguments[index];
             if (!(plugin instanceof Plugin))
                 throw new Plugin.PluginRequired();
@@ -321,7 +384,7 @@ var Wrapper = Base.extend({
     },
     mixin: function (source) {
         var sources = [];
-        for (var sourceIndex = 0, sourceCount = arguments.length; sourceIndex < sourceCount; ++sourceIndex) {
+        for (var sourceIndex in arguments) {
             source = arguments[sourceIndex];
             if (source === undefined || source === null)
                 continue;
@@ -331,7 +394,7 @@ var Wrapper = Base.extend({
             if (source.preprocessors !== undefined) {
                 if (!(source.preprocessors instanceof Array))
                     throw new Wrapper.ArrayRequired();
-                for (var preprocessorIndex = 0, preprocessorCount = source.preprocessors.length; preprocessorIndex < preprocessorCount; ++preprocessorIndex)
+                for (var preprocessorIndex in source.preprocessors)
                     if (!(source.preprocessors[preprocessorIndex] instanceof Function))
                         throw new Wrapper.PreprocessorRequired();
                 this.preprocessors.push.apply(this.preprocessors, source.preprocessors);
@@ -382,7 +445,7 @@ var Wrapper = Base.extend({
         cascade: function (wrapper) {
             return function () {
                 var parameters = Array.prototype.slice.apply(arguments);
-                for (var index = 0, length = wrapper.preprocessors.length; index < length; ++index) {
+                for (var index in wrapper.preprocessors) {
                     var preprocessor = wrapper.preprocessors[index];
                     parameters = preprocessor.apply(this, parameters);
                     if (!(parameters instanceof Array))
@@ -395,7 +458,7 @@ var Wrapper = Base.extend({
             return function () {
                 var parameters = arguments,
                     match;
-                for (var index = 0, length = wrapper.preprocessors.length; index < length; ++index) {
+                for (var index in wrapper.preprocessors) {
                     var preprocessor = wrapper.preprocessors[index];
                     match = preprocessor.apply(this, arguments);
                     if (match !== undefined) {
@@ -413,7 +476,7 @@ var Wrapper = Base.extend({
                 var parameters = arguments;
                 var reduce = function () {
                     var match;
-                    for (var index = 0, length = wrapper.preprocessors.length; index < length; ++index) {
+                    for (var index in wrapper.preprocessors) {
                         var preprocessor = wrapper.preprocessors[index];
                         match = preprocessor.apply(this, parameters);
                         if (match !== undefined) {
@@ -472,6 +535,8 @@ StackTrace.prototype.mixin = new Wrapper({
 
 module.exports = {
     id: id,
+    watch: watch,
+    unwatch: unwatch,
     extend: extend,
     clone: clone,
     mixin: mixin,

@@ -26,7 +26,7 @@ var StackStringParser = Base.extend({
     parseFramesString: function (framesString) {
         var frameStrings = framesString.split("\n");
         var frames = [];
-        for (var index = 0, length = frameStrings.length; index < length; ++index)
+        for (var index in frameStrings)
             frames.push(this.parseFrameString(frameStrings[index]));
         return frames;
     },
