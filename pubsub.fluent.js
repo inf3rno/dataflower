@@ -16,11 +16,11 @@ var o = {
                     return [new Publisher()];
             },
             function (wrapper) {
-                if ((wrapper instanceof Function) && (wrapper.component instanceof Publisher))
+                if (arguments.length == 1 && (wrapper instanceof Function) && (wrapper.component instanceof Publisher))
                     return [wrapper.component];
             },
             function (options) {
-                if ((options instanceof Object) && !(options instanceof Publisher))
+                if (arguments.length == 1 && (options instanceof Object) && !(options instanceof Publisher))
                     return [new Publisher(options)];
             }
         ],
