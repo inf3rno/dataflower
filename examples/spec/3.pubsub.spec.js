@@ -151,6 +151,33 @@ describe("example", function () {
             jasmine.clock().uninstall();
         });
 
+        it("implements Spy", function () {
+
+            var o = {
+                m: function (a, b) {
+                    return a + b;
+                }
+            };
+            expect(o.m(1, 2)).toBe(3);
+
+            o.m = new df.Spy({
+                callback: o.m
+            }).toFunction();
+
+            var log = jasmine.createSpy();
+            new df.Subscription({
+                publisher: o.m.called.component,
+                subscriber: new df.Subscriber({
+                    callback: log
+                })
+            });
+
+            expect(log).not.toHaveBeenCalled();
+
+            expect(o.m(1, 2)).toBe(3);
+            expect(log).toHaveBeenCalledWith(1, 2);
+        });
+
     });
 
 

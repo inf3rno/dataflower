@@ -29,7 +29,7 @@ No real documentation yet.
 
 ### Installation
 
-Current version is 0.6.1.
+Current version is 0.6.2.
 
 *I'll use auto-versioning after I started to use a nested git branching model. Until then the versioning will be erratic.*
 
@@ -432,6 +432,27 @@ var o = {
 
 o.x(1, 2); // 1 2
 o.x(0, 1); // error 0 1 on console.error
+```
+
+```js
+var o = {
+    m: function (a, b) {
+        return a + b;
+    }
+};
+o.m = new df.Spy({
+    callback: o.m
+}).toFunction();
+
+new df.Subscription({
+    publisher: o.m.called.component,
+    subscriber: new df.Subscriber({
+        callback: console.log
+    })
+});
+
+var c = o.m(1, 2); // 1 2
+console.log(c); // 3
 ```
 
 #### 4. pub/sub fluent interface

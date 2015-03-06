@@ -278,6 +278,35 @@ var Task = Subscriber.extend({
     }
 });
 
+var Spy = Subscriber.extend({
+    called: undefined,
+    init: function () {
+        Subscriber.prototype.init.call(this);
+        this.called = new Publisher();
+    },
+    receive: function (parameters, context) {
+        if (!(parameters instanceof Array))
+            throw new Spy.ArrayRequired();
+        this.called.publish(parameters, context);
+        Subscriber.prototype.receive.call(this, parameters, context);
+    },
+    toFunction: function () {
+        if (!this.wrapper) {
+            var spy = this;
+            this.wrapper = new Wrapper({
+                done: function () {
+                    var parameters = Array.prototype.slice.call(arguments);
+                    spy.receive(parameters, this);
+                },
+                properties: {
+                    component: this,
+                    called: this.called.toFunction()
+                }
+            }).toFunction();
+        }
+        return this.wrapper;
+    }
+});
 
 var o = {
     Component: Component,
@@ -290,7 +319,8 @@ var o = {
     Getter: Getter,
     Setter: Setter,
     Watcher: Watcher,
-    Task: Task
+    Task: Task,
+    Spy: Spy
 };
 
 module.exports = new Plugin(o, {

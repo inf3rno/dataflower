@@ -103,31 +103,8 @@ describe("pubsub", function () {
                     }
                 });
                 var wrapper = task.toFunction();
-                expect(wrapper instanceof Function).toBe(true);
-                expect(wrapper).toBe(task.toFunction());
-                expect(wrapper.component).toBe(task);
                 expect(wrapper.done).toBe(task.done.toFunction());
                 expect(wrapper.error).toBe(task.error.toFunction());
-            });
-
-            describe("the wrapper returned by toFunction", function () {
-
-                it("calls receive on the task", function () {
-
-                    var task = new Task({
-                        callback: function () {
-                        }
-                    });
-                    var receive = spyOn(task, "receive");
-                    var wrapper = task.toFunction();
-                    var o = {
-                        x: wrapper
-                    };
-                    expect(receive).not.toHaveBeenCalled();
-                    o.x(1, 2, 3);
-                    expect(receive).toHaveBeenCalledWith([1, 2, 3], o);
-                });
-
             });
 
         });
