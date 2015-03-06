@@ -280,15 +280,19 @@ var Task = Subscriber.extend({
 
 var Spy = Subscriber.extend({
     called: undefined,
+    returned: undefined,
     init: function () {
         Subscriber.prototype.init.call(this);
         this.called = new Publisher();
+        this.returned = new Publisher();
     },
     receive: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Spy.ArrayRequired();
         this.called.publish(parameters, context);
-        return this.callback.apply(context, parameters);
+        var result = this.callback.apply(context, parameters);
+        this.returned.publish([result], context);
+        return result;
     },
     toFunction: function () {
         if (!this.wrapper) {
@@ -300,7 +304,8 @@ var Spy = Subscriber.extend({
                 },
                 properties: {
                     component: this,
-                    called: this.called.toFunction()
+                    called: this.called.toFunction(),
+                    returned: this.returned.toFunction()
                 }
             }).toFunction();
         }

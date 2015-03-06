@@ -23,6 +23,7 @@ describe("pubsub", function () {
                     }
                 });
                 expect(spy.called instanceof Publisher).toBe(true);
+                expect(spy.returned instanceof Publisher).toBe(true);
             });
 
         });
@@ -71,6 +72,30 @@ describe("pubsub", function () {
                 expect(spy.receive([], {})).toBe(123);
             });
 
+            it("publishes the result of the call on the returned Publisher", function () {
+
+                var spy = new Spy({
+                    callback: function () {
+                        return 123;
+                    }
+                });
+                var log = jasmine.createSpy();
+                new Subscription({
+                    publisher: spy.returned,
+                    subscriber: new Subscriber({
+                        callback: log
+                    })
+                });
+
+                expect(log).not.toHaveBeenCalled();
+
+                var o = {};
+                spy.receive([], o);
+
+                expect(log).toHaveBeenCalledWith(123);
+                expect(log.calls.first().object).toBe(o);
+            });
+
         });
 
         describe("toFunction", function () {
@@ -83,6 +108,7 @@ describe("pubsub", function () {
                 });
                 var wrapper = spy.toFunction();
                 expect(wrapper.called).toBe(spy.called.toFunction());
+                expect(wrapper.returned).toBe(spy.returned.toFunction());
             });
 
             describe("wrapper returned by toFunction", function () {
