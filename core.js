@@ -71,28 +71,17 @@ var extend = function (Ancestor, properties, staticProperties) {
         throw new InvalidArguments();
     if (arguments.length > 3)
         throw new InvalidArguments();
-    var Descendant = function (source) {
-        Object.defineProperty(this, "id", {
-            configurable: false,
-            enumerable: false,
-            writable: false,
-            value: id()
-        });
-        if (this.prepare instanceof Function)
-            this.prepare();
-        var parameters = [this];
-        parameters.push.apply(parameters, arguments);
-        mixin.apply(null, parameters);
+    var Descendant = function () {
         if (this.init instanceof Function)
-            this.init();
+            this.init.apply(this, arguments);
     };
     Descendant.prototype = clone(Ancestor.prototype);
     if (properties)
-        mixin(Descendant.prototype, properties);
+        merge(Descendant.prototype, properties);
     Descendant.prototype.constructor = Descendant;
-    mixin(Descendant, Ancestor);
+    merge(Descendant, Ancestor);
     if (staticProperties)
-        mixin(Descendant, staticProperties);
+        merge(Descendant, staticProperties);
     return Descendant;
 };
 
@@ -110,11 +99,11 @@ var clone = function (subject) {
     return Object.create(subject);
 };
 
-var mixin = function (subject, source) {
+var merge = function (subject, source) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
-    if (subject.mixin instanceof Function)
-        return subject.mixin.apply(subject, Array.prototype.slice.call(arguments, 1));
+    if (subject.merge instanceof Function)
+        return subject.merge.apply(subject, Array.prototype.slice.call(arguments, 1));
     return shallowCopy.apply(null, arguments);
 };
 
@@ -135,30 +124,44 @@ var shallowCopy = function (subject, source) {
 };
 
 var Base = extend(Object, {
+    init: function () {
+        Object.defineProperty(this, "id", {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: id()
+        });
+        if (this.build instanceof Function)
+            this.build();
+        this.merge.apply(this, arguments);
+        if (this.configure instanceof Function)
+            this.configure();
+    },
+    merge: function (source) {
+        var parameters = [this];
+        parameters.push.apply(parameters, arguments);
+        return shallowCopy.apply(null, parameters);
+    },
     clone: function () {
         var instance = Object.create(this);
-        if (instance.prepare instanceof Function)
-            instance.prepare();
+        if (instance.build instanceof Function)
+            instance.build();
         return instance;
     }
 }, {
     extend: function (properties, staticProperties) {
         return extend(this, properties, staticProperties);
-    },
-    mixin: function (source) {
-        var parameters = [this];
-        parameters.push.apply(parameters, arguments);
-        return shallowCopy.apply(null, parameters);
     }
 });
-Base.prototype.mixin = Base.mixin;
+Base.merge = Base.prototype.merge;
 
 var UserError = extend(Error, {
     name: "UserError",
     message: "",
     stackTrace: undefined,
-    mixin: Base.prototype.mixin,
-    init: function () {
+    merge: Base.prototype.merge,
+    init: Base.prototype.init,
+    configure: function () {
         var nativeError = new Error();
         var parser = new StackStringParser();
         this.stackTrace = parser.parse(nativeError.stack);
@@ -178,7 +181,7 @@ var UserError = extend(Error, {
 }, {
     parser: undefined,
     extend: Base.extend,
-    mixin: Base.mixin
+    merge: Base.merge
 });
 
 var InvalidConfiguration = UserError.extend({
@@ -222,10 +225,10 @@ var CompositeError = UserError.extend({
 var StackTrace = Base.extend({
     frames: [],
     string: undefined,
-    prepare: function () {
+    build: function () {
         this.frames = clone(this.frames);
     },
-    mixin: function (source) {
+    merge: function (source) {
         var sources = [];
         for (var sourceIndex in arguments) {
             source = arguments[sourceIndex];
@@ -270,7 +273,7 @@ var StackFrame = Base.extend({
     row: undefined,
     col: undefined,
     string: undefined,
-    init: function () {
+    configure: function () {
         if (typeof (this.description) != "string")
             throw new StackFrame.DescriptionRequired();
         if (typeof (this.path) != "string")
@@ -313,7 +316,7 @@ var Plugin = Base.extend({
     },
     setup: function () {
     },
-    init: function () {
+    configure: function () {
         this.dependencies = {};
     },
     install: function () {
@@ -378,11 +381,11 @@ var Wrapper = Base.extend({
         };
     },
     properties: {},
-    prepare: function () {
+    build: function () {
         this.preprocessors = clone(this.preprocessors);
         this.properties = clone(this.properties);
     },
-    mixin: function (source) {
+    merge: function (source) {
         var sources = [];
         for (var sourceIndex in arguments) {
             source = arguments[sourceIndex];
@@ -517,7 +520,7 @@ var Wrapper = Base.extend({
     })
 });
 
-UserError.prototype.mixin = new Wrapper({
+UserError.prototype.merge = new Wrapper({
     algorithm: Wrapper.algorithm.firstMatch,
     preprocessors: [
         function (message) {
@@ -525,7 +528,7 @@ UserError.prototype.mixin = new Wrapper({
                 return [{message: message}];
         }
     ],
-    done: UserError.prototype.mixin
+    done: UserError.prototype.merge
 }).toFunction();
 
 var StackStringParser = Base.extend({
@@ -609,7 +612,7 @@ module.exports = {
     unwatch: unwatch,
     extend: extend,
     clone: clone,
-    mixin: mixin,
+    merge: merge,
     shallowCopy: shallowCopy,
     Base: Base,
     UserError: UserError,

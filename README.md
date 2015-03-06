@@ -102,7 +102,7 @@ psf.install();
 ```js
 var Cat = df.Base.extend({
     name: undefined,
-    init: function () {
+    configure: function () {
         if (typeof(this.name) != "string")
             throw new df.InvalidConfiguration("Invalid cat name.");
         ++Cat.counter;
@@ -129,15 +129,15 @@ console.log(Cat.count()); // 2
 ```
 
 ```js
-kitty.mixin(
-    init: function (postfix) {
+kitty.merge(
+    configure: function (postfix) {
         this.name += " " + postfix;
     }
 );
-kitty.init("Cat");
+kitty.configure("Cat");
 kitty.meow(); // Kitty Cat: meow
 
-kitty.init("from London");
+kitty.configure("from London");
 kitty.meow(); // Kitty Cat from London: meow
 ```
 

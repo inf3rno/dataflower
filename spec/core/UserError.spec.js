@@ -30,12 +30,12 @@ describe("core", function () {
 
         });
 
-        describe("mixin", function () {
+        describe("merge", function () {
 
-            it("calls the mixin function on the class", function () {
+            it("calls the merge function on the class", function () {
 
                 var MyError = UserError.extend();
-                MyError.mixin({a: 1});
+                MyError.merge({a: 1});
                 expect(MyError.a).toBe(1);
 
             });
@@ -44,12 +44,12 @@ describe("core", function () {
 
         describe("prototype", function () {
 
-            describe("mixin", function () {
+            describe("merge", function () {
 
-                it("calls the mixin function on the instance", function () {
+                it("calls the merge function on the instance", function () {
 
                     var err = new UserError();
-                    err.mixin({
+                    err.merge({
                         a: 1
                     });
                     expect(err.a).toBe(1);
@@ -59,13 +59,13 @@ describe("core", function () {
                 it("transforms message string to source object", function () {
 
                     var err = new UserError();
-                    err.mixin("message");
+                    err.merge("message");
                     expect(err.message).toBe("message");
                 });
 
             });
 
-            describe("init", function () {
+            describe("configure", function () {
 
                 it("creates the stack getter", function () {
 

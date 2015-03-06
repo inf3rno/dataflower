@@ -9,7 +9,7 @@ describe("pubsub", function () {
 
     describe("Subscription.prototype", function () {
 
-        describe("init", function () {
+        describe("configure", function () {
 
             it("requires a publisher and a subscriber", function () {
 

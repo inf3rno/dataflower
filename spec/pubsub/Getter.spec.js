@@ -16,7 +16,7 @@ describe("pubsub", function () {
 
         describe("prototype", function () {
 
-            describe("init", function () {
+            describe("configure", function () {
 
                 it("accepts only object as subject", function () {
 

@@ -101,48 +101,17 @@ describe("core", function () {
 
         describe("the constructor of the descendant", function () {
 
-            it("sets unique id automatically", function () {
-
-                var Ancestor = function () {
-                };
-                var Descendant = extend(Ancestor);
-                expect(Descendant.prototype.id).toBeUndefined();
-                var descendant = new Descendant();
-                expect(descendant.id).toBeDefined();
-                expect(descendant.id).not.toBe(new Descendant().id);
-            });
-
-            it("calls init before mixin if a function is set", function () {
-
-                var Ancestor = function () {
-                };
-                var Descendant = extend(Ancestor, {
-                    prepare: jasmine.createSpy()
-                });
-                var descendant = new Descendant({}, {}, {});
-                expect(descendant.prepare).toHaveBeenCalledWith();
-            });
-
-            it("calls mixin from the prototype after unique id is set", function () {
-
-                var Ancestor = function () {
-                };
-                var Descendant = extend(Ancestor, {
-                    mixin: jasmine.createSpy()
-                });
-                var descendant = new Descendant(1, 2, 3);
-                expect(descendant.mixin).toHaveBeenCalledWith(1, 2, 3);
-            });
-
-            it("calls init after mixin if a function is set", function () {
+            it("calls init if set", function () {
 
                 var Ancestor = function () {
                 };
                 var Descendant = extend(Ancestor, {
                     init: jasmine.createSpy()
                 });
-                var descendant = new Descendant({}, {}, {});
-                expect(descendant.init).toHaveBeenCalledWith();
+                var descendant = new Descendant(1, 2, 3);
+                expect(descendant.init).toHaveBeenCalledWith(1, 2, 3);
+                expect(descendant.init.calls.first().object).toBe(descendant);
+
             });
 
         });

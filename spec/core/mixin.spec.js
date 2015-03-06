@@ -1,26 +1,26 @@
 var df = require("dataflower"),
-    mixin = df.mixin;
+    merge = df.merge;
 
 describe("core", function () {
 
-    describe("mixin", function () {
+    describe("merge", function () {
 
-        it("calls the mixin function of the subject with the arguments", function () {
+        it("calls the merge function of the subject with the arguments", function () {
 
             var o = {};
             var subject = {
-                mixin: jasmine.createSpy().and.callFake(function () {
+                merge: jasmine.createSpy().and.callFake(function () {
                     return o;
                 })
             };
-            expect(mixin(subject, 1, 2, 3)).toBe(o);
-            expect(subject.mixin).toHaveBeenCalledWith(1, 2, 3);
+            expect(merge(subject, 1, 2, 3)).toBe(o);
+            expect(subject.merge).toHaveBeenCalledWith(1, 2, 3);
         });
 
-        it("calls shallowCopy if no mixin function set", function () {
+        it("calls shallowCopy if no merge function set", function () {
 
             var subject = {};
-            expect(mixin(subject, {a: 1}, {b: 2}, {a: 3, c: 4})).toBe(subject);
+            expect(merge(subject, {a: 1}, {b: 2}, {a: 3, c: 4})).toBe(subject);
             expect(subject).toEqual({b: 2, a: 3, c: 4});
         });
 

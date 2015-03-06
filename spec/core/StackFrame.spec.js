@@ -5,7 +5,7 @@ describe("core", function () {
 
     describe("StackFrame.prototype", function () {
 
-        describe("init", function () {
+        describe("configure", function () {
 
             it("accepts only valid configuration", function () {
 

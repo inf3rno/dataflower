@@ -12,7 +12,7 @@ var Component = Base.extend();
 var Publisher = Component.extend({
     subscriptions: undefined,
     wrapper: undefined,
-    init: function () {
+    configure: function () {
         this.subscriptions = {};
     },
     addSubscription: function (subscription) {
@@ -56,7 +56,7 @@ var Subscription = Base.extend({
     publisher: undefined,
     subscriber: undefined,
     context: undefined,
-    init: function () {
+    configure: function () {
         if (!(this.publisher instanceof Publisher))
             throw new Subscription.PublisherRequired();
         if (!(this.subscriber instanceof Subscriber))
@@ -83,7 +83,7 @@ var Subscription = Base.extend({
 var Subscriber = Component.extend({
     callback: undefined,
     wrapper: undefined,
-    init: function () {
+    configure: function () {
         if (!(this.callback instanceof Function))
             throw new Subscriber.CallbackRequired();
     },
@@ -119,8 +119,8 @@ var Subscriber = Component.extend({
 var Listener = Publisher.extend({
     subject: undefined,
     event: undefined,
-    init: function () {
-        Publisher.prototype.init.call(this);
+    configure: function () {
+        Publisher.prototype.configure.call(this);
         if (!(this.subject instanceof Object))
             throw new Listener.SubjectRequired();
         if (typeof(this.event) != "string")
@@ -143,7 +143,7 @@ var Listener = Publisher.extend({
 var Emitter = Subscriber.extend({
     subject: undefined,
     event: undefined,
-    init: function () {
+    configure: function () {
         if (!(this.subject instanceof Object))
             throw new Emitter.SubjectRequired();
         if (typeof(this.event) != "string")
@@ -154,7 +154,7 @@ var Emitter = Subscriber.extend({
             parameters.push.apply(parameters, arguments);
             this.subject.emit.apply(this.subject, parameters);
         }.bind(this);
-        Subscriber.prototype.init.call(this);
+        Subscriber.prototype.configure.call(this);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -168,8 +168,8 @@ var Emitter = Subscriber.extend({
 var Getter = Publisher.extend({
     subject: undefined,
     property: undefined,
-    init: function () {
-        Publisher.prototype.init.call(this);
+    configure: function () {
+        Publisher.prototype.configure.call(this);
         if (!(this.subject instanceof Object))
             throw new Getter.SubjectRequired();
         if (typeof(this.property) != "string")
@@ -195,7 +195,7 @@ var Getter = Publisher.extend({
 var Setter = Subscriber.extend({
     subject: undefined,
     property: undefined,
-    init: function () {
+    configure: function () {
         if (!(this.subject instanceof Object))
             throw new Setter.SubjectRequired();
         if (typeof(this.property) != "string")
@@ -203,7 +203,7 @@ var Setter = Subscriber.extend({
         this.callback = function (value) {
             this.subject[this.property] = value;
         }.bind(this);
-        Subscriber.prototype.init.call(this);
+        Subscriber.prototype.configure.call(this);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -215,8 +215,8 @@ var Setter = Subscriber.extend({
 });
 
 var Watcher = Publisher.extend({
-    init: function () {
-        Publisher.prototype.init.call(this);
+    configure: function () {
+        Publisher.prototype.configure.call(this);
         if (!(this.subject instanceof Object))
             throw new Watcher.SubjectRequired();
         if (typeof(this.property) != "string")
@@ -240,8 +240,8 @@ var Task = Subscriber.extend({
     called: undefined,
     done: undefined,
     error: undefined,
-    init: function () {
-        Subscriber.prototype.init.call(this);
+    configure: function () {
+        Subscriber.prototype.configure.call(this);
         this.called = new Publisher();
         this.done = new Publisher();
         this.error = new Publisher();
@@ -286,8 +286,8 @@ var Spy = Subscriber.extend({
     called: undefined,
     done: undefined,
     error: undefined,
-    init: function () {
-        Subscriber.prototype.init.call(this);
+    configure: function () {
+        Subscriber.prototype.configure.call(this);
         this.called = new Publisher();
         this.done = new Publisher();
         this.error = new Publisher();

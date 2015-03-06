@@ -16,7 +16,7 @@ describe("core", function () {
                     var createError = function (options) {
                         return new options.type({
                             message: options.message
-                        }).mixin({
+                        }).merge({
                                 stackTrace: new StackTrace({
                                     toString: function () {
                                         return options.stack;
@@ -41,7 +41,7 @@ describe("core", function () {
                         type: CompositeError,
                         message: "message.x",
                         stack: "stack.x"
-                    }).mixin({
+                    }).merge({
                         a: a,
                         b: b
                     });
@@ -56,7 +56,7 @@ describe("core", function () {
                         type: CompositeError,
                         message: "message",
                         stack: "stack"
-                    }).mixin({
+                    }).merge({
                         x: x,
                         y: y
                     });
@@ -90,7 +90,7 @@ describe("core", function () {
                     var composite = new CompositeError({
                         message: "message",
                         native: nativeError
-                    }).mixin({
+                    }).merge({
                             stackTrace: new StackTrace({
                                 toString: function () {
                                     return "stack";

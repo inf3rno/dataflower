@@ -8,7 +8,7 @@ describe("core", function () {
 
         describe("prototype", function () {
 
-            describe("prepare", function () {
+            describe("build", function () {
 
                 it("clones the preprocessors Array", function () {
 
@@ -18,7 +18,7 @@ describe("core", function () {
                     });
                     var wrapper2 = Object.create(wrapper);
                     expect(wrapper2.preprocessors).toBe(wrapper.preprocessors);
-                    wrapper2.prepare();
+                    wrapper2.build();
                     expect(wrapper2.preprocessors).not.toBe(wrapper.preprocessors);
                     expect(wrapper2.preprocessors).toEqual(wrapper.preprocessors);
                 });
@@ -32,35 +32,35 @@ describe("core", function () {
                     });
                     var wrapper2 = Object.create(wrapper);
                     expect(wrapper2.properties).toBe(wrapper.properties);
-                    wrapper2.prepare();
+                    wrapper2.build();
                     expect(wrapper2.properties).not.toBe(wrapper.properties);
                     expect(wrapper2.properties.a).toBe(wrapper.properties.a);
                 });
 
             });
 
-            describe("mixin", function () {
+            describe("merge", function () {
 
                 it("accepts only object, null or undefined as sources", function () {
 
                     expect(function () {
-                        new Wrapper().mixin({});
+                        new Wrapper().merge({});
                     }).not.toThrow();
 
                     expect(function () {
-                        new Wrapper().mixin();
+                        new Wrapper().merge();
                     }).not.toThrow();
 
                     expect(function () {
-                        new Wrapper().mixin(null);
+                        new Wrapper().merge(null);
                     }).not.toThrow();
 
                     expect(function () {
-                        new Wrapper().mixin({}, {});
+                        new Wrapper().merge({}, {});
                     }).not.toThrow();
 
                     expect(function () {
-                        new Wrapper().mixin("a");
+                        new Wrapper().merge("a");
                     }).toThrow(new InvalidArguments());
                 });
 
@@ -68,10 +68,10 @@ describe("core", function () {
                 it("accepts only an Array of Functions as preprocessors", function () {
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             preprocessors: []
                         });
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             preprocessors: [
                                 function () {
                                 },
@@ -82,13 +82,13 @@ describe("core", function () {
                     }).not.toThrow();
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             preprocessors: {}
                         })
                     }).toThrow(new Wrapper.ArrayRequired());
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             preprocessors: [
                                 function () {
                                 },
@@ -102,14 +102,14 @@ describe("core", function () {
                 it("accepts only a Function as done", function () {
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             done: function () {
                             }
                         })
                     }).not.toThrow();
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             done: {}
                         })
                     }).toThrow(new Wrapper.FunctionRequired());
@@ -119,14 +119,14 @@ describe("core", function () {
                 it("accepts only a Function as algorithm", function () {
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             algorithm: function () {
                             }
                         })
                     }).not.toThrow();
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             algorithm: {}
                         })
                     }).toThrow(new Wrapper.AlgorithmRequired());
@@ -136,10 +136,10 @@ describe("core", function () {
                 it("accepts only Object instance as properties", function () {
 
                     expect(function () {
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             properties: {}
                         });
-                        new Wrapper().mixin({
+                        new Wrapper().merge({
                             properties: undefined
                         });
                     }).not.toThrow();
@@ -152,7 +152,7 @@ describe("core", function () {
                         false
                     ].forEach(function (invalidProperties) {
                             expect(function () {
-                                new Wrapper().mixin({
+                                new Wrapper().merge({
                                     properties: invalidProperties
                                 })
                             }).toThrow(new Wrapper.PropertiesRequired());
@@ -162,7 +162,7 @@ describe("core", function () {
                 it("returns the context itself", function () {
 
                     var o = {};
-                    expect(Wrapper.prototype.mixin.call(o)).toBe(o);
+                    expect(Wrapper.prototype.merge.call(o)).toBe(o);
                 });
 
                 it("merges pushes preprocessors if given", function () {
@@ -185,7 +185,7 @@ describe("core", function () {
                         o = {
                             preprocessors: a
                         };
-                    Wrapper.prototype.mixin.call(o, {
+                    Wrapper.prototype.merge.call(o, {
                         preprocessors: b
                     }, {
                         preprocessors: c
@@ -203,7 +203,7 @@ describe("core", function () {
                     var o = {
                         done: a
                     };
-                    Wrapper.prototype.mixin.call(o, {
+                    Wrapper.prototype.merge.call(o, {
                         done: b
                     });
                     expect(o.done).toBe(b);
@@ -218,7 +218,7 @@ describe("core", function () {
                     var o = {
                         algorithm: a
                     };
-                    Wrapper.prototype.mixin.call(o, {
+                    Wrapper.prototype.merge.call(o, {
                         algorithm: b
                     });
                     expect(o.algorithm).toBe(b);
@@ -230,7 +230,7 @@ describe("core", function () {
                         o = {
                             properties: {}
                         };
-                    Wrapper.prototype.mixin.call(o, {
+                    Wrapper.prototype.merge.call(o, {
                         properties: a
                     }, {
                         properties: b

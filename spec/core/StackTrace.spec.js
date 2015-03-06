@@ -6,7 +6,7 @@ describe("core", function () {
 
     describe("StackTrace.prototype", function () {
 
-        describe("prepare", function (){
+        describe("build", function (){
 
             it("clones the frames array", function (){
                 var frames = [
@@ -22,7 +22,7 @@ describe("core", function () {
 
         });
 
-        describe("mixin", function () {
+        describe("merge", function () {
 
             it("accepts only a valid frames array", function () {
 

@@ -26,12 +26,12 @@ describe("core", function () {
 
         });
 
-        describe("mixin", function () {
+        describe("merge", function () {
 
-            it("calls the mixin function on the class", function () {
+            it("calls the merge function on the class", function () {
 
                 var My = Base.extend();
-                My.mixin({a: 1});
+                My.merge({a: 1});
                 expect(My.a).toBe(1);
 
             });
@@ -40,12 +40,12 @@ describe("core", function () {
 
         describe("prototpye", function () {
 
-            describe("mixin", function () {
+            describe("merge", function () {
 
                 it("calls the shallowCopy function on the instance", function () {
 
                     var err = new Base();
-                    err.mixin({
+                    err.merge({
                         a: 1
                     });
                     expect(err.a).toBe(1);
@@ -68,14 +68,56 @@ describe("core", function () {
                     expect(b.y).not.toBe(a.y);
                 });
 
-                it("calls prepare on the cloned instance if a Function given", function () {
+                it("calls build on the cloned instance if a Function given", function () {
 
                     var a = {
-                        prepare: jasmine.createSpy()
+                        build: jasmine.createSpy()
                     };
                     var b = Base.prototype.clone.call(a);
-                    expect(a.prepare).toHaveBeenCalled();
-                    expect(a.prepare.calls.first().object).toBe(b);
+                    expect(a.build).toHaveBeenCalled();
+                    expect(a.build.calls.first().object).toBe(b);
+                });
+
+            });
+
+            describe("init", function () {
+
+                it("is called by instantiation", function () {
+
+                    var Descendant = Base.extend({
+                        init: jasmine.createSpy()
+                    });
+                    var descendant = new Descendant(1, 2, 3);
+                    expect(descendant.init).toHaveBeenCalledWith(1, 2, 3);
+                });
+
+                it("sets unique id automatically", function () {
+
+                    var base = new Base();
+                    expect(base.id).toBeDefined();
+                    expect(base.id).not.toBe(new Base().id);
+                });
+
+                it("calls build, merge, configure in this order", function () {
+
+                    var log = jasmine.createSpy();
+                    var Descendant = Base.extend({
+                        build: function () {
+                            expect(this.id).toBeDefined();
+                            log("build", this, Array.prototype.slice.call(arguments));
+                        },
+                        merge: function (a, b) {
+                            log("merge", this, Array.prototype.slice.call(arguments));
+                        },
+                        configure: function () {
+                            log("configure", this, Array.prototype.slice.call(arguments));
+                        }
+                    });
+                    var descendant = new Descendant({a: 1}, {b: 2});
+                    expect(log.calls.argsFor(0)).toEqual(["build", descendant, []]);
+                    expect(log.calls.argsFor(1)).toEqual(["merge", descendant, [{a: 1}, {b: 2}]]);
+                    expect(log.calls.argsFor(2)).toEqual(["configure", descendant, []]);
+                    expect(log.calls.count()).toBe(3);
                 });
 
             });

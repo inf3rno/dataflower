@@ -17,7 +17,7 @@ describe("pubsub", function () {
 
         describe("prototype", function () {
 
-            describe("init", function () {
+            describe("configure", function () {
 
                 it("adds watcher on subject property changes which publishes", function () {
 

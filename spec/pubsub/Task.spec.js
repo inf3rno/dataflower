@@ -14,7 +14,7 @@ describe("pubsub", function () {
             expect(Task.prototype instanceof Subscriber).toBe(true);
         });
 
-        describe("init", function () {
+        describe("configure", function () {
 
             it("creates an error and a done Publisher", function () {
 

@@ -9,7 +9,7 @@ describe("example", function () {
             var log = jasmine.createSpy(),
                 Cat = df.Base.extend({
                     name: undefined,
-                    init: function () {
+                    configure: function () {
                         ++Cat.counter;
                     },
                     meow: function () {
@@ -31,15 +31,15 @@ describe("example", function () {
             expect(log).toHaveBeenCalledWith("Killer: meow");
             expect(Cat.count()).toBe(2);
 
-            kitty.mixin({
-                init: function (postfix) {
+            kitty.merge({
+                configure: function (postfix) {
                     this.name += " " + postfix;
                 }
             });
-            kitty.init("Cat");
+            kitty.configure("Cat");
             kitty.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat: meow");
-            kitty.init("from London");
+            kitty.configure("from London");
             kitty.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
 
@@ -47,6 +47,9 @@ describe("example", function () {
             kittyClone.meow();
             expect(log).toHaveBeenCalledWith("Kitty Cat from London: meow");
         });
+
+
+
 
         it("implements unique id", function () {
 
