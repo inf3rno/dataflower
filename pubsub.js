@@ -288,7 +288,7 @@ var Spy = Subscriber.extend({
         if (!(parameters instanceof Array))
             throw new Spy.ArrayRequired();
         this.called.publish(parameters, context);
-        Subscriber.prototype.receive.call(this, parameters, context);
+        return this.callback.apply(context, parameters);
     },
     toFunction: function () {
         if (!this.wrapper) {
@@ -296,7 +296,7 @@ var Spy = Subscriber.extend({
             this.wrapper = new Wrapper({
                 done: function () {
                     var parameters = Array.prototype.slice.call(arguments);
-                    spy.receive(parameters, this);
+                    return spy.receive(parameters, this);
                 },
                 properties: {
                     component: this,

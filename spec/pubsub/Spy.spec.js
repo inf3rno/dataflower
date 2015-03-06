@@ -61,6 +61,16 @@ describe("pubsub", function () {
                 expect(log.calls.first()).toEqual(log.calls.mostRecent());
             });
 
+            it("returns the result of the call", function () {
+
+                var spy = new Spy({
+                    callback: function () {
+                        return 123;
+                    }
+                });
+                expect(spy.receive([], {})).toBe(123);
+            });
+
         });
 
         describe("toFunction", function () {
@@ -73,6 +83,21 @@ describe("pubsub", function () {
                 });
                 var wrapper = spy.toFunction();
                 expect(wrapper.called).toBe(spy.called.toFunction());
+            });
+
+            describe("wrapper returned by toFunction", function () {
+
+                it("returns the result of the receive", function () {
+
+                    var spy = new Spy({
+                        callback: function () {
+                            return 123;
+                        }
+                    });
+                    var wrapper = spy.toFunction();
+                    expect(wrapper()).toBe(123);
+                });
+
             });
 
         });
