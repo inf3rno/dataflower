@@ -29,7 +29,7 @@ No real documentation yet.
 
 ### Installation
 
-Current version is 0.6.2.
+Current version is 0.6.3.
 
 *I'll use auto-versioning after I started to use a nested git branching model. Until then the versioning will be erratic.*
 
@@ -407,11 +407,17 @@ var task = new df.Task({
     callback: function (done, i, j) {
         setTimeout(function () {
             if (i && j)
-                done(null, i, j);
+                done(null, i + j);
             else
                 done("error", i, j);
         }, 1000);
     }
+});
+new df.Subscription({
+    publisher: task.called,
+    subscriber: new df.Subscriber({
+        callback: console.warn
+    })
 });
 new df.Subscription({
     publisher: task.done,
@@ -430,14 +436,21 @@ var o = {
     x: task.toFunction()
 };
 
-o.x(1, 2); // 1 2
-o.x(0, 1); // error 0 1 on console.error
+o.x(1, 2);
+// 1 2 on console.warn
+// 3 on console.log
+
+o.x(0, 1);
+// 0 1 on console.warn
+// error 0 1 on console.error
 ```
 
 ```js
 var o = {
     m: function (a, b) {
-        return a + b;
+        if (a && b)
+            return a + b;
+        throw "error";
     }
 };
 o.m = new df.Spy({
@@ -447,12 +460,29 @@ o.m = new df.Spy({
 new df.Subscription({
     publisher: o.m.called.component,
     subscriber: new df.Subscriber({
+        callback: console.warn
+    })
+});
+new df.Subscription({
+    publisher: o.m.done.component,
+    subscriber: new df.Subscriber({
         callback: console.log
     })
 });
+new df.Subscription({
+    publisher: o.m.error.component,
+    subscriber: new df.Subscriber({
+        callback: console.error
+    })
+});
 
-var c = o.m(1, 2); // 1 2
-console.log(c); // 3
+var c = o.m(1, 2); // returns 3
+// 1 2 on console.warn
+// 3 on console.log
+
+o.m(0, 1); // throws error
+// 0 1 on console.warn
+// error on console.error
 ```
 
 #### 4. pub/sub fluent interface

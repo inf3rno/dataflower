@@ -237,16 +237,19 @@ var Watcher = Publisher.extend({
 });
 
 var Task = Subscriber.extend({
+    called: undefined,
     done: undefined,
     error: undefined,
     init: function () {
         Subscriber.prototype.init.call(this);
+        this.called = new Publisher();
         this.done = new Publisher();
         this.error = new Publisher();
     },
     receive: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Task.ArrayRequired();
+        this.called.publish(parameters, context);
         parameters = clone(parameters);
         parameters.unshift(function (error, results) {
             var publisher = this.error,
@@ -269,6 +272,7 @@ var Task = Subscriber.extend({
                 },
                 properties: {
                     component: this,
+                    called: this.called.toFunction(),
                     done: this.done.toFunction(),
                     error: this.error.toFunction()
                 }
@@ -280,18 +284,26 @@ var Task = Subscriber.extend({
 
 var Spy = Subscriber.extend({
     called: undefined,
-    returned: undefined,
+    done: undefined,
+    error: undefined,
     init: function () {
         Subscriber.prototype.init.call(this);
         this.called = new Publisher();
-        this.returned = new Publisher();
+        this.done = new Publisher();
+        this.error = new Publisher();
     },
     receive: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Spy.ArrayRequired();
         this.called.publish(parameters, context);
-        var result = this.callback.apply(context, parameters);
-        this.returned.publish([result], context);
+        try {
+            var result = this.callback.apply(context, parameters);
+        }
+        catch (error) {
+            this.error.publish([error], context);
+            throw error;
+        }
+        this.done.publish([result], context);
         return result;
     },
     toFunction: function () {
@@ -305,7 +317,8 @@ var Spy = Subscriber.extend({
                 properties: {
                     component: this,
                     called: this.called.toFunction(),
-                    returned: this.returned.toFunction()
+                    done: this.done.toFunction(),
+                    error: this.error.toFunction()
                 }
             }).toFunction();
         }

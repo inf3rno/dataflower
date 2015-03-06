@@ -23,7 +23,8 @@ describe("pubsub", function () {
                     }
                 });
                 expect(spy.called instanceof Publisher).toBe(true);
-                expect(spy.returned instanceof Publisher).toBe(true);
+                expect(spy.done instanceof Publisher).toBe(true);
+                expect(spy.error instanceof Publisher).toBe(true);
             });
 
         });
@@ -72,7 +73,7 @@ describe("pubsub", function () {
                 expect(spy.receive([], {})).toBe(123);
             });
 
-            it("publishes the result of the call on the returned Publisher", function () {
+            it("publishes the result of the call on the done Publisher", function () {
 
                 var spy = new Spy({
                     callback: function () {
@@ -81,7 +82,7 @@ describe("pubsub", function () {
                 });
                 var log = jasmine.createSpy();
                 new Subscription({
-                    publisher: spy.returned,
+                    publisher: spy.done,
                     subscriber: new Subscriber({
                         callback: log
                     })
@@ -93,6 +94,33 @@ describe("pubsub", function () {
                 spy.receive([], o);
 
                 expect(log).toHaveBeenCalledWith(123);
+                expect(log.calls.first().object).toBe(o);
+            });
+
+            it("publishes the raised errors on the error Publisher", function (){
+
+                var err = new Error();
+                var spy = new Spy({
+                    callback: function () {
+                        throw err;
+                    }
+                });
+                var log = jasmine.createSpy();
+                new Subscription({
+                    publisher: spy.error,
+                    subscriber: new Subscriber({
+                        callback: log
+                    })
+                });
+
+                expect(log).not.toHaveBeenCalled();
+
+                var o = {};
+                expect(function (){
+                    spy.receive([], o);
+                }).toThrow(err);
+
+                expect(log).toHaveBeenCalledWith(err);
                 expect(log.calls.first().object).toBe(o);
             });
 
@@ -108,7 +136,8 @@ describe("pubsub", function () {
                 });
                 var wrapper = spy.toFunction();
                 expect(wrapper.called).toBe(spy.called.toFunction());
-                expect(wrapper.returned).toBe(spy.returned.toFunction());
+                expect(wrapper.done).toBe(spy.done.toFunction());
+                expect(wrapper.error).toBe(spy.error.toFunction());
             });
 
             describe("wrapper returned by toFunction", function () {

@@ -2,7 +2,8 @@ var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     Subscriber = ps.Subscriber,
     Task = ps.Task,
-    Publisher = ps.Publisher;
+    Publisher = ps.Publisher,
+    Subscription = ps.Subscription;
 
 describe("pubsub", function () {
 
@@ -21,6 +22,7 @@ describe("pubsub", function () {
                     callback: function () {
                     }
                 });
+                expect(task.called instanceof Publisher).toBe(true);
                 expect(task.done instanceof Publisher).toBe(true);
                 expect(task.error instanceof Publisher).toBe(true);
             });
@@ -38,6 +40,27 @@ describe("pubsub", function () {
                 expect(function () {
                     task.receive();
                 }).toThrow(new Task.ArrayRequired());
+            });
+
+            it("publishes the parameters on the called Publisher", function () {
+
+                var log = jasmine.createSpy();
+                var task = new Task({
+                    callback: function () {
+                    }
+                });
+                new Subscription({
+                    publisher: task.called,
+                    subscriber: new Subscriber({
+                        callback: log
+                    })
+                });
+                var o = {
+                    m: task.toFunction()
+                };
+                o.m(1, 2, 3);
+                expect(log).toHaveBeenCalledWith(1, 2, 3);
+                expect(log.calls.first().object).toBe(o);
             });
 
 
@@ -103,6 +126,7 @@ describe("pubsub", function () {
                     }
                 });
                 var wrapper = task.toFunction();
+                expect(wrapper.called).toBe(task.called.toFunction());
                 expect(wrapper.done).toBe(task.done.toFunction());
                 expect(wrapper.error).toBe(task.error.toFunction());
             });

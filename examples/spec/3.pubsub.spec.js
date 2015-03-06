@@ -115,18 +115,27 @@ describe("example", function () {
                     }, 0);
                 }
             });
-            var success = jasmine.createSpy();
-            var failure = jasmine.createSpy();
+
+            var called = jasmine.createSpy();
+            var done = jasmine.createSpy();
+            var error = jasmine.createSpy();
+
+            new df.Subscription({
+                publisher: task.called,
+                subscriber: new df.Subscriber({
+                    callback: called
+                })
+            });
             new df.Subscription({
                 publisher: task.done,
                 subscriber: new df.Subscriber({
-                    callback: success
+                    callback: done
                 })
             });
             new df.Subscription({
                 publisher: task.error,
                 subscriber: new df.Subscriber({
-                    callback: failure
+                    callback: error
                 })
             });
 
@@ -134,48 +143,81 @@ describe("example", function () {
                 x: task.toFunction()
             };
 
-            expect(success).not.toHaveBeenCalled();
-            expect(failure).not.toHaveBeenCalled();
+            expect(called).not.toHaveBeenCalled();
+            expect(done).not.toHaveBeenCalled();
+            expect(error).not.toHaveBeenCalled();
 
             o.x(1, 2);
             jasmine.clock().tick(1);
-            expect(success).toHaveBeenCalledWith(1, 2);
-            expect(failure).not.toHaveBeenCalled();
-            success.calls.reset();
+            expect(called).toHaveBeenCalledWith(1, 2);
+            expect(done).toHaveBeenCalledWith(1, 2);
+            expect(error).not.toHaveBeenCalled();
+            done.calls.reset();
 
             o.x(0, 1);
             jasmine.clock().tick(1);
-            expect(success).not.toHaveBeenCalled();
-            expect(failure).toHaveBeenCalledWith("error", 0, 1);
+            expect(called).toHaveBeenCalledWith(0, 1);
+            expect(done).not.toHaveBeenCalled();
+            expect(error).toHaveBeenCalledWith("error", 0, 1);
 
             jasmine.clock().uninstall();
         });
 
         it("implements Spy", function () {
 
-            var o = {
-                m: function (a, b) {
-                    return a + b;
+            var err = new Error();
+            var spy = new df.Spy({
+                callback: function (i, j) {
+                    if (i && j)
+                        return i + j;
+                    throw err;
                 }
-            };
-            expect(o.m(1, 2)).toBe(3);
+            });
 
-            o.m = new df.Spy({
-                callback: o.m
-            }).toFunction();
+            var called = jasmine.createSpy();
+            var done = jasmine.createSpy();
+            var error = jasmine.createSpy();
 
-            var log = jasmine.createSpy();
             new df.Subscription({
-                publisher: o.m.called.component,
+                publisher: spy.called,
                 subscriber: new df.Subscriber({
-                    callback: log
+                    callback: called
+                })
+            });
+            new df.Subscription({
+                publisher: spy.done,
+                subscriber: new df.Subscriber({
+                    callback: done
+                })
+            });
+            new df.Subscription({
+                publisher: spy.error,
+                subscriber: new df.Subscriber({
+                    callback: error
                 })
             });
 
-            expect(log).not.toHaveBeenCalled();
+            var o = {
+                x: spy.toFunction()
+            };
 
-            expect(o.m(1, 2)).toBe(3);
-            expect(log).toHaveBeenCalledWith(1, 2);
+            expect(called).not.toHaveBeenCalled();
+            expect(done).not.toHaveBeenCalled();
+            expect(error).not.toHaveBeenCalled();
+
+            o.x(1, 2);
+            expect(called).toHaveBeenCalledWith(1, 2);
+            expect(done).toHaveBeenCalledWith(3);
+            expect(error).not.toHaveBeenCalled();
+            done.calls.reset();
+
+            expect(function () {
+                o.x(0, 1);
+            }).toThrow(err);
+
+            expect(called).toHaveBeenCalledWith(0, 1);
+            expect(done).not.toHaveBeenCalled();
+            expect(error).toHaveBeenCalledWith(err);
         });
 
     });
