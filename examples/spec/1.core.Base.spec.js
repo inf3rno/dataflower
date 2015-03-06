@@ -5,6 +5,7 @@ describe("example", function () {
     describe("1. inheritance, instantiation, configuration, cloning and unique id", function () {
 
         it("implements inheritance, instantiation, configuration, cloning", function () {
+
             var log = jasmine.createSpy(),
                 Cat = df.Base.extend({
                     name: undefined,
@@ -48,6 +49,7 @@ describe("example", function () {
         });
 
         it("implements unique id", function () {
+
             var id1 = df.id(),
                 id2 = df.id();
             expect(id1).not.toBe(id2);

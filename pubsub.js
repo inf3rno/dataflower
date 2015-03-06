@@ -53,7 +53,6 @@ var Publisher = Component.extend({
 });
 
 var Subscription = Base.extend({
-    id: undefined,
     publisher: undefined,
     subscriber: undefined,
     context: undefined,
@@ -82,7 +81,6 @@ var Subscription = Base.extend({
 });
 
 var Subscriber = Component.extend({
-    id: undefined,
     callback: undefined,
     wrapper: undefined,
     init: function () {
@@ -90,6 +88,8 @@ var Subscriber = Component.extend({
             throw new Subscriber.CallbackRequired();
     },
     receive: function (parameters, context) {
+        if (!(parameters instanceof Array))
+            throw new Subscriber.ArrayRequired();
         this.callback.apply(context, parameters);
     },
     toFunction: function () {
@@ -108,6 +108,9 @@ var Subscriber = Component.extend({
         return this.wrapper;
     }
 }, {
+    ArrayRequired: InvalidArguments.extend({
+        message: "Array of arguments required."
+    }),
     CallbackRequired: InvalidConfiguration.extend({
         message: "Callback function required."
     })
@@ -117,7 +120,7 @@ var Listener = Publisher.extend({
     subject: undefined,
     event: undefined,
     init: function () {
-        Publisher.prototype.init.apply(this, arguments);
+        Publisher.prototype.init.call(this);
         if (!(this.subject instanceof Object))
             throw new Listener.SubjectRequired();
         if (typeof(this.event) != "string")
@@ -151,7 +154,7 @@ var Emitter = Subscriber.extend({
             parameters.push.apply(parameters, arguments);
             this.subject.emit.apply(this.subject, parameters);
         }.bind(this);
-        Subscriber.prototype.init.apply(this, arguments);
+        Subscriber.prototype.init.call(this);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -166,7 +169,7 @@ var Getter = Publisher.extend({
     subject: undefined,
     property: undefined,
     init: function () {
-        Publisher.prototype.init.apply(this, arguments);
+        Publisher.prototype.init.call(this);
         if (!(this.subject instanceof Object))
             throw new Getter.SubjectRequired();
         if (typeof(this.property) != "string")
@@ -200,7 +203,7 @@ var Setter = Subscriber.extend({
         this.callback = function (value) {
             this.subject[this.property] = value;
         }.bind(this);
-        Subscriber.prototype.init.apply(this, arguments);
+        Subscriber.prototype.init.call(this);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -213,7 +216,7 @@ var Setter = Subscriber.extend({
 
 var Watcher = Publisher.extend({
     init: function () {
-        Publisher.prototype.init.apply(this, arguments);
+        Publisher.prototype.init.call(this);
         if (!(this.subject instanceof Object))
             throw new Watcher.SubjectRequired();
         if (typeof(this.property) != "string")
@@ -233,6 +236,49 @@ var Watcher = Publisher.extend({
     })
 });
 
+var Task = Subscriber.extend({
+    done: undefined,
+    error: undefined,
+    init: function () {
+        Subscriber.prototype.init.call(this);
+        this.done = new Publisher();
+        this.error = new Publisher();
+    },
+    receive: function (parameters, context) {
+        if (!(parameters instanceof Array))
+            throw new Task.ArrayRequired();
+        parameters = clone(parameters);
+        parameters.unshift(function (error, results) {
+            var publisher = this.error,
+                parameters = Array.prototype.slice.call(arguments);
+            if (!error) {
+                publisher = this.done;
+                parameters.shift();
+            }
+            publisher.publish(parameters, context);
+        }.bind(this));
+        this.callback.apply(context, parameters);
+    },
+    toFunction: function () {
+        if (!this.wrapper) {
+            var task = this;
+            this.wrapper = new Wrapper({
+                done: function () {
+                    var parameters = Array.prototype.slice.call(arguments);
+                    task.receive(parameters, this);
+                },
+                properties: {
+                    component: this,
+                    done: this.done.toFunction(),
+                    error: this.error.toFunction()
+                }
+            }).toFunction();
+        }
+        return this.wrapper;
+    }
+});
+
+
 var o = {
     Component: Component,
     Publisher: Publisher,
@@ -243,7 +289,8 @@ var o = {
     Emitter: Emitter,
     Getter: Getter,
     Setter: Setter,
-    Watcher: Watcher
+    Watcher: Watcher,
+    Task: Task
 };
 
 module.exports = new Plugin(o, {

@@ -29,6 +29,17 @@ describe("pubsub", function () {
 
         describe("receive", function () {
 
+            it("requires the array of parameters", function () {
+
+                var subscriber = new Subscriber({
+                    callback: function () {
+                    }
+                });
+                expect(function () {
+                    subscriber.receive();
+                }).toThrow(new Subscriber.ArrayRequired());
+            });
+
             it("calls the callback with the parameters in the given context", function () {
 
                 var subscriber = new Subscriber({
@@ -55,7 +66,6 @@ describe("pubsub", function () {
                     }
                 });
                 expect(subscriber.toFunction() instanceof Function).toBe(true);
-
             });
 
             it("returns always the same wrapper", function () {
@@ -65,7 +75,6 @@ describe("pubsub", function () {
                     }
                 });
                 expect(subscriber.toFunction()).toBe(subscriber.toFunction());
-
             });
 
         });

@@ -263,6 +263,7 @@ describe("core", function () {
                     expect(fn).toBe(log);
                     expect(fn.a).toBe(1);
                     expect(fn.b).toBe(2);
+                    expect(fn.wrapper).toBe(wrapper);
                 });
 
             });

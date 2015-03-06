@@ -5,6 +5,7 @@ describe("example", function () {
     describe("4. pub/sub fluent", function () {
 
         it("implements factory functions", function () {
+
             var log = jasmine.createSpy();
             var o = {
                 send: df.publisher(),

@@ -29,7 +29,7 @@ No real documentation yet.
 
 ### Installation
 
-Current version is 0.6.0.
+Current version is 0.6.1.
 
 *I'll use auto-versioning after I started to use a nested git branching model. Until then the versioning will be erratic.*
 
@@ -71,7 +71,7 @@ An ES5 capable environment is required at least with
 - `Object.prototype.hasOwnProperty`
 - `Array.prototype.forEach`
 
-There is an environment test available in the spec folder.
+The environment tests are available under the `/spec/environment/` folder.
 
 The framework is written for ES5.
 
@@ -91,16 +91,11 @@ The core requires `events.EventEmitter` for watching property changes.
 *I'll probably turn on auto plugin installation later, but until then you have to do it manually.*
 
 ```js
-var df = require("dataflower"), // inheritance, error handling, function/method wrapper, plugin
-    ps = require("dataflower/pubsub"), // pub/sub components
-    psf = require("dataflower/pubsub.fluent"), // fluent interface for pub/sub components
-    v8 = require("dataflower/error.v8"); // v8 error stack parser, not necessary
+var ps = require("dataflower/pubsub"), // pub/sub components
+    psf = require("dataflower/pubsub.fluent"); // fluent interface for pub/sub components
 
 ps.install();
 psf.install();
-
-if (v8.compatible())
-    v8.install();
 ```
 
 #### 1. inheritance, instantiation, configuration, cloning, unique id, watch, unwatch
@@ -405,6 +400,38 @@ var subscription = new df.Subscription({
 
 o1.prop = "b";
 console.log(o2.another); // b
+```
+
+```js
+var task = new df.Task({
+    callback: function (done, i, j) {
+        setTimeout(function () {
+            if (i && j)
+                done(null, i, j);
+            else
+                done("error", i, j);
+        }, 1000);
+    }
+});
+new df.Subscription({
+    publisher: task.done,
+    subscriber: new df.Subscriber({
+        callback: console.log
+    })
+});
+new df.Subscription({
+    publisher: task.error,
+    subscriber: new df.Subscriber({
+        callback: console.error
+    })
+});
+
+var o = {
+    x: task.toFunction()
+};
+
+o.x(1, 2); // 1 2
+o.x(0, 1); // error 0 1 on console.error
 ```
 
 #### 4. pub/sub fluent interface

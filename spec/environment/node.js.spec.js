@@ -205,6 +205,51 @@ describe("environment", function () {
                 expect(a["0"]).toBe(1);
             });
 
+            describe("slice", function () {
+
+                it("returns a new sliced array", function () {
+
+                    var a = [0, 1, 2, 3, 4];
+                    var r = a.slice(1, -1);
+                    expect(r).not.toBe(a);
+                    expect(r instanceof Array).toBe(true);
+                    expect(r).toEqual([1, 2, 3]);
+                });
+
+                it("accepts arguments", function () {
+
+                    var a = [1, 2, 3];
+                    var r;
+                    var fn = function () {
+                        r = Array.prototype.slice.call(arguments);
+                    };
+                    fn.apply(null, a);
+                    expect(r).toEqual(a);
+                    expect(r).not.toBe(a);
+                });
+
+            });
+
+            describe("shift", function () {
+
+                it("removes the first item of the Array", function () {
+
+                    var a = [0, 1, 2, 3];
+                    a.shift();
+                    expect(a).toEqual([1, 2, 3]);
+                });
+            });
+
+            describe("unshift", function () {
+
+                it("adds an item to the beginning of the Array", function () {
+
+                    var a = [2, 3];
+                    a.unshift(1);
+                    expect(a).toEqual([1, 2, 3]);
+                });
+            });
+
         });
 
     });

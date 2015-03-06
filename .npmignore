@@ -1,5 +1,4 @@
 .idea/
-release/
 node_modules/
 .gitignore
 .npmignore

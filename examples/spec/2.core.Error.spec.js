@@ -24,6 +24,7 @@ describe("example", function () {
         });
 
         it("implements UserError", function () {
+
             var MyError = df.UserError.extend({
                     name: "MyError"
                 }),
@@ -57,6 +58,7 @@ describe("example", function () {
         });
 
         it("implements CompositeError", function () {
+
             var MyCompositeError = df.CompositeError.extend({
                     name: "MyError",
                     message: "Something really bad caused this."

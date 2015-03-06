@@ -35,7 +35,7 @@ describe("pubsub", function () {
 
         describe("publish", function () {
 
-            it("requires the array of arguments", function () {
+            it("requires the array of parameters", function () {
 
                 var publisher = new Publisher();
                 expect(function () {

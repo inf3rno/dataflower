@@ -6,6 +6,7 @@ describe("example", function () {
     describe("3. pub/sub pattern", function () {
 
         it("implements Publisher, Subscriber, Subscription", function () {
+
             var publisher = new df.Publisher(),
                 log = jasmine.createSpy(),
                 subscriber = new df.Subscriber({
@@ -25,6 +26,7 @@ describe("example", function () {
         });
 
         it("implements Emitter, Listener", function () {
+
             var o1 = new EventEmitter(),
                 o2 = new EventEmitter(),
                 listener = new df.Listener({
@@ -47,6 +49,7 @@ describe("example", function () {
         });
 
         it("implements Getter, Setter", function () {
+
             var o1 = {
                     prop: "value"
                 },
@@ -73,6 +76,7 @@ describe("example", function () {
         });
 
         it("implements Watcher", function () {
+
             var o1 = {
                     prop: "a"
                 },
@@ -95,6 +99,56 @@ describe("example", function () {
             expect(o2.another).toBe("x");
             o1.prop = "b";
             expect(o2.another).toBe("b");
+        });
+
+        it("implements Task", function () {
+
+            jasmine.clock().install();
+
+            var task = new df.Task({
+                callback: function (done, i, j) {
+                    setTimeout(function () {
+                        if (i && j)
+                            done(null, i, j);
+                        else
+                            done("error", i, j);
+                    }, 0);
+                }
+            });
+            var success = jasmine.createSpy();
+            var failure = jasmine.createSpy();
+            new df.Subscription({
+                publisher: task.done,
+                subscriber: new df.Subscriber({
+                    callback: success
+                })
+            });
+            new df.Subscription({
+                publisher: task.error,
+                subscriber: new df.Subscriber({
+                    callback: failure
+                })
+            });
+
+            var o = {
+                x: task.toFunction()
+            };
+
+            expect(success).not.toHaveBeenCalled();
+            expect(failure).not.toHaveBeenCalled();
+
+            o.x(1, 2);
+            jasmine.clock().tick(1);
+            expect(success).toHaveBeenCalledWith(1, 2);
+            expect(failure).not.toHaveBeenCalled();
+            success.calls.reset();
+
+            o.x(0, 1);
+            jasmine.clock().tick(1);
+            expect(success).not.toHaveBeenCalled();
+            expect(failure).toHaveBeenCalledWith("error", 0, 1);
+
+            jasmine.clock().uninstall();
         });
 
     });

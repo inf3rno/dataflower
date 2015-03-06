@@ -21,7 +21,6 @@
   "main": "core.js",
   "ignore": [
     ".idea/",
-    "release/",
     "node_modules/",
     ".gitignore",
     ".npmignore",
