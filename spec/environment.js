@@ -49,9 +49,11 @@ describe("environment", function () {
 
             it("has some bugs, if you want to set a property as non-enumerable", function () {
 
-                function isEnumerable(o) {
+                function isEnumerable(o, p) {
+                    if (!p)
+                        p = "x";
                     for (var prop in o)
-                        if (prop == "x")
+                        if (prop == p)
                             return true;
                     return false;
                 }
@@ -105,6 +107,15 @@ describe("environment", function () {
 
                 expect(b.x).toBe(1);
                 expect(isEnumerable(b)).toBe(false);
+
+                b.y = 1;
+                Object.defineProperty(b, "y", {
+                    enumerable: false,
+                    configurable: true
+                });
+
+                expect(b.y).toBe(1);
+                expect(isEnumerable(b, "y")).toBe(false);
 
                 /**
                  * if the environment fails this test
