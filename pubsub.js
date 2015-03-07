@@ -5,7 +5,8 @@ var df = require("dataflower"),
     InvalidConfiguration = df.InvalidConfiguration,
     Wrapper = df.Wrapper,
     clone = df.clone,
-    watch = df.watch;
+    watch = df.watch,
+    HashSet = df.HashSet;
 
 var Subscription = Base.extend({
     publisher: undefined,
@@ -16,8 +17,8 @@ var Subscription = Base.extend({
             throw new Subscription.PublisherRequired();
         if (!(this.subscriber instanceof Subscriber))
             throw new Subscription.SubscriberRequired();
-        this.publisher.addSubscription(this);
-        this.subscriber.addSubscription(this);
+        this.publisher.subscriptions.add(this);
+        this.subscriber.subscriptions.add(this);
     },
     notify: function (parameters, context) {
         if (!(parameters instanceof Array))
@@ -40,12 +41,7 @@ var Component = Base.extend({
     subscriptions: undefined,
     wrapper: undefined,
     configure: function () {
-        this.subscriptions = {};
-    },
-    addSubscription: function (subscription) {
-        if (!(subscription instanceof Subscription))
-            throw new Component.SubscriptionRequired();
-        this.subscriptions[subscription.id] = subscription;
+        this.subscriptions = new HashSet();
     },
     toFunction: function () {
         if (!this.wrapper) {
@@ -81,8 +77,8 @@ var Publisher = Component.extend({
     publish: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Publisher.ArrayRequired();
-        for (var id in this.subscriptions) {
-            var subscription = this.subscriptions[id];
+        for (var id in this.subscriptions.items) {
+            var subscription = this.subscriptions.items[id];
             subscription.notify(parameters, context);
         }
     }

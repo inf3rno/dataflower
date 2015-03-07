@@ -26,7 +26,7 @@ describe("pubsub", function () {
                 mockSubscription.notify = jasmine.createSpy();
 
                 var publisher = new Publisher();
-                publisher.addSubscription(mockSubscription);
+                publisher.subscriptions.add(mockSubscription);
 
                 expect(mockSubscription.notify).not.toHaveBeenCalled();
 

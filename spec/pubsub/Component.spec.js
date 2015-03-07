@@ -6,31 +6,6 @@ describe("pubsub", function () {
 
     describe("Component.prototype", function () {
 
-        describe("addSubscription", function () {
-
-            it("requires a subscription", function () {
-
-                var component = new Component();
-                expect(function () {
-                    component.addSubscription();
-                }).toThrow(new Component.SubscriptionRequired());
-
-            });
-
-            it("adds a subscription", function () {
-
-                var mockSubscription = Object.create(Subscription.prototype);
-                mockSubscription.id = 1;
-
-                var component = new Component();
-                component.addSubscription(mockSubscription);
-
-                expect(component.subscriptions[1]).toBe(mockSubscription);
-
-            });
-
-        });
-
         describe("toFunction", function () {
 
             it("returns a wrapper function", function () {

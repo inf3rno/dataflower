@@ -48,17 +48,12 @@ describe("pubsub", function () {
                     callback: function () {
                     }
                 });
-                publisher.addSubscription = jasmine.createSpy();
-                subscriber.addSubscription = jasmine.createSpy();
-
-                expect(publisher.addSubscription).not.toHaveBeenCalled();
-                expect(subscriber.addSubscription).not.toHaveBeenCalled();
                 var subscription = new Subscription({
                     publisher: publisher,
                     subscriber: subscriber
                 });
-                expect(publisher.addSubscription).toHaveBeenCalledWith(subscription);
-                expect(subscriber.addSubscription).toHaveBeenCalledWith(subscription);
+                expect(publisher.subscriptions.toArray()).toEqual([subscription]);
+                expect(subscriber.subscriptions.toArray()).toEqual([subscription]);
             });
 
         });
