@@ -165,7 +165,7 @@ o.x = 3; // not logged
 o.x = 4; // not logged
 ```
 
-#### 2. wrapper, custom errors, plugins
+#### 2. wrapper, custom errors, plugins, hashSet
 
 ```js
 var o = {
@@ -289,6 +289,28 @@ var plugin = new df.Plugin({
 });
 plugin.dependency(dependency);
 plugin.install(); // installs dependency before setup
+```
+
+```js
+var o = new df.Base(),
+    o2 = new df.Base(),
+    o3 = new df.Base();
+var hashSet = new df.HashSet();
+
+hashSet.add(o, o2, o3);
+console.log(hashSet.contains(o, o2, o3)); // true
+
+hashSet.remove(o2);
+console.log(hashSet.contains(o, o2, o3)); // false
+console.log(hashSet.contains(o, o3)); // true
+console.log(hashSet.contains(o2)); // false
+
+for (var id in hashSet.items)
+    console.log(hashSet.items[id]); // o, o2, o3
+
+var items = hashSet.toArray();
+for (var index in items)
+    console.log(items[index]); // o, o2, o3
 ```
 
 #### 3. pub/sub pattern

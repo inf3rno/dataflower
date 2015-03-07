@@ -46,14 +46,7 @@ describe("environment", function () {
                 expect(a.x).toBe(1);
             });
 
-
-            /**
-             * deprecated
-             * I won't use enumerable false by inheritance
-             * I reported the related bugs, but the workaround does not worth the effort
-             * I'll keep this test for educational purposes
-             **/
-            xit("has some bugs, if you want to set a property as non-enumerable", function () {
+            it("has some bugs, if you want to set a property as non-enumerable", function () {
 
                 function isEnumerable(o, p) {
                     if (!p)
@@ -125,7 +118,8 @@ describe("environment", function () {
 
                 /**
                  * if the environment fails this test
-                 * then it cannot enumerate a Collection
+                 * then it will set the new id on the clones as enumerable
+                 * so these failing environments cannot be used
                  **/
             });
 

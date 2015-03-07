@@ -133,7 +133,8 @@ var Base = extend(Object, {
         });
         if (this.build instanceof Function)
             this.build();
-        this.merge.apply(this, arguments);
+        if (this.merge instanceof Function)
+            this.merge.apply(this, arguments);
         if (this.configure instanceof Function)
             this.configure();
     },
@@ -606,6 +607,92 @@ var StackStringParser = Base.extend({
     })
 });
 
+var HashSet = Base.extend({
+    items: {},
+    init: function () {
+        Object.defineProperty(this, "id", {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: id()
+        });
+        if (this.build instanceof Function)
+            this.build();
+        if (this.configure instanceof Function)
+            this.configure.apply(this, arguments);
+    },
+    build: function () {
+        if (!this.hasOwnProperty("id"))
+            Object.defineProperty(this, "id", {
+                configurable: false,
+                enumerable: false,
+                writable: false,
+                value: id()
+            });
+        var inheritedItems = this.toArray();
+        this.items = {};
+        this.addAll.apply(this, inheritedItems);
+    },
+    configure: function (item) {
+        this.addAll.apply(this, arguments);
+    },
+    addAll: function (item) {
+        for (var index in arguments)
+            this.add(arguments[index]);
+        return this;
+    },
+    add: function (item) {
+        if (arguments.length != 1)
+            return this.addAll.apply(this, arguments);
+        if (!(item instanceof Object) || item.id === undefined)
+            throw new HashSet.ItemRequired();
+        this.items[item.id] = item;
+        return this;
+    },
+    removeAll: function (item) {
+        for (var index in arguments)
+            this.remove(arguments[index]);
+        return this;
+    },
+    remove: function (item) {
+        if (arguments.length != 1)
+            return this.removeAll.apply(this, arguments);
+        if (!(item instanceof Object) || item.id === undefined)
+            throw new HashSet.ItemRequired();
+        delete(this.items[item.id]);
+        return this;
+    },
+    clear: function () {
+        for (var id in this.items)
+            this.remove(this.items[id]);
+        return this;
+    },
+    containsAll: function (item) {
+        var result = true;
+        for (var index in arguments)
+            if (!this.contains(arguments[index]))
+                result = false;
+        return result;
+    },
+    contains: function (item) {
+        if (arguments.length != 1)
+            return this.containsAll.apply(this, arguments);
+        if (!(item instanceof Object) || item.id === undefined)
+            throw new HashSet.ItemRequired();
+        return this.items[item.id] === item;
+    },
+    toArray: function () {
+        var result = [];
+        for (var id in this.items)
+            result.push(this.items[id]);
+        return result;
+    }
+}, {
+    ItemRequired: InvalidArguments.extend({
+        message: "Item with id is required."
+    })
+});
+
 module.exports = {
     id: id,
     watch: watch,
@@ -615,6 +702,7 @@ module.exports = {
     merge: merge,
     shallowCopy: shallowCopy,
     Base: Base,
+    HashSet: HashSet,
     UserError: UserError,
     CompositeError: CompositeError,
     InvalidConfiguration: InvalidConfiguration,

@@ -2,7 +2,7 @@ var df = require("dataflower");
 
 describe("example", function () {
 
-    describe("2. wrapper, user errors, plugins", function () {
+    describe("2. wrapper, user errors, plugins, hashSet", function () {
 
         it("implements wrapper", function () {
 
@@ -110,6 +110,32 @@ describe("example", function () {
             if (plugin.compatible())
                 plugin.install(); // won't install because of failing test
             expect(plugin.installed).toBe(false);
+        });
+
+        it("implements HashSet", function () {
+
+            var o = new df.Base(),
+                o2 = {id: 123},
+                o3 = new df.Base();
+            var hashSet = new df.HashSet(o, o2);
+            hashSet.add(o2, o3);
+            expect(hashSet.contains(o, o2, o3)).toBe(true);
+            hashSet.remove(o2);
+            expect(hashSet.contains(o, o2, o3)).toBe(false);
+            var log = jasmine.createSpy();
+            for (var id in hashSet.items)
+                log(hashSet.items[id]);
+            expect(log).toHaveBeenCalledWith(o);
+            expect(log).not.toHaveBeenCalledWith(o2);
+            expect(log).toHaveBeenCalledWith(o3);
+            log.calls.reset();
+
+            var items = hashSet.toArray();
+            for (var index in items)
+                log(items[index]);
+            expect(log).toHaveBeenCalledWith(o);
+            expect(log).not.toHaveBeenCalledWith(o2);
+            expect(log).toHaveBeenCalledWith(o3);
         });
 
     });
