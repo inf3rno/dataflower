@@ -47,7 +47,13 @@ describe("environment", function () {
             });
 
 
-            it("has some bugs, if you want to set a property as non-enumerable", function () {
+            /**
+             * deprecated
+             * I won't use enumerable false by inheritance
+             * I reported the related bugs, but the workaround does not worth the effort
+             * I'll keep this test for educational purposes
+             **/
+            xit("has some bugs, if you want to set a property as non-enumerable", function () {
 
                 function isEnumerable(o, p) {
                     if (!p)
