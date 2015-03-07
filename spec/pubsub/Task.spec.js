@@ -117,22 +117,6 @@ describe("pubsub", function () {
 
         });
 
-        describe("toFunction", function () {
-
-            it("returns a wrapper which contains the error and the done wrappers", function () {
-
-                var task = new Task({
-                    callback: function () {
-                    }
-                });
-                var wrapper = task.toFunction();
-                expect(wrapper.called).toBe(task.called.toFunction());
-                expect(wrapper.done).toBe(task.done.toFunction());
-                expect(wrapper.error).toBe(task.error.toFunction());
-            });
-
-        });
-
     });
 
 });

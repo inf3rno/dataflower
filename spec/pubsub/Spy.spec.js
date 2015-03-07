@@ -126,37 +126,6 @@ describe("pubsub", function () {
 
         });
 
-        describe("toFunction", function () {
-
-            it("returns a wrapper which contains the called wrapper", function () {
-
-                var spy = new Spy({
-                    callback: function () {
-                    }
-                });
-                var wrapper = spy.toFunction();
-                expect(wrapper.called).toBe(spy.called.toFunction());
-                expect(wrapper.done).toBe(spy.done.toFunction());
-                expect(wrapper.error).toBe(spy.error.toFunction());
-            });
-
-            describe("wrapper returned by toFunction", function () {
-
-                it("returns the result of the receive", function () {
-
-                    var spy = new Spy({
-                        callback: function () {
-                            return 123;
-                        }
-                    });
-                    var wrapper = spy.toFunction();
-                    expect(wrapper()).toBe(123);
-                });
-
-            });
-
-        });
-
     });
 
 });

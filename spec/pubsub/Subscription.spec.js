@@ -14,11 +14,14 @@ describe("pubsub", function () {
             it("requires a publisher and a subscriber", function () {
 
                 var publisher = new Publisher(),
-                    mockSubscriber = Object.create(Subscriber.prototype);
+                    subscriber = new Subscriber({
+                        callback: function () {
+                        }
+                    });
 
                 expect(function () {
                     var subscription = new Subscription({
-                        subscriber: mockSubscriber
+                        subscriber: subscriber
                     });
                 }).toThrow(new Subscription.PublisherRequired());
 
@@ -32,23 +35,30 @@ describe("pubsub", function () {
                 expect(function () {
                     var subscription = new Subscription({
                         publisher: publisher,
-                        subscriber: mockSubscriber
+                        subscriber: subscriber
                     });
                 }).not.toThrow();
             });
 
-            it("adds the subscription to the publisher", function () {
+            it("adds the subscription to the components", function () {
 
-                var mockPublisher = Object.create(Publisher.prototype);
-                mockPublisher.addSubscription = jasmine.createSpy();
-                var mockSubscriber = Object.create(Subscriber.prototype);
 
-                expect(mockPublisher.addSubscription).not.toHaveBeenCalled();
-                var subscription = new Subscription({
-                    publisher: mockPublisher,
-                    subscriber: mockSubscriber
+                var publisher = new Publisher();
+                var subscriber = new Subscriber({
+                    callback: function () {
+                    }
                 });
-                expect(mockPublisher.addSubscription).toHaveBeenCalledWith(subscription);
+                publisher.addSubscription = jasmine.createSpy();
+                subscriber.addSubscription = jasmine.createSpy();
+
+                expect(publisher.addSubscription).not.toHaveBeenCalled();
+                expect(subscriber.addSubscription).not.toHaveBeenCalled();
+                var subscription = new Subscription({
+                    publisher: publisher,
+                    subscriber: subscriber
+                });
+                expect(publisher.addSubscription).toHaveBeenCalledWith(subscription);
+                expect(subscriber.addSubscription).toHaveBeenCalledWith(subscription);
             });
 
         });
@@ -58,10 +68,13 @@ describe("pubsub", function () {
             it("requires the array of arguments", function () {
 
                 var publisher = new Publisher(),
-                    mockSubscriber = Object.create(Subscriber.prototype),
+                    subscriber = new Subscriber({
+                        callback: function () {
+                        }
+                    }),
                     subscription = new Subscription({
                         publisher: publisher,
-                        subscriber: mockSubscriber
+                        subscriber: subscriber
                     });
 
                 expect(function () {
@@ -73,37 +86,43 @@ describe("pubsub", function () {
             it("notifies the Subscriber in the context of the Publisher", function () {
 
                 var publisher = new Publisher(),
-                    mockSubscriber = Object.create(Subscriber.prototype);
-                mockSubscriber.receive = jasmine.createSpy();
+                    subscriber = new Subscriber({
+                        callback: function () {
+                        }
+                    });
+                subscriber.receive = jasmine.createSpy();
 
                 var subscription = new Subscription({
                     publisher: publisher,
-                    subscriber: mockSubscriber
+                    subscriber: subscriber
                 });
 
-                expect(mockSubscriber.receive).not.toHaveBeenCalled();
+                expect(subscriber.receive).not.toHaveBeenCalled();
                 subscription.notify([1, 2, 3]);
-                expect(mockSubscriber.receive).toHaveBeenCalledWith([1, 2, 3], undefined);
+                expect(subscriber.receive).toHaveBeenCalledWith([1, 2, 3], undefined);
             });
 
             it("notifies the Subscriber in the context if given", function () {
 
                 var publisher = new Publisher(),
-                    mockSubscriber = Object.create(Subscriber.prototype);
-                mockSubscriber.receive = jasmine.createSpy();
+                    subscriber = new Subscriber({
+                        callback: function () {
+                        }
+                    });
+                subscriber.receive = jasmine.createSpy();
 
                 var o = {};
                 var subscription = new Subscription({
                     publisher: publisher,
-                    subscriber: mockSubscriber,
+                    subscriber: subscriber,
                     context: o
                 });
 
-                expect(mockSubscriber.receive).not.toHaveBeenCalled();
+                expect(subscriber.receive).not.toHaveBeenCalled();
                 subscription.notify([1, 2, 3]);
-                expect(mockSubscriber.receive).toHaveBeenCalledWith([1, 2, 3], o);
+                expect(subscriber.receive).toHaveBeenCalledWith([1, 2, 3], o);
                 subscription.notify([4, 5, 6], {});
-                expect(mockSubscriber.receive).toHaveBeenCalledWith([4, 5, 6], o);
+                expect(subscriber.receive).toHaveBeenCalledWith([4, 5, 6], o);
             });
 
         });

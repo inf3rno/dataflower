@@ -8,31 +8,6 @@ describe("pubsub", function () {
 
     describe("Publisher.prototype", function () {
 
-        describe("addSubscription", function () {
-
-            it("requires a subscription", function () {
-
-                var publisher = new Publisher();
-                expect(function () {
-                    publisher.addSubscription();
-                }).toThrow(new Publisher.SubscriptionRequired());
-
-            });
-
-            it("adds a subscription", function () {
-
-                var mockSubscription = Object.create(Subscription.prototype);
-                mockSubscription.id = 1;
-
-                var publisher = new Publisher();
-                publisher.addSubscription(mockSubscription);
-
-                expect(publisher.subscriptions[1]).toBe(mockSubscription);
-
-            });
-
-        });
-
         describe("publish", function () {
 
             it("requires the array of parameters", function () {
@@ -66,54 +41,19 @@ describe("pubsub", function () {
 
         });
 
-        describe("toFunction", function () {
 
-            it("returns a wrapper", function () {
+        describe("handleWrapper", function () {
 
-                var publisher = new Publisher();
-                expect(publisher.toFunction() instanceof Function).toBe(true);
+            it("calls publish and returns the result", function () {
 
-            });
-
-            it("returns always the same wrapper", function () {
-
-                var publisher = new Publisher();
-                expect(publisher.toFunction()).toBe(publisher.toFunction());
-
+                var publisher = new Publisher({
+                    publish: jasmine.createSpy().and.returnValue(123)
+                });
+                expect(publisher.handleWrapper([1, 2, 3], {x: 1})).toBe(123);
+                expect(publisher.publish).toHaveBeenCalledWith([1, 2, 3], {x: 1});
             });
 
         });
-
-        describe("wrapper", function () {
-
-            it("calls publish with the arguments", function () {
-
-                var publisher = new Publisher();
-                publisher.publish = jasmine.createSpy();
-
-                var wrapper = publisher.toFunction();
-                expect(publisher.publish).not.toHaveBeenCalled();
-                wrapper(1, 2, 3);
-                var global = (function () {
-                    return this;
-                })();
-                expect(publisher.publish).toHaveBeenCalledWith([1, 2, 3], global);
-                var o = {
-                    m: wrapper
-                };
-                o.m(4, 5, 6);
-                expect(publisher.publish).toHaveBeenCalledWith([4, 5, 6], o);
-            });
-
-            it("has a component property", function () {
-
-                var publisher = new Publisher(),
-                    wrapper = publisher.toFunction();
-                expect(wrapper.component).toBe(publisher);
-            });
-
-        });
-
 
     });
 });

@@ -7,51 +7,6 @@ var df = require("dataflower"),
     clone = df.clone,
     watch = df.watch;
 
-var Component = Base.extend();
-
-var Publisher = Component.extend({
-    subscriptions: undefined,
-    wrapper: undefined,
-    configure: function () {
-        this.subscriptions = {};
-    },
-    addSubscription: function (subscription) {
-        if (!(subscription instanceof Subscription))
-            throw new Publisher.SubscriptionRequired();
-        this.subscriptions[subscription.id] = subscription;
-    },
-    publish: function (parameters, context) {
-        if (!(parameters instanceof Array))
-            throw new Publisher.ArrayRequired();
-        for (var id in this.subscriptions) {
-            var subscription = this.subscriptions[id];
-            subscription.notify(parameters, context);
-        }
-    },
-    toFunction: function () {
-        if (!this.wrapper) {
-            var publisher = this;
-            this.wrapper = new Wrapper({
-                done: function () {
-                    var parameters = Array.prototype.slice.call(arguments);
-                    publisher.publish(parameters, this);
-                },
-                properties: {
-                    component: this
-                }
-            }).toFunction();
-        }
-        return this.wrapper;
-    }
-}, {
-    ArrayRequired: InvalidArguments.extend({
-        message: "Array of arguments required."
-    }),
-    SubscriptionRequired: InvalidArguments.extend({
-        message: "Subscription instance required."
-    })
-});
-
 var Subscription = Base.extend({
     publisher: undefined,
     subscriber: undefined,
@@ -62,6 +17,7 @@ var Subscription = Base.extend({
         if (!(this.subscriber instanceof Subscriber))
             throw new Subscription.SubscriberRequired();
         this.publisher.addSubscription(this);
+        this.subscriber.addSubscription(this);
     },
     notify: function (parameters, context) {
         if (!(parameters instanceof Array))
@@ -80,32 +36,76 @@ var Subscription = Base.extend({
     })
 });
 
+var Component = Base.extend({
+    subscriptions: undefined,
+    wrapper: undefined,
+    configure: function () {
+        this.subscriptions = {};
+    },
+    addSubscription: function (subscription) {
+        if (!(subscription instanceof Subscription))
+            throw new Component.SubscriptionRequired();
+        this.subscriptions[subscription.id] = subscription;
+    },
+    toFunction: function () {
+        if (!this.wrapper) {
+            var component = this;
+            var properties = {
+                component: this
+            };
+            for (var property in this)
+                if (this[property] instanceof Component)
+                    properties[property] = this[property].toFunction();
+            this.wrapper = new Wrapper({
+                done: function () {
+                    var parameters = Array.prototype.slice.call(arguments);
+                    return component.handleWrapper(parameters, this);
+                },
+                properties: properties
+            }).toFunction();
+        }
+        return this.wrapper;
+    },
+    handleWrapper: function (parameters, context) {
+    }
+}, {
+    SubscriptionRequired: InvalidArguments.extend({
+        message: "Subscription instance required."
+    })
+});
+
+var Publisher = Component.extend({
+    handleWrapper: function (parameters, context) {
+        return this.publish(parameters, context);
+    },
+    publish: function (parameters, context) {
+        if (!(parameters instanceof Array))
+            throw new Publisher.ArrayRequired();
+        for (var id in this.subscriptions) {
+            var subscription = this.subscriptions[id];
+            subscription.notify(parameters, context);
+        }
+    }
+}, {
+    ArrayRequired: InvalidArguments.extend({
+        message: "Array of arguments required."
+    })
+});
+
 var Subscriber = Component.extend({
     callback: undefined,
-    wrapper: undefined,
     configure: function () {
         if (!(this.callback instanceof Function))
             throw new Subscriber.CallbackRequired();
+        Component.prototype.configure.call(this);
+    },
+    handleWrapper: function (parameters, context) {
+        return this.receive(parameters, context);
     },
     receive: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Subscriber.ArrayRequired();
         this.callback.apply(context, parameters);
-    },
-    toFunction: function () {
-        if (!this.wrapper) {
-            var subscriber = this;
-            this.wrapper = new Wrapper({
-                done: function () {
-                    var parameters = Array.prototype.slice.call(arguments);
-                    subscriber.receive(parameters, this);
-                },
-                properties: {
-                    component: this
-                }
-            }).toFunction();
-        }
-        return this.wrapper;
     }
 }, {
     ArrayRequired: InvalidArguments.extend({
@@ -128,8 +128,7 @@ var Listener = Publisher.extend({
         this.subject.on(this.event, this.toFunction());
     },
     publish: function (parameters, context) {
-        context = this.subject;
-        Publisher.prototype.publish.call(this, parameters, context);
+        Publisher.prototype.publish.call(this, parameters, this.subject);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -180,8 +179,7 @@ var Getter = Publisher.extend({
             throw new Publisher.ArrayRequired();
         parameters = clone(parameters);
         parameters.unshift(this.subject[this.property]);
-        context = this.subject;
-        Publisher.prototype.publish.call(this, parameters, context);
+        Publisher.prototype.publish.call(this, parameters, this.subject);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -224,8 +222,7 @@ var Watcher = Publisher.extend({
         watch(this.subject, this.property, this.toFunction());
     },
     publish: function (parameters, context) {
-        context = this.subject;
-        Publisher.prototype.publish.call(this, parameters, context);
+        Publisher.prototype.publish.call(this, parameters, this.subject);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -261,24 +258,6 @@ var Task = Subscriber.extend({
             publisher.publish(parameters, context);
         }.bind(this));
         this.callback.apply(context, parameters);
-    },
-    toFunction: function () {
-        if (!this.wrapper) {
-            var task = this;
-            this.wrapper = new Wrapper({
-                done: function () {
-                    var parameters = Array.prototype.slice.call(arguments);
-                    task.receive(parameters, this);
-                },
-                properties: {
-                    component: this,
-                    called: this.called.toFunction(),
-                    done: this.done.toFunction(),
-                    error: this.error.toFunction()
-                }
-            }).toFunction();
-        }
-        return this.wrapper;
     }
 });
 
@@ -305,24 +284,6 @@ var Spy = Subscriber.extend({
         }
         this.done.publish([result], context);
         return result;
-    },
-    toFunction: function () {
-        if (!this.wrapper) {
-            var spy = this;
-            this.wrapper = new Wrapper({
-                done: function () {
-                    var parameters = Array.prototype.slice.call(arguments);
-                    return spy.receive(parameters, this);
-                },
-                properties: {
-                    component: this,
-                    called: this.called.toFunction(),
-                    done: this.done.toFunction(),
-                    error: this.error.toFunction()
-                }
-            }).toFunction();
-        }
-        return this.wrapper;
     }
 });
 
