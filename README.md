@@ -71,7 +71,7 @@ An ES5 capable environment is required at least with
 - `Object.prototype.hasOwnProperty`
 - `Array.prototype.forEach`
 
-The environment tests are available under the `/spec/environment/` folder.
+The environment tests are available under the `/spec/environment.spec.js` file.
 
 The framework is written for ES5.
 

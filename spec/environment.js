@@ -6,6 +6,12 @@ describe("environment", function () {
 
         describe("create", function () {
 
+            /**
+             * by old browsers lower than ie9, sf5, ff4, ch5?, op12, konq4.13 etc...
+             * Object.defineProperty is not supported
+             * so these browsers won't be supported by the project
+             **/
+
             it("returns an object in where inherited properties are enumerable", function () {
 
                 var a = {x: {}, y: 1};
@@ -20,20 +26,92 @@ describe("environment", function () {
 
         describe("defineProperty", function () {
 
-            it("can define a property on an object, which is not enumerable", function () {
+            /**
+             * by old browsers lower than ie9, sf5, ff4, ch5?, op12, konq4.13 etc...
+             * Object.defineProperty is not supported
+             * so these browsers won't be supported by the project
+             **/
 
-                var a = {};
+            it("can define a property which is non-enumerable", function () {
+
+                var a = {x: 1};
+                Object.defineProperty(a, "x", {
+                    enumerable: false
+                });
+
+                var log = jasmine.createSpy();
+                for (var prop in a)
+                    log(prop);
+                expect(log).not.toHaveBeenCalledWith("x");
+                expect(a.x).toBe(1);
+            });
+
+
+            it("has some bugs, if you want to set a property as non-enumerable", function () {
+
+                function isEnumerable(o) {
+                    for (var prop in o)
+                        if (prop == "x")
+                            return true;
+                    return false;
+                }
+
+                var a = {x: 1};
+                var b = Object.create(a);
+
+                /**
+                 * by node.js 0.10.36, msie 11, chrome 40, opera 27
+                 * when the ancestor's property is not set to non-enumerable
+                 * then the inherited property will be always enumerable
+                 * so you have to set the ancestor's property to non-enumerable
+                 **/
                 Object.defineProperty(a, "x", {
                     enumerable: false,
-                    value: 1
+                    configurable: true
                 });
-                var props = [];
-                for (var prop in a)
-                    props.push(prop);
-                expect(props).toEqual([]);
-                expect(a.x).toBe(1);
 
+                Object.defineProperty(b, "x", {
+                    enumerable: false,
+                    configurable: true
+                });
+
+                /**
+                 * by node.js 0.10.36, firefox 36, msie 11, chrome 40, opera 27
+                 * when defineProperty is called on an inherited property
+                 * the reference to the inherited value is overridden with undefined
+                 * so you have to delete the new value to restore the old one
+                 **/
+                delete(b.x);
+
+                expect(b.x).toBe(1);
+                expect(isEnumerable(b)).toBe(false);
+
+                /**
+                 * by node.js 0.10.36, firefox 36, msie 11, chrome 40, opera 27
+                 * when you override the inherited property by simply setting it
+                 * it becomes enumerable again
+                 * so you have to use defineProperty by setting the new value
+                 **/
+                Object.defineProperty(b, "x", {
+                    enumerable: false,
+                    configurable: true,
+                    value: 2
+                });
+
+                expect(b.x).toBe(2);
+                expect(isEnumerable(b)).toBe(false);
+
+                delete(b.x);
+
+                expect(b.x).toBe(1);
+                expect(isEnumerable(b)).toBe(false);
+
+                /**
+                 * if the environment fails this test
+                 * then it cannot enumerate a Collection
+                 **/
             });
+
 
             it("can define a property setter and getter", function () {
 
@@ -80,6 +158,12 @@ describe("environment", function () {
 
         describe("getOwnPropertyDescriptor", function () {
 
+            /**
+             * by old browsers lower than ie9, sf5, ff4, ch5?, op12, konq4.13 etc...
+             * Object.getOwnPropertyDescriptor is not supported
+             * so these browsers won't be supported by the project
+             **/
+
             it("returns the descriptor of the property", function () {
 
                 var a = {};
@@ -120,6 +204,13 @@ describe("environment", function () {
 
         describe("prototype", function () {
 
+            /**
+             * by envinroments which are not consistent with the following test
+             * I won't use a polyfill
+             * they probably lack other key features
+             * so this project won't support them
+             **/
+
             it("is NOT an Object instance, which has an object type", function () {
 
                 expect(Object.prototype instanceof Object).toBe(false);
@@ -128,6 +219,12 @@ describe("environment", function () {
             });
 
             describe("hasOwnProperty", function () {
+
+                /**
+                 * by old browsers lower than ie9, sf5, ff4, ch5?, op12, konq4.13 etc...
+                 * Object.prototype.hasOwnProperty is not supported
+                 * so these browsers won't be supported by the project
+                 **/
 
                 it("can distinguish inherited and own properties", function () {
 
@@ -148,6 +245,13 @@ describe("environment", function () {
 
     describe("Error", function () {
 
+        /**
+         * by envinroments which are not consistent with the following tests
+         * I won't use a polyfill
+         * they probably lack other key features
+         * so this project won't support them
+         **/
+
         it("is an Object relative", function () {
 
             expect(Error instanceof Object).toBe(true);
@@ -165,10 +269,16 @@ describe("environment", function () {
 
     describe("null", function () {
 
+        /**
+         * by envinroments which are not consistent with the following tests
+         * I won't use a polyfill
+         * they probably lack other key features
+         * so this project won't support them
+         **/
+
         it("is has object type", function () {
 
             expect(typeof (null)).toBe("object");
-
         });
 
         it("is not an Object instance", function () {
@@ -188,6 +298,16 @@ describe("environment", function () {
                 expect(descriptor.configurable).toBe(false);
             });
 
+            /**
+             * by old browsers which do not support defineProperty
+             * the Array.length is enumerable
+             *
+             * by old browsers which do not support hasOwnProperty
+             * the native Functions (like toString) are enumerable
+             *
+             * so these browsers won't be supported by this project
+             **/
+
             it("can be enumerated with a for...in loop", function () {
 
                 var a = [];
@@ -204,6 +324,13 @@ describe("environment", function () {
                 expect(log).toHaveBeenCalledWith("2");
                 expect(a["0"]).toBe(1);
             });
+
+            /**
+             * by environments which does not support the following Functions
+             * I won't use a polyfill
+             * they probably lack other key features
+             * so this project won't support them
+             **/
 
             describe("slice", function () {
 
@@ -255,6 +382,11 @@ describe("environment", function () {
     });
 
     describe("EventEmitter", function () {
+
+        /**
+         * EventEmitter is part of events (a node.js core module)
+         * by browsers browserify will add a polyfill
+         **/
 
         describe("prototype", function () {
 
@@ -321,6 +453,43 @@ describe("environment", function () {
                     o.emit("x", 1, 2, 3);
                     expect(listener).toHaveBeenCalledWith(1, 2, 3);
                     expect(listener2).not.toHaveBeenCalled();
+                });
+
+            });
+
+        });
+
+    });
+
+    describe("Function", function () {
+
+        describe("prototpye", function () {
+
+            describe("bind", function () {
+
+                /**
+                 * by old browsers lower than ie9, sf5.1.4, ff4, ch7, op12, konq4.13 etc...
+                 * Function.prototype.bind is not supported
+                 * so by these browsers I'll use a polyfill
+                 **/
+
+                if (!Function.prototype.bind)
+                    Function.prototype.bind = function (context) {
+                        var fn = this;
+                        return function () {
+                            return fn.apply(context, arguments);
+                        };
+                    };
+
+
+                it("binds the context to the function", function () {
+
+                    var log = jasmine.createSpy();
+                    var o = {};
+                    var wrapper = log.bind(o);
+                    wrapper(1, 2, 3);
+                    expect(log).toHaveBeenCalledWith(1, 2, 3);
+                    expect(log.calls.mostRecent().object).toBe(o);
                 });
 
             });
