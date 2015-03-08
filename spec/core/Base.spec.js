@@ -33,33 +33,21 @@ describe("core", function () {
                 var My = Base.extend();
                 My.merge({a: 1});
                 expect(My.a).toBe(1);
-
             });
 
         });
 
         describe("prototpye", function () {
 
-            describe("merge", function () {
-
-                it("calls the shallowCopy function on the instance", function () {
-
-                    var err = new Base();
-                    err.merge({
-                        a: 1
-                    });
-                    expect(err.a).toBe(1);
-                    expect(Base.prototype.a).toBeUndefined();
-                });
-
-            });
-
             describe("clone", function () {
 
                 it("calls Object.create() on the instance", function () {
 
-                    var a = {x: {}, y: 1};
-                    var b = Base.prototype.clone.call(a);
+                    var a = new Base({
+                        x: {},
+                        y: 1
+                    });
+                    var b = a.clone();
                     expect(b).not.toBe(a);
                     expect(b.x).toBe(a.x);
                     a.y = 2;
@@ -68,12 +56,12 @@ describe("core", function () {
                     expect(b.y).not.toBe(a.y);
                 });
 
-                it("calls build on the cloned instance if a Function given", function () {
+                it("calls build on the cloned instance", function () {
 
-                    var a = {
+                    var a = new Base({
                         build: jasmine.createSpy()
-                    };
-                    var b = Base.prototype.clone.call(a);
+                    });
+                    var b = a.clone();
                     expect(a.build).toHaveBeenCalled();
                     expect(a.build.calls.first().object).toBe(b);
                 });
@@ -81,22 +69,6 @@ describe("core", function () {
             });
 
             describe("init", function () {
-
-                it("is called by instantiation", function () {
-
-                    var Descendant = Base.extend({
-                        init: jasmine.createSpy()
-                    });
-                    var descendant = new Descendant(1, 2, 3);
-                    expect(descendant.init).toHaveBeenCalledWith(1, 2, 3);
-                });
-
-                it("sets unique id automatically", function () {
-
-                    var base = new Base();
-                    expect(base.id).toBeDefined();
-                    expect(base.id).not.toBe(new Base().id);
-                });
 
                 it("calls build, merge, configure in this order", function () {
 
@@ -121,6 +93,33 @@ describe("core", function () {
                 });
 
             });
+
+            describe("build", function () {
+
+                it("sets an unique, non-enumerable, non-configurable id on the instance", function () {
+
+                    var o = {};
+                    Base.prototype.build.call(o);
+                    expect(o.id).toBeDefined();
+                    expect(o.id).not.toBe(new Base().id);
+                });
+
+            });
+
+            describe("merge", function () {
+
+                it("calls the shallowCopy function on the instance", function () {
+
+                    var err = new Base();
+                    err.merge({
+                        a: 1
+                    });
+                    expect(err.a).toBe(1);
+                    expect(Base.prototype.a).toBeUndefined();
+                });
+
+            });
+
 
         });
 

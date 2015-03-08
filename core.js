@@ -125,29 +125,29 @@ var shallowCopy = function (subject, source) {
 
 var Base = extend(Object, {
     init: function () {
+        this.build();
+        this.merge.apply(this, arguments);
+        this.configure();
+    },
+    clone: function () {
+        var instance = Object.create(this);
+        instance.build();
+        return instance;
+    },
+    build: function () {
         Object.defineProperty(this, "id", {
             configurable: false,
             enumerable: false,
             writable: false,
             value: id()
         });
-        if (this.build instanceof Function)
-            this.build();
-        if (this.merge instanceof Function)
-            this.merge.apply(this, arguments);
-        if (this.configure instanceof Function)
-            this.configure();
     },
     merge: function (source) {
         var parameters = [this];
         parameters.push.apply(parameters, arguments);
         return shallowCopy.apply(null, parameters);
     },
-    clone: function () {
-        var instance = Object.create(this);
-        if (instance.build instanceof Function)
-            instance.build();
-        return instance;
+    configure: function () {
     }
 }, {
     extend: function (properties, staticProperties) {
@@ -160,8 +160,10 @@ var UserError = extend(Error, {
     name: "UserError",
     message: "",
     stackTrace: undefined,
-    merge: Base.prototype.merge,
     init: Base.prototype.init,
+    clone: Base.prototype.clone,
+    build: Base.prototype.build,
+    merge: Base.prototype.merge,
     configure: function () {
         var nativeError = new Error();
         var parser = new StackStringParser();
@@ -227,6 +229,7 @@ var StackTrace = Base.extend({
     frames: [],
     string: undefined,
     build: function () {
+        Base.prototype.build.call(this);
         this.frames = clone(this.frames);
     },
     merge: function (source) {
@@ -383,6 +386,7 @@ var Wrapper = Base.extend({
     },
     properties: {},
     build: function () {
+        Base.prototype.build.call(this);
         this.preprocessors = clone(this.preprocessors);
         this.properties = clone(this.properties);
     },
@@ -610,25 +614,13 @@ var StackStringParser = Base.extend({
 var HashSet = Base.extend({
     items: {},
     init: function () {
-        Object.defineProperty(this, "id", {
-            configurable: false,
-            enumerable: false,
-            writable: false,
-            value: id()
-        });
         if (this.build instanceof Function)
             this.build();
         if (this.configure instanceof Function)
             this.configure.apply(this, arguments);
     },
     build: function () {
-        if (!this.hasOwnProperty("id"))
-            Object.defineProperty(this, "id", {
-                configurable: false,
-                enumerable: false,
-                writable: false,
-                value: id()
-            });
+        Base.prototype.build.call(this);
         var inheritedItems = this.toArray();
         this.items = {};
         this.addAll.apply(this, inheritedItems);
