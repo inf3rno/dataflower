@@ -7,7 +7,8 @@ var df = require("dataflower"),
     clone = df.clone,
     watch = df.watch,
     HashSet = df.HashSet,
-    shallowCopy = df.shallowCopy;
+    shallowCopy = df.shallowCopy,
+    toArray = df.toArray;
 
 var Subscription = HashSet.extend({
     context: undefined,
@@ -23,18 +24,14 @@ var Subscription = HashSet.extend({
                 continue;
             if (!(source instanceof Object))
                 throw new InvalidArguments();
-
             if (source.items !== undefined) {
                 if (!(source.items instanceof Array))
                     throw new Subscription.ItemsRequired();
-                if (source.items.length)
-                    this.addAll.apply(this, source.items);
+                this.addAll.apply(this, source.items);
             }
-
             var backup = {
                 items: this.items
             };
-
             shallowCopy(this, source);
             shallowCopy(this, backup);
         }
@@ -45,33 +42,30 @@ var Subscription = HashSet.extend({
     notify: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Subscription.ArrayRequired();
-        for (var id in this.items)
-            if (this.items[id] instanceof Subscriber)
-                this.items[id].receive(parameters, this.context || context);
+        for (var id in this.items) {
+            var item = this.items[id];
+            if (item instanceof Subscriber)
+                item.receive(parameters, this.context || context);
+        }
     },
     add: function (item) {
-        var single = arguments.length == 1;
-        if (single && !(item instanceof Component))
-            throw new Subscription.ComponentRequired();
         HashSet.prototype.add.apply(this, arguments);
-        if (single)
-            item.subscriptions.add(this);
+        item.subscriptions.add(this);
         return this;
     },
     remove: function (item) {
-        var single = arguments.length == 1;
-        if (single && !(item instanceof Component))
-            throw new Subscription.ComponentRequired();
         HashSet.prototype.remove.apply(this, arguments);
-        if (single)
-            item.subscriptions.remove(this);
+        item.subscriptions.remove(this);
         return this;
     },
-    contains: function (item) {
-        var single = arguments.length == 1;
-        if (single && !(item instanceof Component))
+    hashCode: function (item) {
+        if (!arguments.length)
+            throw new InvalidArguments.Empty();
+        if (arguments.length > 1)
+            throw new InvalidArguments();
+        if (!(item instanceof Component))
             throw new Subscription.ComponentRequired();
-        return HashSet.prototype.contains.apply(this, arguments);
+        return item.id;
     }
 }, {
     ItemsRequired: InvalidConfiguration.extend({
@@ -102,8 +96,7 @@ var Component = Base.extend({
                     properties[property] = this[property].toFunction();
             this.wrapper = new Wrapper({
                 done: function () {
-                    var parameters = Array.prototype.slice.call(arguments);
-                    return component.handleWrapper(parameters, this);
+                    return component.handleWrapper(toArray(arguments), this);
                 },
                 properties: properties
             }).toFunction();
@@ -294,7 +287,7 @@ var Task = Subscriber.extend({
         parameters = clone(parameters);
         parameters.unshift(function (error, results) {
             var publisher = this.error,
-                parameters = Array.prototype.slice.call(arguments);
+                parameters = toArray(arguments);
             if (!error) {
                 publisher = this.done;
                 parameters.shift();

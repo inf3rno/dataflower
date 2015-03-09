@@ -11,7 +11,7 @@ describe("example", function () {
                 m: m
             };
             var p = jasmine.createSpy().and.callFake(function () {
-                return Array.prototype.slice.apply(arguments);
+                return df.toArray(arguments);
             });
             o.m = new df.Wrapper({
                 algorithm: df.Wrapper.algorithm.cascade,
@@ -118,10 +118,10 @@ describe("example", function () {
                 o2 = {id: 123},
                 o3 = new df.Base();
             var hashSet = new df.HashSet(o, o2);
-            hashSet.add(o2, o3);
-            expect(hashSet.contains(o, o2, o3)).toBe(true);
+            hashSet.addAll(o2, o3);
+            expect(hashSet.containsAll(o, o2, o3)).toBe(true);
             hashSet.remove(o2);
-            expect(hashSet.contains(o, o2, o3)).toBe(false);
+            expect(hashSet.containsAll(o, o2, o3)).toBe(false);
             var log = jasmine.createSpy();
             for (var id in hashSet.items)
                 log(hashSet.items[id]);

@@ -60,7 +60,7 @@ describe("pubsub", function () {
                 });
                 expect(log).not.toHaveBeenCalled();
                 new Descendant();
-                expect(log).not.toHaveBeenCalled();
+                expect(log).toHaveBeenCalledWith();
                 new Descendant({
                     items: [1, 2, 3]
                 });
@@ -76,14 +76,11 @@ describe("pubsub", function () {
                 expect(function () {
                     var subscription = new Subscription();
                     subscription.add(new Component());
-                    subscription.add(
-                        new Publisher(),
-                        new Subscriber({
-                            callback: function () {
-                            }
-                        }),
-                        new Component()
-                    );
+                    subscription.add(new Publisher());
+                    subscription.add(new Subscriber({
+                        callback: function () {
+                        }
+                    }));
                 }).not.toThrow();
 
                 [
@@ -107,18 +104,12 @@ describe("pubsub", function () {
 
             it("adds the subscription to the Component.subscriptions", function () {
 
-                var items = [
-                    new Component(),
-                    new Component(),
-                    new Component()
-                ];
+                var item = new Component();
                 var subscription = new Subscription();
-                subscription.add.apply(subscription, items);
 
-                items.forEach(function (item) {
-                    expect(subscription.contains(item)).toBe(true);
-                    expect(item.subscriptions.contains(subscription)).toBe(true);
-                });
+                subscription.add(item);
+                expect(subscription.contains(item)).toBe(true);
+                expect(item.subscriptions.contains(subscription)).toBe(true);
             });
 
         });
@@ -130,14 +121,11 @@ describe("pubsub", function () {
                 expect(function () {
                     var subscription = new Subscription();
                     subscription.remove(new Component());
-                    subscription.remove(
-                        new Publisher(),
-                        new Subscriber({
-                            callback: function () {
-                            }
-                        }),
-                        new Component()
-                    );
+                    subscription.remove(new Publisher());
+                    subscription.remove(new Subscriber({
+                        callback: function () {
+                        }
+                    }));
                 }).not.toThrow();
 
                 [
@@ -161,24 +149,16 @@ describe("pubsub", function () {
 
             it("removes the subscription from the components", function () {
 
-                var items = [
-                    new Component(),
-                    new Component(),
-                    new Component()
-                ];
+                var item = new Component();
                 var subscription = new Subscription();
-                subscription.add.apply(subscription, items);
-                subscription.remove(items[1]);
 
-                [
-                    items[0],
-                    items[2]
-                ].forEach(function (item) {
-                        expect(subscription.contains(item)).toBe(true);
-                        expect(item.subscriptions.contains(subscription)).toBe(true);
-                    });
-                expect(subscription.contains(items[1])).toBe(false);
-                expect(items[1].subscriptions.contains(subscription)).toBe(false);
+                subscription.add(item);
+                expect(subscription.contains(item)).toBe(true);
+                expect(item.subscriptions.contains(subscription)).toBe(true);
+
+                subscription.remove(item);
+                expect(subscription.contains(item)).toBe(false);
+                expect(item.subscriptions.contains(subscription)).toBe(false);
             });
 
         });

@@ -297,12 +297,12 @@ var o = new df.Base(),
     o3 = new df.Base();
 var hashSet = new df.HashSet();
 
-hashSet.add(o, o2, o3);
-console.log(hashSet.contains(o, o2, o3)); // true
+hashSet.addAll(o, o2, o3);
+console.log(hashSet.containsAll(o, o2, o3)); // true
 
 hashSet.remove(o2);
-console.log(hashSet.contains(o, o2, o3)); // false
-console.log(hashSet.contains(o, o3)); // true
+console.log(hashSet.containsAll(o, o2, o3)); // false
+console.log(hashSet.containsAll(o, o3)); // true
 console.log(hashSet.contains(o2)); // false
 
 for (var id in hashSet.items)

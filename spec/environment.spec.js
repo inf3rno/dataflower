@@ -486,6 +486,23 @@ describe("environment", function () {
 
     describe("Function", function () {
 
+        describe("arguments", function () {
+
+            it("is has object type", function () {
+
+                expect(typeof (arguments)).toBe("object");
+            });
+
+            it("is an Object instance", function () {
+                expect(arguments instanceof Object).toBe(true);
+            });
+
+            it("has a length", function () {
+                expect(!isNaN(arguments.length)).toBe(true);
+            });
+
+        });
+
         describe("prototpye", function () {
 
             describe("bind", function () {

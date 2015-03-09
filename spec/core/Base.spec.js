@@ -1,6 +1,7 @@
 var df = require("dataflower"),
     Base = df.Base,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    toArray = df.toArray;
 
 describe("core", function () {
 
@@ -76,13 +77,13 @@ describe("core", function () {
                     var Descendant = Base.extend({
                         build: function () {
                             expect(this.id).toBeDefined();
-                            log("build", this, Array.prototype.slice.call(arguments));
+                            log("build", this, toArray(arguments));
                         },
                         merge: function (a, b) {
-                            log("merge", this, Array.prototype.slice.call(arguments));
+                            log("merge", this, toArray(arguments));
                         },
                         configure: function () {
-                            log("configure", this, Array.prototype.slice.call(arguments));
+                            log("configure", this, toArray(arguments));
                         }
                     });
                     var descendant = new Descendant({a: 1}, {b: 2});

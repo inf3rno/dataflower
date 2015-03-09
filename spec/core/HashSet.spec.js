@@ -1,7 +1,8 @@
 var df = require("dataflower"),
     HashSet = df.HashSet,
     Base = df.Base,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    toArray = df.toArray;
 
 describe("core", function () {
 
@@ -29,13 +30,13 @@ describe("core", function () {
                     var Descendant = HashSet.extend({
                         build: function () {
                             expect(this.id).toBeDefined();
-                            log("build", this, Array.prototype.slice.call(arguments));
+                            log("build", this, toArray(arguments));
                         },
                         merge: function (a, b) {
-                            log("merge", this, Array.prototype.slice.call(arguments));
+                            log("merge", this, toArray(arguments));
                         },
                         configure: function () {
-                            log("configure", this, Array.prototype.slice.call(arguments));
+                            log("configure", this, toArray(arguments));
                         }
                     });
                     var descendant = new Descendant({a: 1}, {b: 2});
@@ -59,82 +60,75 @@ describe("core", function () {
 
             });
 
-            describe("add", function () {
+            describe("addAll", function () {
 
-                it("accepts only objects with id property as items", function () {
+                it("calls add with each of the items", function () {
 
-                    expect(function () {
-                        var hashSet = new HashSet();
-                        hashSet.add();
-                        hashSet.add({id: 1});
-                        hashSet.add({id: 2}, {id: 3});
-                    }).not.toThrow();
-
-                    [
-                        null,
-                        undefined,
-                        {},
-                        function () {
-                        },
-                        "string",
-                        123,
-                        false
-                    ].forEach(function (item) {
-                            expect(function () {
-                                var hashSet = new HashSet();
-                                hashSet.add(item);
-                            }).toThrow(new HashSet.ItemRequired());
-                        });
-
-                    expect(function () {
-                        var hashSet = new HashSet();
-                        hashSet.add({id: 1}, null);
-                    }).toThrow(new HashSet.ItemRequired());
+                    var Descendant = HashSet.extend({
+                        add: jasmine.createSpy()
+                    });
+                    var descendant = new Descendant();
+                    expect(descendant.add).not.toHaveBeenCalled();
+                    descendant.addAll(1, 2, 3);
+                    expect(descendant.add).toHaveBeenCalledWith(1);
+                    expect(descendant.add).toHaveBeenCalledWith(2);
+                    expect(descendant.add).toHaveBeenCalledWith(3);
+                    expect(descendant.add.calls.count()).toBe(3);
                 });
 
-                it("adds the items to the items object with the id as key", function () {
+            });
+
+            describe("add", function () {
+
+                it("calls hashCode to check the arguments and get the id", function () {
+
+                    var hashSet = new HashSet();
+                    var log = spyOn(hashSet, "hashCode");
+                    var item = {id: 1};
+                    hashSet.add(item);
+                    expect(log).toHaveBeenCalledWith(item);
+                });
+
+                it("adds the item to the items object with the id as key", function () {
 
                     var hashSet = new HashSet();
                     var o = new Base(),
                         o2 = new Base();
-                    hashSet.add(o, o2);
+                    hashSet.add(o);
+                    hashSet.add(o2);
                     expect(hashSet.items[o.id]).toBe(o);
                     expect(hashSet.items[o2.id]).toBe(o2);
                 });
 
             });
 
+            describe("removeAll", function () {
+
+                it("calls remove with each of the items", function () {
+
+                    var Descendant = HashSet.extend({
+                        remove: jasmine.createSpy()
+                    });
+                    var descendant = new Descendant();
+                    expect(descendant.remove).not.toHaveBeenCalled();
+                    descendant.removeAll(1, 2, 3);
+                    expect(descendant.remove).toHaveBeenCalledWith(1);
+                    expect(descendant.remove).toHaveBeenCalledWith(2);
+                    expect(descendant.remove).toHaveBeenCalledWith(3);
+                    expect(descendant.remove.calls.count()).toBe(3);
+                });
+
+            });
+
             describe("remove", function () {
 
-                it("accepts only objects with id property as items", function () {
+                it("calls hashCode to check the arguments and get the id", function () {
 
-                    expect(function () {
-                        var hashSet = new HashSet();
-                        hashSet.remove();
-                        hashSet.remove({id: 1});
-                        hashSet.remove({id: 2}, {id: 3});
-                    }).not.toThrow();
-
-                    [
-                        null,
-                        undefined,
-                        {},
-                        function () {
-                        },
-                        "string",
-                        123,
-                        false
-                    ].forEach(function (item) {
-                            expect(function () {
-                                var hashSet = new HashSet();
-                                hashSet.remove(item);
-                            }).toThrow(new HashSet.ItemRequired());
-                        });
-
-                    expect(function () {
-                        var hashSet = new HashSet();
-                        hashSet.remove({id: 1}, null);
-                    }).toThrow(new HashSet.ItemRequired());
+                    var hashSet = new HashSet();
+                    var log = spyOn(hashSet, "hashCode");
+                    var item = {id: 1};
+                    hashSet.remove(item);
+                    expect(log).toHaveBeenCalledWith(item);
                 });
 
                 it("removes the item from the items object if it was added previously", function () {
@@ -142,7 +136,7 @@ describe("core", function () {
                     var hashSet = new HashSet();
                     var o = new Base(),
                         o2 = new Base();
-                    hashSet.add(o, o2);
+                    hashSet.addAll(o, o2);
                     hashSet.remove(o2);
 
                     expect(hashSet.items[o.id]).toBe(o);
@@ -155,28 +149,93 @@ describe("core", function () {
 
                 it("removes all of the items from HashSet", function () {
 
-                    var hashSet = new HashSet();
+                    var Descendant = HashSet.extend({
+                        remove: jasmine.createSpy()
+                    });
+                    var descendant = new Descendant();
                     var o = new Base(),
                         o2 = new Base();
-                    hashSet.add(o, o2);
-                    hashSet.clear();
+                    descendant.addAll(o, o2);
+                    descendant.clear();
 
-                    expect(hashSet.items[o.id]).not.toBeDefined();
-                    expect(hashSet.items[o2.id]).not.toBeDefined();
+                    expect(descendant.remove).toHaveBeenCalledWith(o);
+                    expect(descendant.remove).toHaveBeenCalledWith(o2);
+                    expect(descendant.remove.calls.count()).toBe(2);
+                });
 
+            });
+
+            describe("containsAll", function () {
+
+                it("calls contains with each of the items", function () {
+
+                    var Descendant = HashSet.extend({
+                        contains: jasmine.createSpy()
+                    });
+                    var descendant = new Descendant();
+                    expect(descendant.contains).not.toHaveBeenCalled();
+                    descendant.containsAll(1, 2, 3);
+                    expect(descendant.contains).toHaveBeenCalledWith(1);
+                    expect(descendant.contains).toHaveBeenCalledWith(2);
+                    expect(descendant.contains).toHaveBeenCalledWith(3);
+                    expect(descendant.contains.calls.count()).toBe(3);
+                });
+
+                it("aggregates the results", function () {
+                    var result;
+                    var Descendant = HashSet.extend({
+                        contains: jasmine.createSpy().and.callFake(function () {
+                            return result;
+                        })
+                    });
+                    var descendant = new Descendant();
+                    expect(descendant.containsAll()).toBe(true);
+                    expect(descendant.contains.calls.count()).toBe(0);
+                    result = false;
+                    expect(descendant.containsAll(1, 2, 3)).toBe(false);
+                    expect(descendant.contains.calls.count()).toBe(3);
+                    descendant.contains.calls.reset();
+                    result = true;
+                    expect(descendant.containsAll(1, 2, 3)).toBe(true);
+                    expect(descendant.contains.calls.count()).toBe(3);
                 });
 
             });
 
             describe("contains", function () {
 
+                it("calls hashCode to check the arguments and get the id", function () {
+
+                    var hashSet = new HashSet();
+                    var log = spyOn(hashSet, "hashCode");
+                    var item = {id: 1};
+                    hashSet.contains(item);
+                    expect(log).toHaveBeenCalledWith(item);
+                });
+
+                it("returns true if the item is contained by the HashSet", function () {
+
+                    var hashSet = new HashSet();
+                    var o = new Base(),
+                        o2 = new Base();
+                    hashSet.addAll(o, o2);
+                    expect(hashSet.contains(o)).toBe(true);
+                    expect(hashSet.contains(o2)).toBe(true);
+                    hashSet.remove(o2);
+                    expect(hashSet.contains(o)).toBe(true);
+                    expect(hashSet.contains(o2)).toBe(false);
+                });
+
+            });
+
+            describe("hashCode", function () {
+
+
                 it("accepts only objects with id property as items", function () {
 
                     expect(function () {
                         var hashSet = new HashSet();
-                        hashSet.contains();
-                        hashSet.contains({id: 1});
-                        hashSet.contains({id: 2}, {id: 3});
+                        hashSet.hashCode({id: 1});
                     }).not.toThrow();
 
                     [
@@ -191,28 +250,30 @@ describe("core", function () {
                     ].forEach(function (item) {
                             expect(function () {
                                 var hashSet = new HashSet();
-                                hashSet.contains(item);
+                                hashSet.hashCode(item);
                             }).toThrow(new HashSet.ItemRequired());
                         });
-
-                    expect(function () {
-                        var hashSet = new HashSet();
-                        hashSet.contains({id: 1}, null);
-                    }).toThrow(new HashSet.ItemRequired());
                 });
 
-                it("returns true if the items are contained by the hashSet", function () {
+                it("does not accept zero or multiple arguments", function () {
 
                     var hashSet = new HashSet();
-                    var o = new Base(),
-                        o2 = new Base();
-                    hashSet.add(o, o2);
-                    expect(hashSet.contains(o, o2)).toBe(true);
-                    hashSet.remove(o2);
-                    expect(hashSet.contains(o, o2)).toBe(false);
-                    expect(hashSet.contains(o)).toBe(true);
-                    expect(hashSet.contains(o2)).toBe(false);
-                    expect(hashSet.contains()).toBe(true);
+
+                    expect(function () {
+                        hashSet.hashCode({id: 1}, {id: 2});
+                    }).toThrow(new InvalidArguments());
+
+                    expect(function () {
+                        hashSet.hashCode();
+                    }).toThrow(new InvalidArguments.Empty());
+
+                });
+
+                it("returns the id of the item", function () {
+
+                    var hashSet = new HashSet();
+                    var id = hashSet.hashCode({id: 123});
+                    expect(id).toBe(123);
                 });
 
             });
@@ -224,7 +285,7 @@ describe("core", function () {
                     var hashSet = new HashSet();
                     var o = new Base(),
                         o2 = new Base();
-                    hashSet.add(o, o2);
+                    hashSet.addAll(o, o2);
                     var a = hashSet.toArray();
                     expect(a).toEqual([o, o2]);
                 });
@@ -238,7 +299,7 @@ describe("core", function () {
                     var hashSet = new HashSet();
                     var o = new Base(),
                         o2 = new Base();
-                    hashSet.add(o, o2);
+                    hashSet.addAll(o, o2);
                     var clone = hashSet.clone();
                     expect(clone instanceof HashSet).toBe(true);
                     expect(clone).not.toBe(hashSet);

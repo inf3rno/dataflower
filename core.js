@@ -1,5 +1,14 @@
 var EventEmitter = require("events").EventEmitter;
 
+var global = (function () {
+    return this;
+})();
+
+var native = {
+    global: global,
+    console: global.console
+};
+
 var last = 0;
 var id = function () {
     return ++last;
@@ -103,14 +112,14 @@ var merge = function (subject, source) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
     if (subject.merge instanceof Function)
-        return subject.merge.apply(subject, Array.prototype.slice.call(arguments, 1));
+        return subject.merge.apply(subject, toArray(arguments).slice(1));
     return shallowCopy.apply(null, arguments);
 };
 
 var shallowCopy = function (subject, source) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
-    var sources = Array.prototype.slice.call(arguments, 1);
+    var sources = toArray(arguments).slice(1);
     for (var index in sources) {
         source = sources[index];
         if (source === undefined || source === null)
@@ -121,6 +130,19 @@ var shallowCopy = function (subject, source) {
             subject[property] = source[property];
     }
     return subject;
+};
+
+var toArray = function (subject) {
+    if (!(subject instanceof Object) || (subject instanceof Function))
+        throw new InvalidArguments();
+    if (subject instanceof Array)
+        return subject.slice();
+    if (subject.toArray instanceof Function)
+        return subject.toArray();
+    var result = [];
+    for (var key in subject)
+        result.push(subject[key]);
+    return result;
 };
 
 var Base = extend(Object, {
@@ -143,8 +165,8 @@ var Base = extend(Object, {
         });
     },
     merge: function (source) {
-        var parameters = [this];
-        parameters.push.apply(parameters, arguments);
+        var parameters = toArray(arguments);
+        parameters.unshift(this);
         return shallowCopy.apply(null, parameters);
     },
     configure: function () {
@@ -377,7 +399,7 @@ var Plugin = Base.extend({
 var Wrapper = Base.extend({
     preprocessors: [],
     done: function () {
-        return Array.prototype.slice(arguments);
+        return toArray(arguments);
     },
     algorithm: function (wrapper) {
         return function () {
@@ -445,18 +467,19 @@ var Wrapper = Base.extend({
         dummy: function () {
         },
         echo: function () {
-            return Array.prototype.slice(arguments);
+            return toArray(arguments);
         }
     },
     algorithm: {
         cascade: function (wrapper) {
             return function () {
-                var parameters = Array.prototype.slice.apply(arguments);
+                var parameters = toArray(arguments);
                 for (var index in wrapper.preprocessors) {
                     var preprocessor = wrapper.preprocessors[index];
-                    parameters = preprocessor.apply(this, parameters);
-                    if (!(parameters instanceof Array))
+                    result = preprocessor.apply(this, parameters);
+                    if (!(result instanceof Array))
                         throw new Wrapper.InvalidPreprocessor();
+                    parameters = result;
                 }
                 return wrapper.done.apply(this, parameters);
             };
@@ -469,9 +492,9 @@ var Wrapper = Base.extend({
                     var preprocessor = wrapper.preprocessors[index];
                     match = preprocessor.apply(this, arguments);
                     if (match !== undefined) {
-                        parameters = match;
-                        if (!(parameters instanceof Array))
+                        if (!(match instanceof Array))
                             throw new Wrapper.InvalidPreprocessor();
+                        parameters = match;
                         break;
                     }
                 }
@@ -487,9 +510,9 @@ var Wrapper = Base.extend({
                         var preprocessor = wrapper.preprocessors[index];
                         match = preprocessor.apply(this, parameters);
                         if (match !== undefined) {
-                            parameters = match;
-                            if (!(parameters instanceof Array))
+                            if (!(match instanceof Array))
                                 throw new Wrapper.InvalidPreprocessor();
+                            parameters = match;
                             break;
                         }
                     }
@@ -595,10 +618,10 @@ var StackStringParser = Base.extend({
                     }];
             }
         ],
-        done: function (result) {
-            if (typeof (result) == "string")
+        done: function (options) {
+            if (!(options instanceof Object))
                 throw new StackStringParser.UnknownFrameFormat();
-            return new StackFrame(result);
+            return new StackFrame(options);
         }
     }).toFunction()
 }, {
@@ -620,8 +643,7 @@ var HashSet = Base.extend({
         Base.prototype.build.call(this);
         var inheritedItems = this.toArray();
         this.items = {};
-        if (inheritedItems.length)
-            this.addAll.apply(this, inheritedItems);
+        this.addAll.apply(this, inheritedItems);
     },
     configure: function (item) {
         this.addAll.apply(this, arguments);
@@ -632,13 +654,8 @@ var HashSet = Base.extend({
         return this;
     },
     add: function (item) {
-        if (!arguments.length)
-            return this;
-        if (arguments.length > 1)
-            return this.addAll.apply(this, arguments);
-        if (!(item instanceof Object) || item.id === undefined)
-            throw new HashSet.ItemRequired();
-        this.items[item.id] = item;
+        var id = this.hashCode.apply(this, arguments);
+        this.items[id] = item;
         return this;
     },
     removeAll: function (item) {
@@ -647,13 +664,9 @@ var HashSet = Base.extend({
         return this;
     },
     remove: function (item) {
-        if (!arguments.length)
-            return this;
-        if (arguments.length > 1)
-            return this.removeAll.apply(this, arguments);
-        if (!(item instanceof Object) || item.id === undefined)
-            throw new HashSet.ItemRequired();
-        delete(this.items[item.id]);
+        var id = this.hashCode.apply(this, arguments);
+        if (this.items[id] === item)
+            delete(this.items[id]);
         return this;
     },
     clear: function () {
@@ -669,11 +682,17 @@ var HashSet = Base.extend({
         return result;
     },
     contains: function (item) {
-        if (arguments.length != 1)
-            return this.containsAll.apply(this, arguments);
+        var id = this.hashCode.apply(this, arguments);
+        return this.items[id] === item;
+    },
+    hashCode: function (item) {
+        if (!arguments.length)
+            throw new InvalidArguments.Empty();
+        if (arguments.length > 1)
+            throw new InvalidArguments();
         if (!(item instanceof Object) || item.id === undefined)
             throw new HashSet.ItemRequired();
-        return this.items[item.id] === item;
+        return item.id;
     },
     toArray: function () {
         var result = [];
@@ -688,6 +707,7 @@ var HashSet = Base.extend({
 });
 
 module.exports = {
+    native: native,
     id: id,
     watch: watch,
     unwatch: unwatch,
@@ -695,6 +715,7 @@ module.exports = {
     clone: clone,
     merge: merge,
     shallowCopy: shallowCopy,
+    toArray: toArray,
     Base: Base,
     HashSet: HashSet,
     UserError: UserError,
