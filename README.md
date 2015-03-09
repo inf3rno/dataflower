@@ -322,8 +322,10 @@ var subscriber = new df.Subscriber({
 });
 
 var subscription = new df.Subscription({
-    publisher: publisher,
-    subscriber: subscriber
+    items: [
+        publisher,
+        subscriber
+    ]
 });
 
 publisher.publish([1, 2, 3]); // 1 2 3
@@ -364,8 +366,10 @@ var emitter = new df.Emitter({
 });
 
 var subscription = new df.Subscription({
-    publisher: emitter,
-    subscriber: listener
+    items: [
+        emitter,
+        listener
+    ]
 });
 
 o2.on("anotherEvent", console.log);
@@ -389,8 +393,10 @@ var setter = new df.Setter({
     property: "another"
 });
 var subscription = new df.Subscription({
-    publisher: getter,
-    subscriber: setter
+    items: [
+        getter,
+        setter
+    ]
 });
 
 console.log(o2.another); // "x"
@@ -416,8 +422,10 @@ var setter = new df.Setter({
     property: "another"
 });
 var subscription = new df.Subscription({
-    publisher: watcher,
-    subscriber: setter
+    items: [
+        watcher,
+        setter
+    ]
 });
 
 o1.prop = "b";
@@ -436,22 +444,28 @@ var task = new df.Task({
     }
 });
 new df.Subscription({
-    publisher: task.called,
-    subscriber: new df.Subscriber({
-        callback: console.warn
-    })
+    items: [
+        task.called,
+        new df.Subscriber({
+            callback: console.warn
+        })
+    ]
 });
 new df.Subscription({
-    publisher: task.done,
-    subscriber: new df.Subscriber({
-        callback: console.log
-    })
+    items: [
+        task.done,
+        new df.Subscriber({
+            callback: console.log
+        })
+    ]
 });
 new df.Subscription({
-    publisher: task.error,
-    subscriber: new df.Subscriber({
-        callback: console.error
-    })
+    items: [
+        task.error,
+        new df.Subscriber({
+            callback: console.error
+        })
+    ]
 });
 
 var o = {
@@ -480,22 +494,28 @@ o.m = new df.Spy({
 }).toFunction();
 
 new df.Subscription({
-    publisher: o.m.called.component,
-    subscriber: new df.Subscriber({
-        callback: console.warn
-    })
+    items: [
+        o.m.called.component,
+        new df.Subscriber({
+            callback: console.warn
+        })
+    ]
 });
 new df.Subscription({
-    publisher: o.m.done.component,
-    subscriber: new df.Subscriber({
-        callback: console.log
-    })
+    items: [
+        o.m.done.component,
+        new df.Subscriber({
+            callback: console.log
+        })
+    ]
 });
 new df.Subscription({
-    publisher: o.m.error.component,
-    subscriber: new df.Subscriber({
-        callback: console.error
-    })
+    items: [
+        o.m.error.component,
+        new df.Subscriber({
+            callback: console.error
+        })
+    ]
 });
 
 var c = o.m(1, 2); // returns 3

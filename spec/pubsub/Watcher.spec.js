@@ -31,8 +31,10 @@ describe("pubsub", function () {
                         callback: log
                     });
                     var subscription = new Subscription({
-                        publisher: watcher,
-                        subscriber: subscriber
+                        items: [
+                            watcher,
+                            subscriber
+                        ]
                     });
                     expect(log).not.toHaveBeenCalled();
                     o.x = 123;

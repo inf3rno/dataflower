@@ -49,10 +49,12 @@ describe("pubsub", function () {
                     callback: log
                 });
                 new Subscription({
-                    publisher: spy.called,
-                    subscriber: new Subscriber({
-                        callback: log
-                    })
+                    items: [
+                        spy.called,
+                        new Subscriber({
+                            callback: log
+                        })
+                    ]
                 });
                 var o = {
                     m: spy.toFunction()
@@ -82,10 +84,12 @@ describe("pubsub", function () {
                 });
                 var log = jasmine.createSpy();
                 new Subscription({
-                    publisher: spy.done,
-                    subscriber: new Subscriber({
-                        callback: log
-                    })
+                    items: [
+                        spy.done,
+                        new Subscriber({
+                            callback: log
+                        })
+                    ]
                 });
 
                 expect(log).not.toHaveBeenCalled();
@@ -97,7 +101,7 @@ describe("pubsub", function () {
                 expect(log.calls.first().object).toBe(o);
             });
 
-            it("publishes the raised errors on the error Publisher", function (){
+            it("publishes the raised errors on the error Publisher", function () {
 
                 var err = new Error();
                 var spy = new Spy({
@@ -107,16 +111,18 @@ describe("pubsub", function () {
                 });
                 var log = jasmine.createSpy();
                 new Subscription({
-                    publisher: spy.error,
-                    subscriber: new Subscriber({
-                        callback: log
-                    })
+                    items: [
+                        spy.error,
+                        new Subscriber({
+                            callback: log
+                        })
+                    ]
                 });
 
                 expect(log).not.toHaveBeenCalled();
 
                 var o = {};
-                expect(function (){
+                expect(function () {
                     spy.receive([], o);
                 }).toThrow(err);
 

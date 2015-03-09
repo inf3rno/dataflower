@@ -77,8 +77,10 @@ describe("pubsub", function () {
                         callback: log
                     });
                     var subscription = new Subscription({
-                        publisher: getter,
-                        subscriber: subscriber
+                        items: [
+                            getter,
+                            subscriber
+                        ]
                     });
                     expect(log).not.toHaveBeenCalled();
 

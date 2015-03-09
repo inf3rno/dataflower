@@ -391,7 +391,6 @@ var Wrapper = Base.extend({
         this.properties = clone(this.properties);
     },
     merge: function (source) {
-        var sources = [];
         for (var sourceIndex in arguments) {
             source = arguments[sourceIndex];
             if (source === undefined || source === null)
@@ -614,16 +613,15 @@ var StackStringParser = Base.extend({
 var HashSet = Base.extend({
     items: {},
     init: function () {
-        if (this.build instanceof Function)
-            this.build();
-        if (this.configure instanceof Function)
-            this.configure.apply(this, arguments);
+        this.build();
+        this.configure.apply(this, arguments);
     },
     build: function () {
         Base.prototype.build.call(this);
         var inheritedItems = this.toArray();
         this.items = {};
-        this.addAll.apply(this, inheritedItems);
+        if (inheritedItems.length)
+            this.addAll.apply(this, inheritedItems);
     },
     configure: function (item) {
         this.addAll.apply(this, arguments);
@@ -634,7 +632,9 @@ var HashSet = Base.extend({
         return this;
     },
     add: function (item) {
-        if (arguments.length != 1)
+        if (!arguments.length)
+            return this;
+        if (arguments.length > 1)
             return this.addAll.apply(this, arguments);
         if (!(item instanceof Object) || item.id === undefined)
             throw new HashSet.ItemRequired();
@@ -647,7 +647,9 @@ var HashSet = Base.extend({
         return this;
     },
     remove: function (item) {
-        if (arguments.length != 1)
+        if (!arguments.length)
+            return this;
+        if (arguments.length > 1)
             return this.removeAll.apply(this, arguments);
         if (!(item instanceof Object) || item.id === undefined)
             throw new HashSet.ItemRequired();

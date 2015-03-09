@@ -13,8 +13,10 @@ describe("example", function () {
                     callback: log
                 }),
                 subscription = new df.Subscription({
-                    publisher: publisher,
-                    subscriber: subscriber
+                    items: [
+                        publisher,
+                        subscriber
+                    ]
                 });
             expect(log).not.toHaveBeenCalled();
             publisher.publish([1, 2, 3]);
@@ -38,8 +40,10 @@ describe("example", function () {
                     event: "anotherEvent"
                 }),
                 subscription = new df.Subscription({
-                    publisher: listener,
-                    subscriber: emitter
+                    items: [
+                        listener,
+                        emitter
+                    ]
                 }),
                 log = jasmine.createSpy();
             o2.on("anotherEvent", log);
@@ -65,8 +69,10 @@ describe("example", function () {
                     property: "another"
                 }),
                 subscription = new df.Subscription({
-                    publisher: getter,
-                    subscriber: setter
+                    items: [
+                        getter,
+                        setter
+                    ]
                 }),
                 sync = getter.toFunction();
 
@@ -92,8 +98,10 @@ describe("example", function () {
                     property: "another"
                 }),
                 subscription = new df.Subscription({
-                    publisher: watcher,
-                    subscriber: setter
+                    items: [
+                        watcher,
+                        setter
+                    ]
                 });
 
             expect(o2.another).toBe("x");
@@ -121,22 +129,28 @@ describe("example", function () {
             var error = jasmine.createSpy();
 
             new df.Subscription({
-                publisher: task.called,
-                subscriber: new df.Subscriber({
-                    callback: called
-                })
+                items: [
+                    task.called,
+                    new df.Subscriber({
+                        callback: called
+                    })
+                ]
             });
             new df.Subscription({
-                publisher: task.done,
-                subscriber: new df.Subscriber({
-                    callback: done
-                })
+                items: [
+                    task.done,
+                    new df.Subscriber({
+                        callback: done
+                    })
+                ]
             });
             new df.Subscription({
-                publisher: task.error,
-                subscriber: new df.Subscriber({
-                    callback: error
-                })
+                items: [
+                    task.error,
+                    new df.Subscriber({
+                        callback: error
+                    })
+                ]
             });
 
             var o = {
@@ -179,22 +193,28 @@ describe("example", function () {
             var error = jasmine.createSpy();
 
             new df.Subscription({
-                publisher: spy.called,
-                subscriber: new df.Subscriber({
-                    callback: called
-                })
+                items: [
+                    spy.called,
+                    new df.Subscriber({
+                        callback: called
+                    })
+                ]
             });
             new df.Subscription({
-                publisher: spy.done,
-                subscriber: new df.Subscriber({
-                    callback: done
-                })
+                items: [
+                    spy.done,
+                    new df.Subscriber({
+                        callback: done
+                    })
+                ]
             });
             new df.Subscription({
-                publisher: spy.error,
-                subscriber: new df.Subscriber({
-                    callback: error
-                })
+                items: [
+                    spy.error,
+                    new df.Subscriber({
+                        callback: error
+                    })
+                ]
             });
 
             var o = {

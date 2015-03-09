@@ -50,10 +50,12 @@ describe("pubsub", function () {
                     }
                 });
                 new Subscription({
-                    publisher: task.called,
-                    subscriber: new Subscriber({
-                        callback: log
-                    })
+                    items: [
+                        task.called,
+                        new Subscriber({
+                            callback: log
+                        })
+                    ]
                 });
                 var o = {
                     m: task.toFunction()

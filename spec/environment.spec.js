@@ -327,6 +327,7 @@ describe("environment", function () {
                     log(i);
                 expect(log).not.toHaveBeenCalled();
                 a.push(1, 2, 3);
+                expect(a.length).toBe(3);
                 for (var i in a)
                     log(i);
                 expect(log.calls.count()).toBe(3);
@@ -334,6 +335,17 @@ describe("environment", function () {
                 expect(log).toHaveBeenCalledWith("1");
                 expect(log).toHaveBeenCalledWith("2");
                 expect(a["0"]).toBe(1);
+
+                log.calls.reset();
+                delete(a["0"]);
+                expect(a.length).toBe(3);
+                for (var i in a)
+                    log(i);
+                expect(log.calls.count()).toBe(2);
+                expect(log).not.toHaveBeenCalledWith("0");
+                expect(log).toHaveBeenCalledWith("1");
+                expect(log).toHaveBeenCalledWith("2");
+                expect(a["0"]).toBe(undefined);
             });
 
             /**

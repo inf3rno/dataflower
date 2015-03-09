@@ -6,31 +6,79 @@ var df = require("dataflower"),
     Wrapper = df.Wrapper,
     clone = df.clone,
     watch = df.watch,
-    HashSet = df.HashSet;
+    HashSet = df.HashSet,
+    shallowCopy = df.shallowCopy;
 
-var Subscription = Base.extend({
-    publisher: undefined,
-    subscriber: undefined,
+var Subscription = HashSet.extend({
     context: undefined,
+    init: function () {
+        this.build();
+        this.merge.apply(this, arguments);
+        this.configure();
+    },
+    merge: function (source) {
+        for (var sourceIndex in arguments) {
+            source = arguments[sourceIndex];
+            if (source === undefined || source === null)
+                continue;
+            if (!(source instanceof Object))
+                throw new InvalidArguments();
+
+            if (source.items !== undefined) {
+                if (!(source.items instanceof Array))
+                    throw new Subscription.ItemsRequired();
+                if (source.items.length)
+                    this.addAll.apply(this, source.items);
+            }
+
+            var backup = {
+                items: this.items
+            };
+
+            shallowCopy(this, source);
+            shallowCopy(this, backup);
+        }
+        return this;
+    },
     configure: function () {
-        if (!(this.publisher instanceof Publisher))
-            throw new Subscription.PublisherRequired();
-        if (!(this.subscriber instanceof Subscriber))
-            throw new Subscription.SubscriberRequired();
-        this.publisher.subscriptions.add(this);
-        this.subscriber.subscriptions.add(this);
     },
     notify: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Subscription.ArrayRequired();
-        this.subscriber.receive(parameters, this.context || context);
+        for (var id in this.items)
+            if (this.items[id] instanceof Subscriber)
+                this.items[id].receive(parameters, this.context || context);
+    },
+    add: function (item) {
+        var single = arguments.length == 1;
+        if (single && !(item instanceof Component))
+            throw new Subscription.ComponentRequired();
+        HashSet.prototype.add.apply(this, arguments);
+        if (single)
+            item.subscriptions.add(this);
+        return this;
+    },
+    remove: function (item) {
+        var single = arguments.length == 1;
+        if (single && !(item instanceof Component))
+            throw new Subscription.ComponentRequired();
+        HashSet.prototype.remove.apply(this, arguments);
+        if (single)
+            item.subscriptions.remove(this);
+        return this;
+    },
+    contains: function (item) {
+        var single = arguments.length == 1;
+        if (single && !(item instanceof Component))
+            throw new Subscription.ComponentRequired();
+        return HashSet.prototype.contains.apply(this, arguments);
     }
 }, {
-    PublisherRequired: InvalidConfiguration.extend({
-        message: "Publisher instance required."
+    ItemsRequired: InvalidConfiguration.extend({
+        message: "An Array of Components required as items."
     }),
-    SubscriberRequired: InvalidConfiguration.extend({
-        message: "Subscriber instance required."
+    ComponentRequired: InvalidArguments.extend({
+        message: "Component required."
     }),
     ArrayRequired: InvalidArguments.extend({
         message: "Array of arguments required."

@@ -35,9 +35,11 @@ describe("pubsub.fluent", function () {
         it("accepts Subscription instance", function () {
 
             var subscription = new Subscription({
-                publisher: publisher().component,
-                subscriber: subscriber(function () {
-                }).component,
+                items: [
+                    publisher().component,
+                    subscriber(function () {
+                    }).component
+                ],
                 context: {}
             });
             expect(subscribe(subscription)).toBe(subscription);
@@ -46,9 +48,11 @@ describe("pubsub.fluent", function () {
         it("accepts options", function () {
 
             var subscription = subscribe({
-                publisher: publisher().component,
-                subscriber: subscriber(function () {
-                }).component,
+                items: [
+                    publisher().component,
+                    subscriber(function () {
+                    }).component
+                ],
                 context: {}
             });
             expect(subscription instanceof Subscription).toBe(true);
@@ -57,9 +61,11 @@ describe("pubsub.fluent", function () {
         it("accepts any subscriber and publisher function arguments e.g. wrappers", function () {
 
             var subscription = subscribe({
-                publisher: publisher(),
-                subscriber: subscriber(function () {
-                })
+                items: [
+                    publisher(),
+                    subscriber(function () {
+                    })
+                ]
             });
             var subscription2 = subscribe(
                 publisher(),
@@ -81,7 +87,7 @@ describe("pubsub.fluent", function () {
             expect(subscribe).toThrow(new InvalidArguments.Empty());
         });
 
-        it("doe not accept more than 3 arguments", function () {
+        it("does not accept more than 3 arguments", function () {
 
             expect(function () {
                 subscribe({}, function () {
