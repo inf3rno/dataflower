@@ -9,44 +9,48 @@ describe("core", function () {
         it("accepts any type of object as subject and sources", function () {
 
             expect(function () {
-                shallowCopy({});
-                shallowCopy({}, {});
-                shallowCopy({}, {}, {});
+                shallowCopy({}, []);
+                shallowCopy({}, [{}]);
+                shallowCopy({}, [{}, {}]);
                 shallowCopy(function () {
+                }, [function () {
                 }, function () {
-                }, function () {
-                });
-                shallowCopy(new Date(), new RegExp(), function () {
-                }, []);
-                shallowCopy({}, null);
-                shallowCopy({}, undefined);
+                }]);
+                shallowCopy(new Date(), [new RegExp(), function () {
+                }, []]);
+                shallowCopy({}, [null]);
+                shallowCopy({}, [undefined]);
             }).not.toThrow();
 
             expect(function () {
-                shallowCopy({}, 1, 2, 3);
+                shallowCopy({}, [1, 2, 3]);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy(null);
+                shallowCopy(null, []);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy(null, {});
+                shallowCopy(null, [{}]);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy(1, {});
+                shallowCopy(1, [{}]);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy({}, false);
+                shallowCopy({}, [false]);
+            }).toThrow(new InvalidArguments());
+
+            expect(function () {
+                shallowCopy({}, {});
             }).toThrow(new InvalidArguments());
         });
 
         it("overrides properties of the subject with the properties of the sources", function () {
 
             var subject = {};
-            shallowCopy(subject, {a: 1}, {b: 2}, {a: 3, c: 4});
+            shallowCopy(subject, [{a: 1}, {b: 2}, {a: 3, c: 4}]);
             expect(subject).toEqual({b: 2, a: 3, c: 4});
         });
 
@@ -55,15 +59,15 @@ describe("core", function () {
             var toString = function () {
                 return "";
             };
-            shallowCopy(subject, {toString: toString});
+            shallowCopy(subject, [{toString: toString}]);
             expect(subject.toString).toBe(toString);
         });
 
         it("returns the subject", function () {
 
             var subject = {};
-            expect(shallowCopy(subject)).toBe(subject);
-            expect(shallowCopy(subject, {a: 1}, {b: 2})).toBe(subject);
+            expect(shallowCopy(subject, [])).toBe(subject);
+            expect(shallowCopy(subject, [{a: 1}, {b: 2}])).toBe(subject);
         });
 
     });

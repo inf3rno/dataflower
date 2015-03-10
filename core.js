@@ -111,23 +111,89 @@ var clone = function (subject) {
 var merge = function (subject, source) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
+    var sources = toArray(arguments).slice(1);
     if (subject.merge instanceof Function)
-        return subject.merge.apply(subject, toArray(arguments).slice(1));
-    return shallowCopy.apply(null, arguments);
+        return subject.merge.apply(subject, sources);
+    return shallowCopy(subject, sources);
 };
 
-var shallowCopy = function (subject, source) {
+var shallowCopy = function (subject, sources) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
-    var sources = toArray(arguments).slice(1);
+    if (!(sources instanceof Array))
+        throw new InvalidArguments();
     for (var index in sources) {
-        source = sources[index];
+        var source = sources[index];
         if (source === undefined || source === null)
             continue;
         if (!(source instanceof Object))
             throw new InvalidArguments();
         for (var property in source)
             subject[property] = source[property];
+    }
+    return subject;
+};
+
+var deepCopy = function (subject, sources, options) {
+
+    if (!(subject instanceof Object))
+        throw new InvalidArguments();
+
+    if (!(sources instanceof Array))
+        throw new InvalidArguments();
+
+    if (options === undefined || options === null)
+        options = {};
+    if (!(options instanceof Object))
+        throw new InvalidArguments();
+
+    var callback,
+        sourceCheck,
+        hasItems = false,
+        itemOptions;
+    if (options instanceof Function)
+        callback = options;
+    else if (options instanceof Array) {
+        if (options[0] instanceof Function) {
+            callback = options[0];
+            sourceCheck = options[1];
+        }
+        else {
+            hasItems = true;
+            itemOptions = options[0];
+            callback = options[1];
+            sourceCheck = options[2];
+        }
+    }
+    else {
+        sourceCheck = options[""];
+    }
+
+    for (var index in sources) {
+        var source = sources[index];
+        if (source === undefined || source === null)
+            continue;
+        if (!(source instanceof Object))
+            throw new InvalidArguments();
+        if (sourceCheck)
+            sourceCheck(subject, source, index);
+        for (var property in source) {
+            var value = source[property];
+            if (callback || hasItems) {
+                if (callback) {
+                    var result = callback(subject, value, property);
+                    if (result !== undefined)
+                        subject[property] = result;
+                }
+                if (hasItems)
+                    for (var subIndex in subject)
+                        deepCopy(subject[subIndex], [value], itemOptions);
+            }
+            else if (options.hasOwnProperty(property))
+                deepCopy(subject[property], [value], options[property]);
+            else
+                subject[property] = value;
+        }
     }
     return subject;
 };
@@ -165,9 +231,7 @@ var Base = extend(Object, {
         });
     },
     merge: function (source) {
-        var parameters = toArray(arguments);
-        parameters.unshift(this);
-        return shallowCopy.apply(null, parameters);
+        return shallowCopy(this, toArray(arguments));
     },
     configure: function () {
     }
@@ -255,29 +319,19 @@ var StackTrace = Base.extend({
         this.frames = clone(this.frames);
     },
     merge: function (source) {
-        var sources = [];
-        for (var sourceIndex in arguments) {
-            source = arguments[sourceIndex];
-            if (source === undefined || source === null)
-                continue;
-            if (!(source instanceof Object))
-                throw new InvalidArguments();
-
-            if (source.frames !== undefined) {
-                if (!(source.frames instanceof Array))
-                    throw new StackTrace.StackFramesRequired();
-                for (var frameIndex in source.frames)
-                    if (!(source.frames[frameIndex] instanceof StackFrame))
+        return deepCopy(this, toArray(arguments), {
+            frames: [
+                function (frames, frame, index) {
+                    if (!(frame instanceof StackFrame))
                         throw new StackTrace.StackFrameRequired();
-                this.frames.push.apply(this.frames, source.frames);
-            }
-            var backup = {
-                frames: this.frames
-            };
-            shallowCopy(this, source);
-            shallowCopy(this, backup);
-        }
-        return this;
+                    frames.push(frame);
+                },
+                function (subject, frames, property) {
+                    if (!(frames instanceof Array))
+                        throw new StackTrace.StackFramesRequired();
+                }
+            ]
+        });
     },
     toString: function () {
         if (this.string === undefined)
@@ -438,15 +492,12 @@ var Wrapper = Base.extend({
             if (source.properties !== undefined) {
                 if (!(source.properties instanceof Object))
                     throw new Wrapper.PropertiesRequired();
-                shallowCopy(this.properties, source.properties);
+                shallowCopy(this.properties, [source.properties]);
             }
-
-            var backup = {
+            shallowCopy(this, [source, {
                 preprocessors: this.preprocessors,
                 properties: this.properties
-            };
-            shallowCopy(this, source);
-            shallowCopy(this, backup);
+            }]);
         }
         return this;
     },
@@ -454,12 +505,12 @@ var Wrapper = Base.extend({
         var func = this.algorithm(this);
         if (!(func instanceof Function))
             throw new Wrapper.InvalidAlgorithm();
-        shallowCopy(func,
+        shallowCopy(func, [
             {
                 wrapper: this
             },
             this.properties
-        );
+        ]);
         return func;
     }
 }, {
@@ -715,6 +766,7 @@ module.exports = {
     clone: clone,
     merge: merge,
     shallowCopy: shallowCopy,
+    deepCopy: deepCopy,
     toArray: toArray,
     Base: Base,
     HashSet: HashSet,

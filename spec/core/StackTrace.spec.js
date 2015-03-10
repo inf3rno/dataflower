@@ -6,9 +6,9 @@ describe("core", function () {
 
     describe("StackTrace.prototype", function () {
 
-        describe("build", function (){
+        describe("build", function () {
 
-            it("clones the frames array", function (){
+            it("clones the frames array", function () {
                 var frames = [
                     Object.create(StackFrame.prototype),
                     Object.create(StackFrame.prototype)

@@ -29,11 +29,10 @@ var Subscription = HashSet.extend({
                     throw new Subscription.ItemsRequired();
                 this.addAll.apply(this, source.items);
             }
-            var backup = {
-                items: this.items
-            };
-            shallowCopy(this, source);
-            shallowCopy(this, backup);
+            shallowCopy(this, [
+                source,
+                {items: this.items}
+            ]);
         }
         return this;
     },
