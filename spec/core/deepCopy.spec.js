@@ -65,6 +65,30 @@ describe("core", function () {
             }).toThrow(new InvalidArguments());
         });
 
+        it("throws error when the source contains reserved properties like @once and @each", function () {
+
+            [
+                {
+                    source: {
+                        "@each": function () {
+                        }
+                    },
+                    path: [0, "@each"]
+                },
+                {
+                    source: {
+                        "@once": function () {
+                        }
+                    },
+                    path: [0, "@once"]
+                }
+            ].forEach(function (options) {
+                    expect(function () {
+                        deepCopy({}, [options.source]);
+                    }).toThrow(new InvalidArguments.Nested({path: options.path}));
+                });
+        });
+
         describe("the algorithm depending on the options", function () {
 
             describe("when it is null, undefined, empty Object, empty Array", function () {

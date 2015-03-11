@@ -176,6 +176,8 @@ var deepCopy = function (subject, sources, options, path) {
         var propertyDepth = path.length;
         for (property in source) {
             path[propertyDepth] = property;
+            if (property == each || property == once)
+                throw new InvalidArguments.Nested({path: path});
             propertyOptions = options[each];
             if (options.hasOwnProperty(property))
                 propertyOptions = options[property];
