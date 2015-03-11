@@ -109,7 +109,7 @@ describe("core", function () {
 
             describe("merge", function () {
 
-                it("calls the shallowCopy function on the instance", function () {
+                it("calls the shallowMerge function on the instance", function () {
 
                     var err = new Base();
                     err.merge({

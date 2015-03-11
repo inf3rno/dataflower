@@ -17,7 +17,7 @@ describe("core", function () {
             expect(subject.merge).toHaveBeenCalledWith(1, 2, 3);
         });
 
-        it("calls shallowCopy if no merge function set", function () {
+        it("calls shallowMerge if no merge function set", function () {
 
             var subject = {};
             expect(merge(subject, {a: 1}, {b: 2}, {a: 3, c: 4})).toBe(subject);

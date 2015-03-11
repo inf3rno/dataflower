@@ -7,8 +7,8 @@ var df = require("dataflower"),
     clone = df.clone,
     watch = df.watch,
     HashSet = df.HashSet,
-    shallowCopy = df.shallowCopy,
-    deepCopy = df.deepCopy,
+    shallowMerge = df.shallowMerge,
+    deepMerge = df.deepMerge,
     toArray = df.toArray;
 
 var Subscription = HashSet.extend({
@@ -19,7 +19,7 @@ var Subscription = HashSet.extend({
         this.configure();
     },
     merge: function (source) {
-        return deepCopy(this, toArray(arguments), {
+        return deepMerge(this, toArray(arguments), {
             items: function (subscription, items) {
                 if (!(items instanceof Array))
                     throw new Subscription.ItemsRequired();

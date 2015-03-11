@@ -95,6 +95,12 @@ var extend = function (Ancestor, properties, staticProperties) {
 };
 
 var clone = function (subject) {
+    if (typeof (subject) == "object" && subject && (subject.clone instanceof Function))
+        return subject.clone();
+    return shallowClone(subject);
+};
+
+var shallowClone = function (subject) {
     if (typeof (subject) != "object" || subject === null)
         return subject;
     if (subject instanceof Array)
@@ -103,8 +109,6 @@ var clone = function (subject) {
         return new Date(subject);
     if (subject instanceof RegExp)
         return new RegExp(subject);
-    if (subject.clone instanceof Function)
-        return subject.clone();
     return Object.create(subject);
 };
 
@@ -114,10 +118,10 @@ var merge = function (subject, source) {
     var sources = toArray(arguments).slice(1);
     if (subject.merge instanceof Function)
         return subject.merge.apply(subject, sources);
-    return shallowCopy(subject, sources);
+    return shallowMerge(subject, sources);
 };
 
-var shallowCopy = function (subject, sources) {
+var shallowMerge = function (subject, sources) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
     if (!(sources instanceof Array))
@@ -134,7 +138,7 @@ var shallowCopy = function (subject, sources) {
     return subject;
 };
 
-var deepCopy = function (subject, sources, options, path) {
+var deepMerge = function (subject, sources, options, path) {
     if (!(subject instanceof Object))
         throw new InvalidArguments.Nested({path: path});
     if (!(sources instanceof Array))
@@ -191,7 +195,7 @@ var deepCopy = function (subject, sources, options, path) {
                 }
             }
             else
-                deepCopy(subject[property], [source[property]], propertyOptions, path);
+                deepMerge(subject[property], [source[property]], propertyOptions, path);
         }
         path.length = propertyDepth;
         propertiesDone = true;
@@ -248,7 +252,7 @@ var Base = extend(Object, {
         });
     },
     merge: function (source) {
-        return shallowCopy(this, toArray(arguments));
+        return shallowMerge(this, toArray(arguments));
     },
     configure: function () {
     }
@@ -346,7 +350,7 @@ var StackTrace = Base.extend({
         this.frames = clone(this.frames);
     },
     merge: function (source) {
-        return deepCopy(this, toArray(arguments), {
+        return deepMerge(this, toArray(arguments), {
             frames: [
                 function (frames, sourceFrames, index, each, path) {
                     if (!(sourceFrames instanceof Array))
@@ -495,7 +499,7 @@ var Wrapper = Base.extend({
         this.properties = clone(this.properties);
     },
     merge: function (source) {
-        return deepCopy(this, toArray(arguments), {
+        return deepMerge(this, toArray(arguments), {
             preprocessors: [
                 function (preprocessors, sourcePreprocessors, index, each) {
                     if (!(sourcePreprocessors instanceof Array))
@@ -525,7 +529,7 @@ var Wrapper = Base.extend({
         var func = this.algorithm(this);
         if (!(func instanceof Function))
             throw new Wrapper.InvalidAlgorithm();
-        shallowCopy(func, [
+        shallowMerge(func, [
             {
                 wrapper: this
             },
@@ -781,9 +785,10 @@ module.exports = {
     unwatch: unwatch,
     extend: extend,
     clone: clone,
+    shallowClone: shallowClone,
     merge: merge,
-    shallowCopy: shallowCopy,
-    deepCopy: deepCopy,
+    shallowMerge: shallowMerge,
+    deepMerge: deepMerge,
     toArray: toArray,
     Base: Base,
     HashSet: HashSet,

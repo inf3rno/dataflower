@@ -1,56 +1,56 @@
 var df = require("dataflower"),
-    shallowCopy = df.shallowCopy,
+    shallowMerge = df.shallowMerge,
     InvalidArguments = df.InvalidArguments;
 
 describe("core", function () {
 
-    describe("shallowCopy", function () {
+    describe("shallowMerge", function () {
 
         it("accepts any type of object as subject and sources", function () {
 
             expect(function () {
-                shallowCopy({}, []);
-                shallowCopy({}, [{}]);
-                shallowCopy({}, [{}, {}]);
-                shallowCopy(function () {
+                shallowMerge({}, []);
+                shallowMerge({}, [{}]);
+                shallowMerge({}, [{}, {}]);
+                shallowMerge(function () {
                 }, [function () {
                 }, function () {
                 }]);
-                shallowCopy(new Date(), [new RegExp(), function () {
+                shallowMerge(new Date(), [new RegExp(), function () {
                 }, []]);
-                shallowCopy({}, [null]);
-                shallowCopy({}, [undefined]);
+                shallowMerge({}, [null]);
+                shallowMerge({}, [undefined]);
             }).not.toThrow();
 
             expect(function () {
-                shallowCopy({}, [1, 2, 3]);
+                shallowMerge({}, [1, 2, 3]);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy(null, []);
+                shallowMerge(null, []);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy(null, [{}]);
+                shallowMerge(null, [{}]);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy(1, [{}]);
+                shallowMerge(1, [{}]);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy({}, [false]);
+                shallowMerge({}, [false]);
             }).toThrow(new InvalidArguments());
 
             expect(function () {
-                shallowCopy({}, {});
+                shallowMerge({}, {});
             }).toThrow(new InvalidArguments());
         });
 
         it("overrides properties of the subject with the properties of the sources", function () {
 
             var subject = {};
-            shallowCopy(subject, [{a: 1}, {b: 2}, {a: 3, c: 4}]);
+            shallowMerge(subject, [{a: 1}, {b: 2}, {a: 3, c: 4}]);
             expect(subject).toEqual({b: 2, a: 3, c: 4});
         });
 
@@ -59,15 +59,15 @@ describe("core", function () {
             var toString = function () {
                 return "";
             };
-            shallowCopy(subject, [{toString: toString}]);
+            shallowMerge(subject, [{toString: toString}]);
             expect(subject.toString).toBe(toString);
         });
 
         it("returns the subject", function () {
 
             var subject = {};
-            expect(shallowCopy(subject, [])).toBe(subject);
-            expect(shallowCopy(subject, [{a: 1}, {b: 2}])).toBe(subject);
+            expect(shallowMerge(subject, [])).toBe(subject);
+            expect(shallowMerge(subject, [{a: 1}, {b: 2}])).toBe(subject);
         });
 
     });

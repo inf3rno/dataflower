@@ -1,19 +1,19 @@
 var df = require("dataflower"),
-    deepCopy = df.deepCopy,
+    deepMerge = df.deepMerge,
     InvalidArguments = df.InvalidArguments;
 
 describe("core", function () {
 
-    describe("deepCopy", function () {
+    describe("deepMerge", function () {
 
         it("accepts only null, undefined and Objects as options", function () {
 
             expect(function () {
 
-                deepCopy({}, []);
-                deepCopy({}, [], null);
-                deepCopy({}, [], {});
-                deepCopy({}, [], function () {
+                deepMerge({}, []);
+                deepMerge({}, [], null);
+                deepMerge({}, [], {});
+                deepMerge({}, [], function () {
                 });
             }).not.toThrow();
 
@@ -23,7 +23,7 @@ describe("core", function () {
                 false
             ].forEach(function (options) {
                     expect(function () {
-                        deepCopy({}, [], options);
+                        deepMerge({}, [], options);
                     }).toThrow(new InvalidArguments.Nested());
                 })
         });
@@ -31,37 +31,37 @@ describe("core", function () {
         it("accepts any type of object as subject and sources", function () {
 
             expect(function () {
-                deepCopy({}, []);
-                deepCopy({}, [{}]);
-                deepCopy({}, [{}, {}]);
-                deepCopy(function () {
+                deepMerge({}, []);
+                deepMerge({}, [{}]);
+                deepMerge({}, [{}, {}]);
+                deepMerge(function () {
                 }, [function () {
                 }, function () {
                 }]);
-                deepCopy(new Date(), [new RegExp(), function () {
+                deepMerge(new Date(), [new RegExp(), function () {
                 }, []]);
-                deepCopy({}, [null]);
-                deepCopy({}, [undefined]);
+                deepMerge({}, [null]);
+                deepMerge({}, [undefined]);
             }).not.toThrow();
 
             expect(function () {
-                deepCopy({}, [1, 2, 3]);
+                deepMerge({}, [1, 2, 3]);
             }).toThrow(new InvalidArguments.Nested({path: [0]}));
 
             expect(function () {
-                deepCopy();
+                deepMerge();
             }).toThrow(new InvalidArguments.Nested());
 
             expect(function () {
-                deepCopy(null, [{}]);
+                deepMerge(null, [{}]);
             }).toThrow(new InvalidArguments.Nested());
 
             expect(function () {
-                deepCopy(1, [{}]);
+                deepMerge(1, [{}]);
             }).toThrow(new InvalidArguments.Nested());
 
             expect(function () {
-                deepCopy({}, {});
+                deepMerge({}, {});
             }).toThrow(new InvalidArguments());
         });
 
@@ -84,7 +84,7 @@ describe("core", function () {
                 }
             ].forEach(function (options) {
                     expect(function () {
-                        deepCopy({}, [options.source]);
+                        deepMerge({}, [options.source]);
                     }).toThrow(new InvalidArguments.Nested({path: options.path}));
                 });
         });
@@ -93,13 +93,13 @@ describe("core", function () {
 
             describe("when it is null, undefined, empty Object, empty Array", function () {
 
-                it("copies the properties the same way as shallowCopy would", function () {
+                it("copies the properties the same way as shallowMerge would", function () {
 
                     [null, undefined, {}, []].forEach(function (options) {
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
                         var c = {j: 5, l: 6};
-                        expect(deepCopy(a, [b, c], options)).toBe(a);
+                        expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(a).toEqual({i: 1, j: 5, k: 4, l: 6});
                     });
                 });
@@ -114,14 +114,14 @@ describe("core", function () {
                     var sources = [{}];
 
                     expect(function () {
-                        deepCopy(subject, sources, {
+                        deepMerge(subject, sources, {
                             "@once": function () {
                             }
                         });
                     }).not.toThrow();
 
                     expect(function () {
-                        deepCopy(subject, sources, {
+                        deepMerge(subject, sources, {
                             "@once": {}
                         });
                     }).toThrow(new InvalidArguments.Nested());
@@ -130,7 +130,7 @@ describe("core", function () {
 
                 describe("which contains @once and @each callbacks", function () {
 
-                    it("turns off the default shallowCopy behavior", function () {
+                    it("turns off the default shallowMerge behavior", function () {
 
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
@@ -141,7 +141,7 @@ describe("core", function () {
                             "@each": function () {
                             }
                         };
-                        expect(deepCopy(a, [b, c], options)).toBe(a);
+                        expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(a).toEqual({i: 1, j: 2});
                     });
 
@@ -156,7 +156,7 @@ describe("core", function () {
                             "@each": function () {
                             }
                         };
-                        expect(deepCopy(a, [b, c], options)).toBe(a);
+                        expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(log.calls.count()).toBe(2);
                         expect(log).toHaveBeenCalledWith(a, b, "0", jasmine.any(Function), jasmine.any(Array));
                         expect(log).toHaveBeenCalledWith(a, c, "1", jasmine.any(Function), jasmine.any(Array));
@@ -173,7 +173,7 @@ describe("core", function () {
                             },
                             "@each": log
                         };
-                        expect(deepCopy(a, [b, c], options)).toBe(a);
+                        expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(log.calls.count()).toBe(4);
                         expect(log).toHaveBeenCalledWith(a, b.j, "j", jasmine.any(Array));
                         expect(log).toHaveBeenCalledWith(a, b.k, "k", jasmine.any(Array));
@@ -191,7 +191,7 @@ describe("core", function () {
                             "@once": log,
                             "@each": log
                         };
-                        expect(deepCopy(a, [b, c], options)).toBe(a);
+                        expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(log.calls.count()).toBe(6);
                         expect(log).toHaveBeenCalledWith(a, b, "0", jasmine.any(Function), jasmine.any(Array));
                         expect(log).toHaveBeenCalledWith(a, b.j, "j", jasmine.any(Array));
@@ -206,7 +206,7 @@ describe("core", function () {
                         it("is a callback Function", function () {
 
                             var callback;
-                            deepCopy({}, [{}], {
+                            deepMerge({}, [{}], {
                                 "@once": function (subject, source, index, each, path) {
                                     callback = each;
                                 },
@@ -232,7 +232,7 @@ describe("core", function () {
                                     log("each", property);
                                 }
                             };
-                            expect(deepCopy(a, [b, c], options)).toBe(a);
+                            expect(deepMerge(a, [b, c], options)).toBe(a);
                             expect(log.calls.count()).toBe(2 * 2 + 2 * 2);
                             expect(log.calls.argsFor(0)).toEqual(["before:each", b]);
                             expect(log.calls.argsFor(1)).toEqual(["each", "j"]);
@@ -259,7 +259,7 @@ describe("core", function () {
                                 return property;
                             }
                         };
-                        expect(deepCopy(a, [b, c], options)).toBe(a);
+                        expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(a).toEqual({i: 1, j: "j", k: "k", l: "l"});
                     });
 
@@ -272,7 +272,7 @@ describe("core", function () {
                             "@once": log,
                             "@each": log
                         };
-                        expect(deepCopy(a, [b], options)).toBe(a);
+                        expect(deepMerge(a, [b], options)).toBe(a);
                         expect(log.calls.count()).toBe(1 + 3);
                         expect(log).toHaveBeenCalledWith(a, b, "0", jasmine.any(Function), jasmine.any(Array));
                         expect(log).toHaveBeenCalledWith(a, b[0], "0", jasmine.any(Array));
@@ -294,7 +294,7 @@ describe("core", function () {
                                     return "string";
                                 }
                             };
-                            expect(deepCopy(a, [b], {})).toBe(a);
+                            expect(deepMerge(a, [b], {})).toBe(a);
                             expect(a.toString).toBe(b.toString);
                         });
 
@@ -302,7 +302,7 @@ describe("core", function () {
 
                     describe("when the property contains a callback Function", function () {
 
-                        it("turns off the default shallowCopy behavior only by the actual property", function () {
+                        it("turns off the default shallowMerge behavior only by the actual property", function () {
 
                             var a = {i: 1, j: 2};
                             var b = {j: 3, k: 4};
@@ -311,7 +311,7 @@ describe("core", function () {
                                 j: function () {
                                 }
                             };
-                            expect(deepCopy(a, [b, c], options)).toBe(a);
+                            expect(deepMerge(a, [b, c], options)).toBe(a);
                             expect(a).toEqual({i: 1, j: 2, k: 4, l: 6});
                         });
 
@@ -324,7 +324,7 @@ describe("core", function () {
                             var options = {
                                 j: log
                             };
-                            expect(deepCopy(a, [b, c], options)).toBe(a);
+                            expect(deepMerge(a, [b, c], options)).toBe(a);
                             expect(log.calls.count()).toBe(2);
                             expect(log).toHaveBeenCalledWith(a, 3, "j", jasmine.any(Array));
                             expect(log).toHaveBeenCalledWith(a, 5, "j", jasmine.any(Array));
@@ -344,7 +344,7 @@ describe("core", function () {
                                     log("j", property);
                                 }
                             };
-                            expect(deepCopy(a, [b, c], options)).toBe(a);
+                            expect(deepMerge(a, [b, c], options)).toBe(a);
                             expect(log).not.toHaveBeenCalledWith("each", "j");
                             expect(log).toHaveBeenCalledWith("each", "k");
                             expect(log).toHaveBeenCalledWith("each", "l");
@@ -359,7 +359,7 @@ describe("core", function () {
 
                 describe("which has nested options", function () {
 
-                    it("keeps the value of the subject's property and calls deepCopy on it with the value of the actual source as sources and the Object as options", function () {
+                    it("keeps the value of the subject's property and calls deepMerge on it with the value of the actual source as sources and the Object as options", function () {
 
                         var a = [[1, 2, 3]];
                         var b = [[4, 5, 6]];
@@ -371,7 +371,7 @@ describe("core", function () {
                                 "@each": log
                             }
                         };
-                        expect(deepCopy(a, [b, c], options)).toBe(a);
+                        expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(log.calls.count()).toBe(2 + 2 * 3);
                         expect(log).toHaveBeenCalledWith(a[0], b[0], "0", jasmine.any(Function), jasmine.any(Array));
                         expect(log).toHaveBeenCalledWith(a[0], b[0][0], "0", jasmine.any(Array));
@@ -388,7 +388,7 @@ describe("core", function () {
                         var a = {};
                         var b = {c: {}};
                         expect(function () {
-                            deepCopy(a, [b], {
+                            deepMerge(a, [b], {
                                 c: {}
                             })
                         }).toThrow(new InvalidArguments.Nested({path: [0, "c"]}));
@@ -408,11 +408,11 @@ describe("core", function () {
                                 "@each": function (subject, value, property, path) {
                                     log.apply(null, path);
                                     if (subject[property] instanceof Object)
-                                        return deepCopy(subject[property], [value], options, path);
+                                        return deepMerge(subject[property], [value], options, path);
                                     return value;
                                 }
                             };
-                            expect(deepCopy(a, [b, c], options)).toBe(a);
+                            expect(deepMerge(a, [b, c], options)).toBe(a);
                             expect(log.calls.count()).toBe(2 * (1 + 1 + 1 + 2 + 1 + 1 + 1));
                             expect(log).toHaveBeenCalledWith("0", "b");
                             expect(log).toHaveBeenCalledWith("0", "b", "c");
@@ -444,11 +444,11 @@ describe("core", function () {
                 it("does not accept more than 2 items", function () {
 
                     expect(function () {
-                        deepCopy({}, [{}], [
+                        deepMerge({}, [{}], [
                             function () {
                             }
                         ]);
-                        deepCopy({}, [{}], [
+                        deepMerge({}, [{}], [
                             function () {
                             },
                             function () {
@@ -458,7 +458,7 @@ describe("core", function () {
                     }).not.toThrow();
 
                     expect(function () {
-                        deepCopy({}, [{}], [
+                        deepMerge({}, [{}], [
                             function () {
                             },
                             function () {
@@ -480,14 +480,14 @@ describe("core", function () {
                         var c = {j: 5, l: 6};
                         var log = jasmine.createSpy();
 
-                        expect(deepCopy(a, [b, c], {
+                        expect(deepMerge(a, [b, c], {
                             "@each": log
                         })).toBe(a);
 
                         var calls = log.calls.count();
                         log.calls.reset();
 
-                        expect(deepCopy(a, [b, c], [log])).toBe(a);
+                        expect(deepMerge(a, [b, c], [log])).toBe(a);
                         expect(calls).toEqual(log.calls.count());
                     });
 
@@ -502,7 +502,7 @@ describe("core", function () {
                         var c = {j: 5, l: 6};
                         var log = jasmine.createSpy();
 
-                        expect(deepCopy(a, [b, c], {
+                        expect(deepMerge(a, [b, c], {
                             "@once": log,
                             "@each": log
                         })).toBe(a);
@@ -510,7 +510,7 @@ describe("core", function () {
                         var calls = log.calls.count();
                         log.calls.reset();
 
-                        expect(deepCopy(a, [b, c], [log, log])).toBe(a);
+                        expect(deepMerge(a, [b, c], [log, log])).toBe(a);
                         expect(calls).toEqual(log.calls.count());
 
                     });
