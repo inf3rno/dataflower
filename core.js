@@ -134,66 +134,81 @@ var shallowCopy = function (subject, sources) {
     return subject;
 };
 
-var deepCopy = function (subject, sources, options) {
-
+var deepCopy = function (subject, sources, options, path) {
     if (!(subject instanceof Object))
-        throw new InvalidArguments();
-
+        throw new InvalidArguments.Nested({path: path});
     if (!(sources instanceof Array))
         throw new InvalidArguments();
-
-    if (options === undefined || options === null)
+    if (options === null || options === undefined)
         options = {};
     if (!(options instanceof Object))
-        throw new InvalidArguments();
-
-    var callback,
-        sourceCheck,
-        hasItems = false,
-        itemOptions;
-    if (options instanceof Function)
-        callback = options;
-    else if (options instanceof Array) {
-        if (options[0] instanceof Function) {
-            callback = options[0];
-            sourceCheck = options[1];
-        }
-        else {
-            hasItems = true;
-            itemOptions = options[0];
-            callback = options[1];
-            sourceCheck = options[2];
+        throw new InvalidArguments.Nested({path: path});
+    var once = "@once",
+        each = "@each";
+    if (options instanceof Array) {
+        var array = options;
+        options = {};
+        if (array.length > 2)
+            throw new InvalidArguments.Nested({path: path});
+        if (array.length == 1)
+            options[each] = array[0];
+        else if (array.length == 2) {
+            options[once] = array[0];
+            options[each] = array[1];
         }
     }
-    else {
-        sourceCheck = options[""];
-    }
+    if (options[once] !== undefined && !(options[once] instanceof Function))
+        throw new InvalidArguments.Nested({path: path});
+    if (options[each] !== undefined && !(options[each] instanceof Object))
+        throw new InvalidArguments.Nested({path: path});
 
-    for (var index in sources) {
-        var source = sources[index];
+    var index,
+        source,
+        propertiesDone,
+        property,
+        result,
+        propertyOptions;
+
+    if (!path)
+        path = [];
+
+    var eachProperties = function () {
+        var propertyDepth = path.length;
+        for (property in source) {
+            path[propertyDepth] = property;
+            propertyOptions = options[each];
+            if (options.hasOwnProperty(property))
+                propertyOptions = options[property];
+            if (propertyOptions === undefined)
+                subject[property] = source[property];
+            else if (propertyOptions instanceof Function) {
+                result = propertyOptions(subject, source[property], property, path);
+                if (result !== undefined) {
+                    subject[property] = result;
+                    delete (result);
+                }
+            }
+            else
+                deepCopy(subject[property], [source[property]], propertyOptions, path);
+        }
+        path.length = propertyDepth;
+        propertiesDone = true;
+    };
+
+    var isRoot = !path.length;
+    for (index in sources) {
+        if (isRoot)
+            path[0] = index;
+        source = sources[index];
         if (source === undefined || source === null)
             continue;
         if (!(source instanceof Object))
-            throw new InvalidArguments();
-        if (sourceCheck)
-            sourceCheck(subject, source, index);
-        for (var property in source) {
-            var value = source[property];
-            if (callback || hasItems) {
-                if (callback) {
-                    var result = callback(subject, value, property);
-                    if (result !== undefined)
-                        subject[property] = result;
-                }
-                if (hasItems)
-                    for (var subIndex in subject)
-                        deepCopy(subject[subIndex], [value], itemOptions);
-            }
-            else if (options.hasOwnProperty(property))
-                deepCopy(subject[property], [value], options[property]);
-            else
-                subject[property] = value;
-        }
+            throw new InvalidArguments.Nested({path: path});
+        propertiesDone = false;
+        if (options[once])
+            options[once](subject, source, index, eachProperties, path);
+        if (!propertiesDone)
+            eachProperties();
     }
     return subject;
 };
@@ -274,15 +289,25 @@ var UserError = extend(Error, {
 });
 
 var InvalidConfiguration = UserError.extend({
-    name: "InvalidConfiguration"
+    name: "InvalidConfiguration",
+    message: "Invalid configuration"
 });
 
 var InvalidArguments = UserError.extend({
-    name: "InvalidArguments"
+    name: "InvalidArguments",
+    message: "Invalid arguments."
 });
 
 InvalidArguments.Empty = InvalidArguments.extend({
     message: "Arguments required."
+});
+InvalidArguments.Nested = InvalidArguments.extend({
+    path: undefined,
+    configure: function () {
+        InvalidArguments.prototype.configure.call(this);
+        if (this.path instanceof Array)
+            this.message = "Invalid arguments on path [" + this.path.join(",") + "]";
+    }
 });
 
 var InvalidResult = UserError.extend({
@@ -321,14 +346,15 @@ var StackTrace = Base.extend({
     merge: function (source) {
         return deepCopy(this, toArray(arguments), {
             frames: [
-                function (frames, frame, index) {
+                function (frames, sourceFrames, index, each, path) {
+                    if (!(sourceFrames instanceof Array))
+                        throw new StackTrace.StackFramesRequired();
+                    each();
+                    frames.push.apply(frames, sourceFrames);
+                },
+                function (frames, frame, index, path) {
                     if (!(frame instanceof StackFrame))
                         throw new StackTrace.StackFrameRequired();
-                    frames.push(frame);
-                },
-                function (subject, frames, property) {
-                    if (!(frames instanceof Array))
-                        throw new StackTrace.StackFramesRequired();
                 }
             ]
         });
@@ -467,39 +493,31 @@ var Wrapper = Base.extend({
         this.properties = clone(this.properties);
     },
     merge: function (source) {
-        for (var sourceIndex in arguments) {
-            source = arguments[sourceIndex];
-            if (source === undefined || source === null)
-                continue;
-            if (!(source instanceof Object))
-                throw new InvalidArguments();
-
-            if (source.preprocessors !== undefined) {
-                if (!(source.preprocessors instanceof Array))
-                    throw new Wrapper.ArrayRequired();
-                for (var preprocessorIndex in source.preprocessors)
-                    if (!(source.preprocessors[preprocessorIndex] instanceof Function))
+        return deepCopy(this, toArray(arguments), {
+            preprocessors: [
+                function (preprocessors, sourcePreprocessors, index, each) {
+                    if (!(sourcePreprocessors instanceof Array))
+                        throw new Wrapper.ArrayRequired();
+                    each();
+                    preprocessors.push.apply(preprocessors, sourcePreprocessors);
+                },
+                function (preprocessors, preprocessor) {
+                    if (!(preprocessor instanceof Function))
                         throw new Wrapper.PreprocessorRequired();
-                this.preprocessors.push.apply(this.preprocessors, source.preprocessors);
-            }
-
-            if (source.done !== undefined && !(source.done instanceof Function))
-                throw new Wrapper.FunctionRequired();
-
-            if (source.algorithm !== undefined && !(source.algorithm instanceof Function))
-                throw new Wrapper.AlgorithmRequired();
-
-            if (source.properties !== undefined) {
-                if (!(source.properties instanceof Object))
-                    throw new Wrapper.PropertiesRequired();
-                shallowCopy(this.properties, [source.properties]);
-            }
-            shallowCopy(this, [source, {
-                preprocessors: this.preprocessors,
-                properties: this.properties
-            }]);
-        }
-        return this;
+                }
+            ],
+            done: function (wrapper, done) {
+                if (!(done instanceof Function))
+                    throw new Wrapper.FunctionRequired();
+                return done;
+            },
+            algorithm: function (wrapper, algorithm) {
+                if (!(algorithm instanceof Function))
+                    throw new Wrapper.AlgorithmRequired();
+                return algorithm;
+            },
+            properties: []
+        });
     },
     toFunction: function () {
         var func = this.algorithm(this);
@@ -586,9 +604,6 @@ var Wrapper = Base.extend({
     }),
     AlgorithmRequired: InvalidConfiguration.extend({
         message: "Function required."
-    }),
-    PropertiesRequired: InvalidConfiguration.extend({
-        message: "Native Object instance required."
     }),
     InvalidAlgorithm: InvalidConfiguration.extend({
         message: "Invalid algorithm given."

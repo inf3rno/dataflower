@@ -86,17 +86,10 @@ describe("core", function () {
                     catch (err) {
                         nativeError = err;
                     }
-
                     var composite = new CompositeError({
                         message: "message",
                         native: nativeError
-                    }).merge({
-                            stackTrace: new StackTrace({
-                                toString: function () {
-                                    return "stack";
-                                }
-                            })
-                        });
+                    });
                     expect(composite.stack).toContain(nativeError.stack);
                 });
 

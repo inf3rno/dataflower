@@ -61,7 +61,7 @@ describe("core", function () {
 
                     expect(function () {
                         new Wrapper().merge("a");
-                    }).toThrow(new InvalidArguments());
+                    }).toThrow(new InvalidArguments.Nested({path: [0]}));
                 });
 
 
@@ -142,11 +142,12 @@ describe("core", function () {
                         new Wrapper().merge({
                             properties: undefined
                         });
+                        new Wrapper().merge({
+                            properties: null
+                        });
                     }).not.toThrow();
 
-
                     [
-                        null,
                         "string",
                         1,
                         false
@@ -155,7 +156,7 @@ describe("core", function () {
                                 new Wrapper().merge({
                                     properties: invalidProperties
                                 })
-                            }).toThrow(new Wrapper.PropertiesRequired());
+                            }).toThrow(new InvalidArguments.Nested({path: [0, "properties"]}));
                         });
                 });
 

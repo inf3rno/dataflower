@@ -8,6 +8,7 @@ var df = require("dataflower"),
     watch = df.watch,
     HashSet = df.HashSet,
     shallowCopy = df.shallowCopy,
+    deepCopy = df.deepCopy,
     toArray = df.toArray;
 
 var Subscription = HashSet.extend({
@@ -18,23 +19,13 @@ var Subscription = HashSet.extend({
         this.configure();
     },
     merge: function (source) {
-        for (var sourceIndex in arguments) {
-            source = arguments[sourceIndex];
-            if (source === undefined || source === null)
-                continue;
-            if (!(source instanceof Object))
-                throw new InvalidArguments();
-            if (source.items !== undefined) {
-                if (!(source.items instanceof Array))
+        return deepCopy(this, toArray(arguments), {
+            items: function (subscription, items) {
+                if (!(items instanceof Array))
                     throw new Subscription.ItemsRequired();
-                this.addAll.apply(this, source.items);
+                subscription.addAll.apply(subscription, items);
             }
-            shallowCopy(this, [
-                source,
-                {items: this.items}
-            ]);
-        }
-        return this;
+        });
     },
     configure: function () {
     },
