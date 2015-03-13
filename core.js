@@ -16,9 +16,24 @@ var echo = function (message) {
     return message;
 };
 
-var last = 0;
+var lastId = 0;
 var id = function () {
-    return ++last;
+    return ++lastId;
+};
+Object.defineProperty(id, "last", {
+    configurable: false,
+    enumerable: true,
+    get: function () {
+        return lastId;
+    }
+});
+id.set = function (subject) {
+    Object.defineProperty(subject, "id", {
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        value: id()
+    });
 };
 
 var watchObserver = "@observer";
@@ -90,6 +105,9 @@ var extend = function (Ancestor, properties, staticProperties) {
     if (arguments.length > 3)
         throw new InvalidArguments();
     var Descendant = function () {
+        id.set(this);
+        if (this.build instanceof Function)
+            this.build();
         if (this.init instanceof Function)
             this.init.apply(this, arguments);
     };
@@ -331,22 +349,15 @@ var toArray = function (subject) {
 
 var Base = extend(Object, {
     init: function () {
-        this.build();
         this.merge.apply(this, arguments);
         this.configure();
     },
     clone: function () {
         var instance = Object.create(this);
-        instance.build();
+        id.set(instance);
+        if (instance.build instanceof Function)
+            instance.build();
         return instance;
-    },
-    build: function () {
-        Object.defineProperty(this, "id", {
-            configurable: false,
-            enumerable: false,
-            writable: false,
-            value: id()
-        });
     },
     merge: function (source) {
         return shallowMerge(this, toArray(arguments));
@@ -365,7 +376,6 @@ var UserError = extend(Error, {
     stackTrace: undefined,
     init: Base.prototype.init,
     clone: Base.prototype.clone,
-    build: Base.prototype.build,
     merge: Base.prototype.merge,
     configure: function () {
         var nativeError = new Error();
@@ -442,7 +452,6 @@ var StackTrace = Base.extend({
     frames: [],
     string: undefined,
     build: function () {
-        Base.prototype.build.call(this);
         this.frames = shallowClone(this.frames);
     },
     merge: function (source) {
@@ -588,9 +597,8 @@ var Wrapper = Base.extend({
     },
     properties: {},
     build: function () {
-        Base.prototype.build.call(this);
-        this.preprocessors = clone(this.preprocessors);
-        this.properties = clone(this.properties);
+        this.preprocessors = shallowClone(this.preprocessors);
+        this.properties = shallowClone(this.properties);
     },
     merge: function (source) {
         return deepMerge(this, toArray(arguments), {
@@ -795,11 +803,9 @@ var StackStringParser = Base.extend({
 var HashSet = Base.extend({
     items: {},
     init: function () {
-        this.build();
         this.configure.apply(this, arguments);
     },
     build: function () {
-        Base.prototype.build.call(this);
         var inheritedItems = this.toArray();
         this.items = {};
         this.addAll.apply(this, inheritedItems);

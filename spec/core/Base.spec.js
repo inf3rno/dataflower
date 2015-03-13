@@ -71,7 +71,7 @@ describe("core", function () {
 
             describe("init", function () {
 
-                it("calls build, merge, configure in this order", function () {
+                it("calls merge, configure in this order", function () {
 
                     var log = jasmine.createSpy();
                     var Descendant = Base.extend({
@@ -95,12 +95,12 @@ describe("core", function () {
 
             });
 
-            describe("build", function () {
+            describe("constructor", function () {
 
                 it("sets an unique, non-enumerable, non-configurable id on the instance", function () {
 
                     var o = {};
-                    Base.prototype.build.call(o);
+                    Base.call(o);
                     expect(o.id).toBeDefined();
                     expect(o.id).not.toBe(new Base().id);
                 });

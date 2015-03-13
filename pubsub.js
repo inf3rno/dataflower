@@ -13,7 +13,6 @@ var df = require("dataflower"),
 var Subscription = HashSet.extend({
     context: undefined,
     init: function () {
-        this.build();
         this.merge.apply(this, arguments);
         this.configure();
     },
