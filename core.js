@@ -21,7 +21,7 @@ var id = function () {
     return ++last;
 };
 
-var watchObserver = "_observer";
+var watchObserver = "@observer";
 
 var watch = function (subject, property, listener) {
     if (!(subject instanceof Object))
@@ -31,7 +31,7 @@ var watch = function (subject, property, listener) {
     if (!(listener instanceof Function))
         throw new InvalidArguments();
 
-    var observer = subject._observer;
+    var observer = subject[watchObserver];
     if (!subject.hasOwnProperty(watchObserver)) {
         observer = new EventEmitter();
         observer.values = {};
