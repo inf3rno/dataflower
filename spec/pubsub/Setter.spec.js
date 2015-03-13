@@ -73,7 +73,7 @@ describe("pubsub", function () {
                         subject: subject,
                         property: "x"
                     });
-                    setter.receive([123]);
+                    setter.activate([123]);
                     expect(subject.x).toBe(123);
                 });
 

@@ -107,7 +107,7 @@ describe("pubsub", function () {
                     expect(log.calls.first().object).toBe(eventEmitter);
 
                     var context = {};
-                    listener.publish([], context);
+                    listener.activate([], context);
                     expect(log.calls.mostRecent().object).toBe(eventEmitter);
                 });
 

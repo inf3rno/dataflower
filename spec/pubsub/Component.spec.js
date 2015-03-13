@@ -22,24 +22,24 @@ describe("pubsub", function () {
 
             describe("wrapper", function () {
 
-                it("calls handleWrapper with the parameters and the context", function () {
+                it("calls activate with the parameters and the context", function () {
 
                     var component = new Component({
-                        handleWrapper: jasmine.createSpy().and.returnValue(123)
+                        activate: jasmine.createSpy().and.returnValue(123)
                     });
 
                     var wrapper = component.toFunction();
-                    expect(component.handleWrapper).not.toHaveBeenCalled();
+                    expect(component.activate).not.toHaveBeenCalled();
                     expect(wrapper(1, 2, 3)).toBe(123);
                     var global = (function () {
                         return this;
                     })();
-                    expect(component.handleWrapper).toHaveBeenCalledWith([1, 2, 3], global);
+                    expect(component.activate).toHaveBeenCalledWith([1, 2, 3], global);
                     var o = {
                         m: wrapper
                     };
                     o.m(4, 5, 6);
-                    expect(component.handleWrapper).toHaveBeenCalledWith([4, 5, 6], o);
+                    expect(component.activate).toHaveBeenCalledWith([4, 5, 6], o);
                 });
 
                 it("has a component property", function () {

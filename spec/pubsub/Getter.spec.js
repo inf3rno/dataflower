@@ -84,19 +84,19 @@ describe("pubsub", function () {
                     });
                     expect(log).not.toHaveBeenCalled();
 
-                    getter.publish([]);
+                    getter.activate([]);
                     expect(log).toHaveBeenCalledWith(undefined);
                     expect(log.calls.first().object).toBe(subject);
 
                     subject.x = 123;
-                    getter.publish([]);
+                    getter.activate([]);
                     expect(log).toHaveBeenCalledWith(123);
 
-                    getter.publish([1, 2, 3]);
+                    getter.activate([1, 2, 3]);
                     expect(log).toHaveBeenCalledWith(123, 1, 2, 3);
 
                     var context = {};
-                    getter.publish([], context);
+                    getter.activate([], context);
                     expect(log.calls.mostRecent().object).toBe(subject);
                 });
 

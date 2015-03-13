@@ -29,7 +29,7 @@ describe("pubsub", function () {
 
         });
 
-        describe("receive", function () {
+        describe("activate", function () {
 
             it("requires the array of parameters", function () {
 
@@ -37,7 +37,7 @@ describe("pubsub", function () {
                     callback: dummy
                 });
                 expect(function () {
-                    spy.receive();
+                    spy.activate();
                 }).toThrow(new Spy.ArrayRequired());
             });
 
@@ -71,7 +71,7 @@ describe("pubsub", function () {
                         return 123;
                     }
                 });
-                expect(spy.receive([], {})).toBe(123);
+                expect(spy.activate([], {})).toBe(123);
             });
 
             it("publishes the result of the call on the done Publisher", function () {
@@ -94,7 +94,7 @@ describe("pubsub", function () {
                 expect(log).not.toHaveBeenCalled();
 
                 var o = {};
-                spy.receive([], o);
+                spy.activate([], o);
 
                 expect(log).toHaveBeenCalledWith(123);
                 expect(log.calls.first().object).toBe(o);
@@ -122,7 +122,7 @@ describe("pubsub", function () {
 
                 var o = {};
                 expect(function () {
-                    spy.receive([], o);
+                    spy.activate([], o);
                 }).toThrow(err);
 
                 expect(log).toHaveBeenCalledWith(err);

@@ -161,32 +161,46 @@ describe("pubsub", function () {
 
         describe("notify", function () {
 
+            it("calls activate and returns the result", function () {
+
+                var subscription = new Subscription({
+                    activate: jasmine.createSpy().and.returnValue(123)
+                });
+                expect(subscription.notify([1, 2, 3], {x: 1})).toBe(123);
+                expect(subscription.activate).toHaveBeenCalledWith([1, 2, 3], {x: 1});
+            });
+
+        });
+
+
+        describe("activate", function () {
+
             it("requires the array of arguments", function () {
 
                 var subscription = new Subscription();
                 expect(function () {
-                    subscription.notify();
+                    subscription.activate();
                 }).toThrow(new Subscription.ArrayRequired());
 
             });
 
-            it("notifies the Subscribers in the context of the actual Publisher", function () {
+            it("activates the Subscribers in the context of the actual Publisher", function () {
 
                 var publisher = new Publisher(),
                     subscriber = new Subscriber({
                         callback: dummy
                     });
-                subscriber.receive = jasmine.createSpy();
+                subscriber.activate = jasmine.createSpy();
 
                 var subscription = new Subscription({
                     items: [publisher, subscriber]
                 });
 
-                expect(subscriber.receive).not.toHaveBeenCalled();
-                subscription.notify([1, 2, 3]);
-                expect(subscriber.receive).toHaveBeenCalledWith([1, 2, 3], undefined);
-                subscription.notify([4, 5, 6], {});
-                expect(subscriber.receive).toHaveBeenCalledWith([4, 5, 6], {});
+                expect(subscriber.activate).not.toHaveBeenCalled();
+                subscription.activate([1, 2, 3]);
+                expect(subscriber.activate).toHaveBeenCalledWith([1, 2, 3], undefined);
+                subscription.activate([4, 5, 6], {});
+                expect(subscriber.activate).toHaveBeenCalledWith([4, 5, 6], {});
             });
 
             it("notifies the Subscribers in the context if given", function () {
@@ -195,7 +209,7 @@ describe("pubsub", function () {
                     subscriber = new Subscriber({
                         callback: dummy
                     });
-                subscriber.receive = jasmine.createSpy();
+                subscriber.activate = jasmine.createSpy();
 
                 var o = {};
                 var subscription = new Subscription({
@@ -203,11 +217,11 @@ describe("pubsub", function () {
                     context: o
                 });
 
-                expect(subscriber.receive).not.toHaveBeenCalled();
-                subscription.notify([1, 2, 3]);
-                expect(subscriber.receive).toHaveBeenCalledWith([1, 2, 3], o);
-                subscription.notify([4, 5, 6], {});
-                expect(subscriber.receive).toHaveBeenCalledWith([4, 5, 6], o);
+                expect(subscriber.activate).not.toHaveBeenCalled();
+                subscription.activate([1, 2, 3]);
+                expect(subscriber.activate).toHaveBeenCalledWith([1, 2, 3], o);
+                subscription.activate([4, 5, 6], {});
+                expect(subscriber.activate).toHaveBeenCalledWith([4, 5, 6], o);
             });
 
         });

@@ -75,7 +75,7 @@ describe("pubsub", function () {
                         subject: mockEventEmitter,
                         event: "x"
                     });
-                    emitter.receive([1, 2, 3]);
+                    emitter.activate([1, 2, 3]);
                     expect(mockEventEmitter.emit).toHaveBeenCalledWith("x", 1, 2, 3);
                 });
 

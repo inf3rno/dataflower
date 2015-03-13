@@ -29,7 +29,7 @@ describe("pubsub", function () {
 
         });
 
-        describe("receive", function () {
+        describe("activate", function () {
 
             it("requires the array of parameters", function () {
 
@@ -37,7 +37,7 @@ describe("pubsub", function () {
                     callback: dummy
                 });
                 expect(function () {
-                    task.receive();
+                    task.activate();
                 }).toThrow(new Task.ArrayRequired());
             });
 
@@ -71,17 +71,17 @@ describe("pubsub", function () {
                     callback: log
                 });
                 expect(log).not.toHaveBeenCalled();
-                task.receive([1, 2, 3]);
+                task.activate([1, 2, 3]);
                 expect(log).toHaveBeenCalledWith(jasmine.any(Function), 1, 2, 3);
                 var o = {};
-                task.receive([4, 5, 6], o);
+                task.activate([4, 5, 6], o);
                 expect(log).toHaveBeenCalledWith(jasmine.any(Function), 4, 5, 6);
                 expect(log.calls.mostRecent().object).toBe(o);
             });
 
-            describe("the Function given to the callback by receive", function () {
+            describe("the Function given to the callback by activate", function () {
 
-                it("calls publish on the error or the done Publisher depending on whether the first param is falsy", function () {
+                it("calls activate on the error or the done Publisher depending on whether the first param is falsy", function () {
 
                     var fn;
                     var o = {};
@@ -91,9 +91,9 @@ describe("pubsub", function () {
                             expect(this).toBe(o);
                         }
                     });
-                    var done = spyOn(task.done, "publish");
-                    var error = spyOn(task.error, "publish");
-                    task.receive([], o);
+                    var done = spyOn(task.done, "activate");
+                    var error = spyOn(task.error, "activate");
+                    task.activate([], o);
 
                     expect(done).not.toHaveBeenCalled();
                     expect(error).not.toHaveBeenCalled();

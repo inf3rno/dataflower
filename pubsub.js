@@ -10,6 +10,38 @@ var df = require("dataflower"),
     deepMerge = df.deepMerge,
     toArray = df.toArray;
 
+var Component = Base.extend({
+    subscriptions: undefined,
+    wrapper: undefined,
+    configure: function () {
+        this.subscriptions = new HashSet();
+    },
+    toFunction: function () {
+        if (!this.wrapper) {
+            var component = this;
+            var properties = {
+                component: this
+            };
+            for (var property in this)
+                if (this[property] instanceof Component)
+                    properties[property] = this[property].toFunction();
+            this.wrapper = new Wrapper({
+                done: function () {
+                    return component.activate(toArray(arguments), this);
+                },
+                properties: properties
+            }).toFunction();
+        }
+        return this.wrapper;
+    },
+    activate: function (parameters, context) {
+    }
+}, {
+    SubscriptionRequired: InvalidArguments.extend({
+        message: "Subscription instance required."
+    })
+});
+
 var Subscription = HashSet.extend({
     context: undefined,
     init: function () {
@@ -28,12 +60,15 @@ var Subscription = HashSet.extend({
     configure: function () {
     },
     notify: function (parameters, context) {
+        return this.activate.apply(this, arguments);
+    },
+    activate: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Subscription.ArrayRequired();
         for (var id in this.items) {
             var item = this.items[id];
             if (item instanceof Subscriber)
-                item.receive(parameters, this.context || context);
+                item.activate(parameters, this.context || context);
         }
     },
     add: function (item) {
@@ -67,48 +102,16 @@ var Subscription = HashSet.extend({
     })
 });
 
-var Component = Base.extend({
-    subscriptions: undefined,
-    wrapper: undefined,
-    configure: function () {
-        this.subscriptions = new HashSet();
-    },
-    toFunction: function () {
-        if (!this.wrapper) {
-            var component = this;
-            var properties = {
-                component: this
-            };
-            for (var property in this)
-                if (this[property] instanceof Component)
-                    properties[property] = this[property].toFunction();
-            this.wrapper = new Wrapper({
-                done: function () {
-                    return component.handleWrapper(toArray(arguments), this);
-                },
-                properties: properties
-            }).toFunction();
-        }
-        return this.wrapper;
-    },
-    handleWrapper: function (parameters, context) {
-    }
-}, {
-    SubscriptionRequired: InvalidArguments.extend({
-        message: "Subscription instance required."
-    })
-});
-
 var Publisher = Component.extend({
-    handleWrapper: function (parameters, context) {
-        return this.publish(parameters, context);
-    },
     publish: function (parameters, context) {
+        return this.activate(parameters, context);
+    },
+    activate: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Publisher.ArrayRequired();
         for (var id in this.subscriptions.items) {
             var subscription = this.subscriptions.items[id];
-            subscription.notify(parameters, context);
+            subscription.activate(parameters, context);
         }
     }
 }, {
@@ -124,10 +127,10 @@ var Subscriber = Component.extend({
             throw new Subscriber.CallbackRequired();
         Component.prototype.configure.call(this);
     },
-    handleWrapper: function (parameters, context) {
-        return this.receive(parameters, context);
-    },
     receive: function (parameters, context) {
+        return this.activate.apply(this, arguments);
+    },
+    activate: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Subscriber.ArrayRequired();
         this.callback.apply(context, parameters);
@@ -152,8 +155,8 @@ var Listener = Publisher.extend({
             throw new Listener.EventRequired();
         this.subject.on(this.event, this.toFunction());
     },
-    publish: function (parameters, context) {
-        Publisher.prototype.publish.call(this, parameters, this.subject);
+    activate: function (parameters, context) {
+        Publisher.prototype.activate.call(this, parameters, this.subject);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -199,12 +202,12 @@ var Getter = Publisher.extend({
         if (typeof(this.property) != "string")
             throw new Getter.PropertyRequired();
     },
-    publish: function (parameters, context) {
+    activate: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Publisher.ArrayRequired();
         parameters = clone(parameters);
         parameters.unshift(this.subject[this.property]);
-        Publisher.prototype.publish.call(this, parameters, this.subject);
+        Publisher.prototype.activate.call(this, parameters, this.subject);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -246,8 +249,8 @@ var Watcher = Publisher.extend({
             throw new Watcher.PropertyRequired();
         watch(this.subject, this.property, this.toFunction());
     },
-    publish: function (parameters, context) {
-        Publisher.prototype.publish.call(this, parameters, this.subject);
+    activate: function (parameters, context) {
+        Publisher.prototype.activate.call(this, parameters, this.subject);
     }
 }, {
     SubjectRequired: InvalidConfiguration.extend({
@@ -268,10 +271,10 @@ var Task = Subscriber.extend({
         this.done = new Publisher();
         this.error = new Publisher();
     },
-    receive: function (parameters, context) {
+    activate: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Task.ArrayRequired();
-        this.called.publish(parameters, context);
+        this.called.activate(parameters, context);
         parameters = clone(parameters);
         parameters.unshift(function (error, results) {
             var publisher = this.error,
@@ -280,7 +283,7 @@ var Task = Subscriber.extend({
                 publisher = this.done;
                 parameters.shift();
             }
-            publisher.publish(parameters, context);
+            publisher.activate(parameters, context);
         }.bind(this));
         this.callback.apply(context, parameters);
     }
@@ -296,18 +299,18 @@ var Spy = Subscriber.extend({
         this.done = new Publisher();
         this.error = new Publisher();
     },
-    receive: function (parameters, context) {
+    activate: function (parameters, context) {
         if (!(parameters instanceof Array))
             throw new Spy.ArrayRequired();
-        this.called.publish(parameters, context);
+        this.called.activate(parameters, context);
         try {
             var result = this.callback.apply(context, parameters);
         }
         catch (error) {
-            this.error.publish([error], context);
+            this.error.activate([error], context);
             throw error;
         }
-        this.done.publish([result], context);
+        this.done.activate([result], context);
         return result;
     }
 });
