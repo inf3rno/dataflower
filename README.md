@@ -29,7 +29,7 @@ No real documentation yet.
 
 ### Installation
 
-Current version is 0.6.3.
+Current version is 0.7.0.
 
 *I'll use auto-versioning after I started to use a nested git branching model. Until then the versioning will be erratic.*
 
