@@ -4,7 +4,8 @@ var df = require("dataflower"),
     Listener = ps.Listener,
     Subscriber = ps.Subscriber,
     Subscription = ps.Subscription,
-    EventEmitter = require("events").EventEmitter;
+    EventEmitter = require("events").EventEmitter,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -48,8 +49,7 @@ describe("pubsub", function () {
                 it("accepts only string as event", function () {
 
                     var mockEventEmitter = {
-                        on: function () {
-                        }
+                        on: dummy
                     };
 
                     [
@@ -58,8 +58,7 @@ describe("pubsub", function () {
                         123,
                         false,
                         {},
-                        function () {
-                        }
+                        dummy
                     ].forEach(function (invalidEvent) {
                             expect(function () {
                                 new Listener({

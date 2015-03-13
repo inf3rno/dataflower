@@ -1,6 +1,7 @@
 var df = require("dataflower"),
     shallowMerge = df.shallowMerge,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    dummy = df.dummy;
 
 describe("core", function () {
 
@@ -12,12 +13,8 @@ describe("core", function () {
                 shallowMerge({}, []);
                 shallowMerge({}, [{}]);
                 shallowMerge({}, [{}, {}]);
-                shallowMerge(function () {
-                }, [function () {
-                }, function () {
-                }]);
-                shallowMerge(new Date(), [new RegExp(), function () {
-                }, []]);
+                shallowMerge(dummy, [dummy, dummy]);
+                shallowMerge(new Date(), [new RegExp(), dummy, []]);
                 shallowMerge({}, [null]);
                 shallowMerge({}, [undefined]);
             }).not.toThrow();

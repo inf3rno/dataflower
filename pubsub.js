@@ -7,7 +7,6 @@ var df = require("dataflower"),
     clone = df.clone,
     watch = df.watch,
     HashSet = df.HashSet,
-    shallowMerge = df.shallowMerge,
     deepMerge = df.deepMerge,
     toArray = df.toArray;
 

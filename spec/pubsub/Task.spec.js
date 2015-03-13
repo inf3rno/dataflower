@@ -3,7 +3,8 @@ var df = require("dataflower"),
     Subscriber = ps.Subscriber,
     Task = ps.Task,
     Publisher = ps.Publisher,
-    Subscription = ps.Subscription;
+    Subscription = ps.Subscription,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -19,8 +20,7 @@ describe("pubsub", function () {
             it("creates an error and a done Publisher", function () {
 
                 var task = new Task({
-                    callback: function () {
-                    }
+                    callback: dummy
                 });
                 expect(task.called instanceof Publisher).toBe(true);
                 expect(task.done instanceof Publisher).toBe(true);
@@ -34,8 +34,7 @@ describe("pubsub", function () {
             it("requires the array of parameters", function () {
 
                 var task = new Task({
-                    callback: function () {
-                    }
+                    callback: dummy
                 });
                 expect(function () {
                     task.receive();
@@ -46,8 +45,7 @@ describe("pubsub", function () {
 
                 var log = jasmine.createSpy();
                 var task = new Task({
-                    callback: function () {
-                    }
+                    callback: dummy
                 });
                 new Subscription({
                     items: [

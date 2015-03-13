@@ -1,5 +1,6 @@
 var df = require("dataflower"),
-    shallowClone = df.shallowClone;
+    shallowClone = df.shallowClone,
+    dummy = df.dummy;
 
 describe("core", function () {
 
@@ -13,8 +14,7 @@ describe("core", function () {
                 123,
                 true,
                 false,
-                function () {
-                }
+                dummy
             ].forEach(function (value) {
                     expect(shallowClone(value)).toBe(value);
                 });

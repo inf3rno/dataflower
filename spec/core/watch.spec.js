@@ -1,6 +1,7 @@
 var df = require("dataflower"),
     watch = df.watch,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    dummy = df.dummy;
 
 describe("core", function () {
 
@@ -9,8 +10,7 @@ describe("core", function () {
         it("accepts only Object instances as subject", function () {
 
             var property = "x";
-            var listener = function () {
-            };
+            var listener = dummy;
 
             [
                 null,
@@ -28,8 +28,7 @@ describe("core", function () {
         it("accepts only strings as property", function () {
 
             var subject = {};
-            var listener = function () {
-            };
+            var listener = dummy;
 
             [
                 null,
@@ -37,8 +36,7 @@ describe("core", function () {
                 123,
                 false,
                 {},
-                function () {
-                }
+                dummy
             ].forEach(function (invalidProperty) {
                     expect(function () {
                         watch(subject, invalidProperty, listener);
@@ -69,8 +67,7 @@ describe("core", function () {
 
             var subject = {};
             var property = "x";
-            var listener = function () {
-            };
+            var listener = dummy;
 
             expect(function () {
                 watch(subject, property, listener);
@@ -105,8 +102,7 @@ describe("core", function () {
 
             var subject = [];
             var property = "length";
-            var listener = function () {
-            };
+            var listener = dummy;
 
             expect(function () {
                 watch(subject, property, listener);

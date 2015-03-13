@@ -2,7 +2,8 @@ var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     Subscriber = ps.Subscriber,
     Emitter = ps.Emitter,
-    EventEmitter = require("events").EventEmitter;
+    EventEmitter = require("events").EventEmitter,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -54,8 +55,7 @@ describe("pubsub", function () {
                         123,
                         false,
                         {},
-                        function () {
-                        }
+                        dummy
                     ].forEach(function (invalidEvent) {
                             expect(function () {
                                 new Emitter({

@@ -3,7 +3,8 @@ var df = require("dataflower"),
     Subscriber = ps.Subscriber,
     Spy = ps.Spy,
     Publisher = ps.Publisher,
-    Subscription = ps.Subscription;
+    Subscription = ps.Subscription,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -19,8 +20,7 @@ describe("pubsub", function () {
             it("creates an error and a done Publisher", function () {
 
                 var spy = new Spy({
-                    callback: function () {
-                    }
+                    callback: dummy
                 });
                 expect(spy.called instanceof Publisher).toBe(true);
                 expect(spy.done instanceof Publisher).toBe(true);
@@ -34,8 +34,7 @@ describe("pubsub", function () {
             it("requires the array of parameters", function () {
 
                 var spy = new Spy({
-                    callback: function () {
-                    }
+                    callback: dummy
                 });
                 expect(function () {
                     spy.receive();

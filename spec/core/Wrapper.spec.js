@@ -1,6 +1,11 @@
 var df = require("dataflower"),
     Wrapper = df.Wrapper,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    dummy = df.dummy,
+    uniqueDummy = function () {
+        return function () {
+        };
+    };
 
 describe("core", function () {
 
@@ -13,8 +18,7 @@ describe("core", function () {
                 it("clones the preprocessors Array", function () {
 
                     var wrapper = new Wrapper({
-                        preprocessors: [function () {
-                        }]
+                        preprocessors: [dummy]
                     });
                     var wrapper2 = Object.create(wrapper);
                     expect(wrapper2.preprocessors).toBe(wrapper.preprocessors);
@@ -72,12 +76,7 @@ describe("core", function () {
                             preprocessors: []
                         });
                         new Wrapper().merge({
-                            preprocessors: [
-                                function () {
-                                },
-                                function () {
-                                }
-                            ]
+                            preprocessors: [dummy, dummy]
                         });
                     }).not.toThrow();
 
@@ -89,11 +88,7 @@ describe("core", function () {
 
                     expect(function () {
                         new Wrapper().merge({
-                            preprocessors: [
-                                function () {
-                                },
-                                {}
-                            ]
+                            preprocessors: [dummy, {}]
                         })
                     }).toThrow(new Wrapper.PreprocessorRequired());
 
@@ -103,8 +98,7 @@ describe("core", function () {
 
                     expect(function () {
                         new Wrapper().merge({
-                            done: function () {
-                            }
+                            done: dummy
                         })
                     }).not.toThrow();
 
@@ -120,8 +114,7 @@ describe("core", function () {
 
                     expect(function () {
                         new Wrapper().merge({
-                            algorithm: function () {
-                            }
+                            algorithm: dummy
                         })
                     }).not.toThrow();
 
@@ -168,16 +161,11 @@ describe("core", function () {
 
                 it("merges pushes preprocessors if given", function () {
 
-                    var x = function () {
-                        },
-                        y = function () {
-                        },
-                        z = function () {
-                        },
-                        q = function () {
-                        },
-                        r = function () {
-                        },
+                    var x = uniqueDummy(),
+                        y = uniqueDummy(),
+                        z = uniqueDummy(),
+                        q = uniqueDummy(),
+                        r = uniqueDummy(),
                         a = [
                             x
                         ],
@@ -197,10 +185,9 @@ describe("core", function () {
 
                 it("overrides done if given", function () {
 
-                    var a = function () {
-                    };
-                    var b = function () {
-                    };
+                    var a = uniqueDummy();
+                    var b = uniqueDummy();
+                    expect(a).not.toBe(b);
                     var o = {
                         done: a
                     };
@@ -212,10 +199,8 @@ describe("core", function () {
 
                 it("overrides algorithm if given", function () {
 
-                    var a = function () {
-                    };
-                    var b = function () {
-                    };
+                    var a = uniqueDummy();
+                    var b = uniqueDummy();
                     var o = {
                         algorithm: a
                     };
@@ -223,6 +208,7 @@ describe("core", function () {
                         algorithm: b
                     });
                     expect(o.algorithm).toBe(b);
+                    expect(a).not.toBe(b);
                 });
 
                 it("merges properties if given", function () {

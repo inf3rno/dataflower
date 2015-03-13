@@ -5,7 +5,8 @@ var ps = require("dataflower/pubsub"),
     publisher = psf.publisher,
     subscribe = psf.subscribe,
     subscriber = psf.subscriber,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    dummy = df.dummy;
 
 describe("pubsub.fluent", function () {
 
@@ -15,8 +16,7 @@ describe("pubsub.fluent", function () {
 
             var subscription = subscribe(
                 publisher().component,
-                subscriber(function () {
-                }).component
+                subscriber(dummy).component
             );
             expect(subscription instanceof Subscription).toBe(true);
         });
@@ -25,8 +25,7 @@ describe("pubsub.fluent", function () {
 
             var subscription = subscribe(
                 publisher().component,
-                subscriber(function () {
-                }).component,
+                subscriber(dummy).component,
                 {}
             );
             expect(subscription instanceof Subscription).toBe(true);
@@ -37,8 +36,7 @@ describe("pubsub.fluent", function () {
             var subscription = new Subscription({
                 items: [
                     publisher().component,
-                    subscriber(function () {
-                    }).component
+                    subscriber(dummy).component
                 ],
                 context: {}
             });
@@ -50,8 +48,7 @@ describe("pubsub.fluent", function () {
             var subscription = subscribe({
                 items: [
                     publisher().component,
-                    subscriber(function () {
-                    }).component
+                    subscriber(dummy).component
                 ],
                 context: {}
             });
@@ -63,19 +60,16 @@ describe("pubsub.fluent", function () {
             var subscription = subscribe({
                 items: [
                     publisher(),
-                    subscriber(function () {
-                    })
+                    subscriber(dummy)
                 ]
             });
             var subscription2 = subscribe(
                 publisher(),
-                subscriber(function () {
-                })
+                subscriber(dummy)
             );
             var subscription3 = subscribe(
                 {},
-                function () {
-                }
+                dummy
             );
             expect(subscription instanceof Subscription).toBe(true);
             expect(subscription2 instanceof Subscription).toBe(true);
@@ -90,8 +84,7 @@ describe("pubsub.fluent", function () {
         it("does not accept more than 3 arguments", function () {
 
             expect(function () {
-                subscribe({}, function () {
-                }, {}, {});
+                subscribe({}, dummy, {}, {});
             }).toThrow(new InvalidArguments());
         });
 

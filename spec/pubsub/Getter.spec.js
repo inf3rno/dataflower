@@ -3,7 +3,8 @@ var df = require("dataflower"),
     Publisher = ps.Publisher,
     Getter = ps.Getter,
     Subscriber = ps.Subscriber,
-    Subscription = ps.Subscription;
+    Subscription = ps.Subscription,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -53,8 +54,7 @@ describe("pubsub", function () {
                         123,
                         false,
                         {},
-                        function () {
-                        }
+                        dummy
                     ].forEach(function (invalidProperty) {
                             expect(function () {
                                 new Getter({

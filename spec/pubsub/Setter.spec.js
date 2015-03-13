@@ -1,7 +1,8 @@
 var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     Subscriber = ps.Subscriber,
-    Setter = ps.Setter;
+    Setter = ps.Setter,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -45,8 +46,7 @@ describe("pubsub", function () {
                 it("accepts only string as property", function () {
 
                     var subject = {
-                        on: function () {
-                        }
+                        on: dummy
                     };
 
                     [
@@ -55,8 +55,7 @@ describe("pubsub", function () {
                         123,
                         false,
                         {},
-                        function () {
-                        }
+                        dummy
                     ].forEach(function (invalidProperty) {
                             expect(function () {
                                 new Setter({

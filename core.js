@@ -9,10 +9,19 @@ var native = {
     console: global.console
 };
 
+var dummy = function () {
+};
+
+var echo = function (message) {
+    return message;
+};
+
 var last = 0;
 var id = function () {
     return ++last;
 };
+
+var watchObserver = "_observer";
 
 var watch = function (subject, property, listener) {
     if (!(subject instanceof Object))
@@ -23,10 +32,10 @@ var watch = function (subject, property, listener) {
         throw new InvalidArguments();
 
     var observer = subject._observer;
-    if (!subject.hasOwnProperty("_observer")) {
+    if (!subject.hasOwnProperty(watchObserver)) {
         observer = new EventEmitter();
         observer.values = {};
-        Object.defineProperty(subject, "_observer", {
+        Object.defineProperty(subject, watchObserver, {
             writable: false,
             enumerable: false,
             configurable: false,
@@ -71,8 +80,8 @@ var unwatch = function (subject, property, listener) {
     if (!(listener instanceof Function))
         throw new InvalidArguments();
 
-    if (subject.hasOwnProperty("_observer"))
-        subject._observer.removeListener(property, listener);
+    if (subject.hasOwnProperty(watchObserver))
+        subject[watchObserver].removeListener(property, listener);
 };
 
 var extend = function (Ancestor, properties, staticProperties) {
@@ -112,6 +121,94 @@ var shallowClone = function (subject) {
     return Object.create(subject);
 };
 
+var deepSubject = "@subject",
+    deepSource = "@source",
+    deepProperty = "@property";
+
+var deepClone = function (subject, options, path) {
+    if (options instanceof Function)
+        throw new InvalidArguments.Nested({path: path});
+    if (options === null || options === undefined)
+        options = {};
+    if (!(options instanceof Object))
+        throw new InvalidArguments.Nested({path: path});
+    if (options instanceof Array) {
+        var array = options;
+        options = {};
+        if (array.length > 2)
+            throw new InvalidArguments.Nested({path: path});
+        if (array.length == 1)
+            options[deepProperty] = array[0];
+        else if (array.length == 2) {
+            options[deepSubject] = array[0];
+            options[deepProperty] = array[1];
+        }
+    }
+    if (options[deepSubject] !== undefined && !(options[deepSubject] instanceof Function))
+        throw new InvalidArguments.Nested({path: path});
+    if (options[deepProperty] !== undefined && !(options[deepProperty] instanceof Object))
+        throw new InvalidArguments.Nested({path: path});
+
+    var instance,
+        propertiesDone,
+        property,
+        propertyOptions,
+        result;
+
+    var nonEnumerableSubject = !(subject instanceof Object) || (subject instanceof Date) || (subject instanceof RegExp) || (subject instanceof Function);
+    var hasEnumerableOption = false;
+    for (var option in options)
+        if (option !== deepSubject) {
+            hasEnumerableOption = true;
+            break;
+        }
+
+    if (!path)
+        path = [];
+
+    var eachProperties = function (newInstance) {
+        if (newInstance !== undefined)
+            instance = newInstance;
+        if (hasEnumerableOption) {
+            if (nonEnumerableSubject)
+                throw new InvalidArguments.Nested({path: path});
+            var propertyDepth = path.length;
+            for (property in subject) {
+                path[propertyDepth] = property;
+                if (property === deepSubject || property === deepProperty)
+                    throw new InvalidArguments.Nested({path: path});
+                propertyOptions = options[deepProperty];
+                if (options.hasOwnProperty(property))
+                    propertyOptions = options[property];
+                if (propertyOptions === undefined)
+                    continue;
+                if (propertyOptions instanceof Function) {
+                    result = propertyOptions(instance, subject[property], property, path);
+                    if (result !== undefined) {
+                        instance[property] = result;
+                        delete (result);
+                    }
+                }
+                else
+                    instance[property] = deepClone(subject[property], propertyOptions, path);
+            }
+            path.length = propertyDepth;
+        }
+        propertiesDone = true;
+    };
+    propertiesDone = false;
+    if (options[deepSubject]) {
+        result = options[deepSubject](subject, eachProperties, path);
+        if (result !== undefined)
+            instance = result;
+    }
+    else
+        instance = shallowClone(subject);
+    if (!propertiesDone)
+        eachProperties();
+    return instance;
+};
+
 var merge = function (subject, source) {
     if (!(subject instanceof Object))
         throw new InvalidArguments();
@@ -143,27 +240,27 @@ var deepMerge = function (subject, sources, options, path) {
         throw new InvalidArguments.Nested({path: path});
     if (!(sources instanceof Array))
         throw new InvalidArguments();
+    if (options instanceof Function)
+        throw new InvalidArguments.Nested({path: path});
     if (options === null || options === undefined)
         options = {};
     if (!(options instanceof Object))
         throw new InvalidArguments.Nested({path: path});
-    var once = "@once",
-        each = "@each";
     if (options instanceof Array) {
         var array = options;
         options = {};
         if (array.length > 2)
             throw new InvalidArguments.Nested({path: path});
         if (array.length == 1)
-            options[each] = array[0];
+            options[deepProperty] = array[0];
         else if (array.length == 2) {
-            options[once] = array[0];
-            options[each] = array[1];
+            options[deepSource] = array[0];
+            options[deepProperty] = array[1];
         }
     }
-    if (options[once] !== undefined && !(options[once] instanceof Function))
+    if (options[deepSource] !== undefined && !(options[deepSource] instanceof Function))
         throw new InvalidArguments.Nested({path: path});
-    if (options[each] !== undefined && !(options[each] instanceof Object))
+    if (options[deepProperty] !== undefined && !(options[deepProperty] instanceof Object))
         throw new InvalidArguments.Nested({path: path});
 
     var index,
@@ -180,9 +277,9 @@ var deepMerge = function (subject, sources, options, path) {
         var propertyDepth = path.length;
         for (property in source) {
             path[propertyDepth] = property;
-            if (property == each || property == once)
+            if (property == deepProperty || property == deepSource)
                 throw new InvalidArguments.Nested({path: path});
-            propertyOptions = options[each];
+            propertyOptions = options[deepProperty];
             if (options.hasOwnProperty(property))
                 propertyOptions = options[property];
             if (propertyOptions === undefined)
@@ -211,8 +308,8 @@ var deepMerge = function (subject, sources, options, path) {
         if (!(source instanceof Object))
             throw new InvalidArguments.Nested({path: path});
         propertiesDone = false;
-        if (options[once])
-            options[once](subject, source, index, eachProperties, path);
+        if (options[deepSource])
+            options[deepSource](subject, source, index, eachProperties, path);
         if (!propertiesDone)
             eachProperties();
     }
@@ -254,8 +351,7 @@ var Base = extend(Object, {
     merge: function (source) {
         return shallowMerge(this, toArray(arguments));
     },
-    configure: function () {
-    }
+    configure: dummy
 }, {
     extend: function (properties, staticProperties) {
         return extend(this, properties, staticProperties);
@@ -347,7 +443,7 @@ var StackTrace = Base.extend({
     string: undefined,
     build: function () {
         Base.prototype.build.call(this);
-        this.frames = clone(this.frames);
+        this.frames = shallowClone(this.frames);
     },
     merge: function (source) {
         return deepMerge(this, toArray(arguments), {
@@ -424,10 +520,8 @@ var Plugin = Base.extend({
     installed: false,
     error: undefined,
     dependencies: undefined,
-    test: function () {
-    },
-    setup: function () {
-    },
+    test: dummy,
+    setup: dummy,
     configure: function () {
         this.dependencies = {};
     },
@@ -538,20 +632,13 @@ var Wrapper = Base.extend({
         return func;
     }
 }, {
-    done: {
-        dummy: function () {
-        },
-        echo: function () {
-            return toArray(arguments);
-        }
-    },
     algorithm: {
         cascade: function (wrapper) {
             return function () {
                 var parameters = toArray(arguments);
                 for (var index in wrapper.preprocessors) {
                     var preprocessor = wrapper.preprocessors[index];
-                    result = preprocessor.apply(this, parameters);
+                    var result = preprocessor.apply(this, parameters);
                     if (!(result instanceof Array))
                         throw new Wrapper.InvalidPreprocessor();
                     parameters = result;
@@ -561,7 +648,7 @@ var Wrapper = Base.extend({
         },
         firstMatch: function (wrapper) {
             return function () {
-                var parameters = arguments,
+                var parameters = toArray(arguments),
                     match;
                 for (var index in wrapper.preprocessors) {
                     var preprocessor = wrapper.preprocessors[index];
@@ -578,7 +665,7 @@ var Wrapper = Base.extend({
         },
         firstMatchCascade: function (wrapper) {
             return function () {
-                var parameters = arguments;
+                var parameters = toArray(arguments);
                 var reduce = function () {
                     var match;
                     for (var index in wrapper.preprocessors) {
@@ -780,12 +867,15 @@ var HashSet = Base.extend({
 
 module.exports = {
     native: native,
+    dummy: dummy,
+    echo: echo,
     id: id,
     watch: watch,
     unwatch: unwatch,
     extend: extend,
     clone: clone,
     shallowClone: shallowClone,
+    deepClone: deepClone,
     merge: merge,
     shallowMerge: shallowMerge,
     deepMerge: deepMerge,

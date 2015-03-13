@@ -13,14 +13,14 @@ describe("core", function () {
                 deepMerge({}, []);
                 deepMerge({}, [], null);
                 deepMerge({}, [], {});
-                deepMerge({}, [], function () {
-                });
             }).not.toThrow();
 
             [
                 "string",
                 123,
-                false
+                false,
+                function () {
+                }
             ].forEach(function (options) {
                     expect(function () {
                         deepMerge({}, [], options);
@@ -65,22 +65,22 @@ describe("core", function () {
             }).toThrow(new InvalidArguments());
         });
 
-        it("throws error when the source contains reserved properties like @once and @each", function () {
+        it("throws error when the source contains reserved properties like @source and @property", function () {
 
             [
                 {
                     source: {
-                        "@each": function () {
+                        "@property": function () {
                         }
                     },
-                    path: [0, "@each"]
+                    path: [0, "@property"]
                 },
                 {
                     source: {
-                        "@once": function () {
+                        "@source": function () {
                         }
                     },
-                    path: [0, "@once"]
+                    path: [0, "@source"]
                 }
             ].forEach(function (options) {
                     expect(function () {
@@ -108,27 +108,27 @@ describe("core", function () {
 
             describe("when it is a non-empty object", function () {
 
-                it("accepts only Functions as @once", function () {
+                it("accepts only Functions as @source", function () {
 
                     var subject = {};
                     var sources = [{}];
 
                     expect(function () {
                         deepMerge(subject, sources, {
-                            "@once": function () {
+                            "@source": function () {
                             }
                         });
                     }).not.toThrow();
 
                     expect(function () {
                         deepMerge(subject, sources, {
-                            "@once": {}
+                            "@source": {}
                         });
                     }).toThrow(new InvalidArguments.Nested());
 
                 });
 
-                describe("which contains @once and @each callbacks", function () {
+                describe("which contains @source and @property callbacks", function () {
 
                     it("turns off the default shallowMerge behavior", function () {
 
@@ -136,24 +136,24 @@ describe("core", function () {
                         var b = {j: 3, k: 4};
                         var c = {j: 5, l: 6};
                         var options = {
-                            "@once": function () {
+                            "@source": function () {
                             },
-                            "@each": function () {
+                            "@property": function () {
                             }
                         };
                         expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(a).toEqual({i: 1, j: 2});
                     });
 
-                    it("calls the @once by each of the sources", function () {
+                    it("calls the @source by each of the sources", function () {
 
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
                         var c = {j: 5, l: 6};
                         var log = jasmine.createSpy();
                         var options = {
-                            "@once": log,
-                            "@each": function () {
+                            "@source": log,
+                            "@property": function () {
                             }
                         };
                         expect(deepMerge(a, [b, c], options)).toBe(a);
@@ -162,16 +162,16 @@ describe("core", function () {
                         expect(log).toHaveBeenCalledWith(a, c, "1", jasmine.any(Function), jasmine.any(Array));
                     });
 
-                    it("calls the @each by each of the source properties", function () {
+                    it("calls the @property by each of the source properties", function () {
 
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
                         var c = {j: 5, l: 6};
                         var log = jasmine.createSpy();
                         var options = {
-                            "@once": function () {
+                            "@source": function () {
                             },
-                            "@each": log
+                            "@property": log
                         };
                         expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(log.calls.count()).toBe(4);
@@ -181,15 +181,15 @@ describe("core", function () {
                         expect(log).toHaveBeenCalledWith(a, c.l, "l", jasmine.any(Array));
                     });
 
-                    it("calls the @once before calling the @each sequence by every source", function () {
+                    it("calls the @source before calling the @property sequence by every source", function () {
 
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
                         var c = {j: 5, l: 6};
                         var log = jasmine.createSpy();
                         var options = {
-                            "@once": log,
-                            "@each": log
+                            "@source": log,
+                            "@property": log
                         };
                         expect(deepMerge(a, [b, c], options)).toBe(a);
                         expect(log.calls.count()).toBe(6);
@@ -201,34 +201,34 @@ describe("core", function () {
                         expect(log).toHaveBeenCalledWith(a, c.l, "l", jasmine.any(Array));
                     });
 
-                    describe("the 4th argument of @once called each", function () {
+                    describe("the 4th argument of @source called eachProperty", function () {
 
                         it("is a callback Function", function () {
 
                             var callback;
                             deepMerge({}, [{}], {
-                                "@once": function (subject, source, index, each, path) {
-                                    callback = each;
+                                "@source": function (subject, source, index, eachProperty, path) {
+                                    callback = eachProperty;
                                 },
-                                "@each": function () {
+                                "@property": function () {
                                 }
                             });
                             expect(callback instanceof Function).toBe(true);
                         });
 
-                        it("can be used to call the @each sequence manually", function () {
+                        it("can be used to call the @property sequence manually", function () {
 
                             var a = {i: 1, j: 2};
                             var b = {j: 3, k: 4};
                             var c = {j: 5, l: 6};
                             var log = jasmine.createSpy();
                             var options = {
-                                "@once": function (subject, source, index, each) {
+                                "@source": function (subject, source, index, eachProperty) {
                                     log("before:each", source);
-                                    each();
+                                    eachProperty();
                                     log("after:each", source);
                                 },
-                                "@each": function (subject, value, property) {
+                                "@property": function (subject, value, property) {
                                     log("each", property);
                                 }
                             };
@@ -246,16 +246,15 @@ describe("core", function () {
 
                     });
 
-                    it("uses the return value (if defined) of the @each to override the original value", function () {
+                    it("uses the return value (if defined) of the @property to override the original value", function () {
 
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
                         var c = {j: 5, l: 6};
-                        var log = jasmine.createSpy();
                         var options = {
-                            "@once": function () {
+                            "@source": function () {
                             },
-                            "@each": function (subject, value, property, path) {
+                            "@property": function (subject, value, property, path) {
                                 return property;
                             }
                         };
@@ -269,8 +268,8 @@ describe("core", function () {
                         var b = [1, 2, 3];
                         var log = jasmine.createSpy();
                         var options = {
-                            "@once": log,
-                            "@each": log
+                            "@source": log,
+                            "@property": log
                         };
                         expect(deepMerge(a, [b], options)).toBe(a);
                         expect(log.calls.count()).toBe(1 + 3);
@@ -282,7 +281,7 @@ describe("core", function () {
 
                 });
 
-                describe("which has other properties than @once and @each", function () {
+                describe("which has other properties than @source and @property", function () {
 
                     describe("when the property contains a native Function", function () {
 
@@ -315,7 +314,7 @@ describe("core", function () {
                             expect(a).toEqual({i: 1, j: 2, k: 4, l: 6});
                         });
 
-                        it("is called the same way as @each is called, but only when the property name matches", function () {
+                        it("is called the same way as @property is called, but only when the property name matches", function () {
 
                             var a = {i: 1, j: 2};
                             var b = {j: 3, k: 4};
@@ -330,14 +329,14 @@ describe("core", function () {
                             expect(log).toHaveBeenCalledWith(a, 5, "j", jasmine.any(Array));
                         });
 
-                        it("overrides @each (if it is given)", function () {
+                        it("overrides @property (if it is given)", function () {
 
                             var a = {i: 1, j: 2};
                             var b = {j: 3, k: 4};
                             var c = {j: 5, l: 6};
                             var log = jasmine.createSpy();
                             var options = {
-                                "@each": function (subject, value, property) {
+                                "@property": function (subject, value, property) {
                                     log("each", property);
                                 },
                                 j: function (subject, value, property) {
@@ -366,9 +365,9 @@ describe("core", function () {
                         var c = [[7, 8, 9]];
                         var log = jasmine.createSpy();
                         var options = {
-                            "@each": {
-                                "@once": log,
-                                "@each": log
+                            "@property": {
+                                "@source": log,
+                                "@property": log
                             }
                         };
                         expect(deepMerge(a, [b, c], options)).toBe(a);
@@ -390,12 +389,12 @@ describe("core", function () {
                         expect(function () {
                             deepMerge(a, [b], {
                                 c: {}
-                            })
+                            });
                         }).toThrow(new InvalidArguments.Nested({path: [0, "c"]}));
                     });
 
 
-                    describe("the 5th arguments of @once and the 4th arguments of @each called path", function () {
+                    describe("the 5th arguments of @source and the 4th arguments of @property called path", function () {
 
                         it("is an Array which stores the actual path", function () {
 
@@ -405,7 +404,7 @@ describe("core", function () {
 
                             var log = jasmine.createSpy();
                             var options = {
-                                "@each": function (subject, value, property, path) {
+                                "@property": function (subject, value, property, path) {
                                     log.apply(null, path);
                                     if (subject[property] instanceof Object)
                                         return deepMerge(subject[property], [value], options, path);
@@ -473,7 +472,7 @@ describe("core", function () {
 
                 describe("which contains a single item", function () {
 
-                    it("creates a new options in which the item will be the @each", function () {
+                    it("creates a new options in which the item will be the @property", function () {
 
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
@@ -481,7 +480,7 @@ describe("core", function () {
                         var log = jasmine.createSpy();
 
                         expect(deepMerge(a, [b, c], {
-                            "@each": log
+                            "@property": log
                         })).toBe(a);
 
                         var calls = log.calls.count();
@@ -495,7 +494,7 @@ describe("core", function () {
 
                 describe("which contains two items", function () {
 
-                    it("creates a new options in which the first item will be the @once and the second item will be the @each", function () {
+                    it("creates a new options in which the first item will be the @source and the second item will be the @property", function () {
 
                         var a = {i: 1, j: 2};
                         var b = {j: 3, k: 4};
@@ -503,8 +502,8 @@ describe("core", function () {
                         var log = jasmine.createSpy();
 
                         expect(deepMerge(a, [b, c], {
-                            "@once": log,
-                            "@each": log
+                            "@source": log,
+                            "@property": log
                         })).toBe(a);
 
                         var calls = log.calls.count();
@@ -512,7 +511,6 @@ describe("core", function () {
 
                         expect(deepMerge(a, [b, c], [log, log])).toBe(a);
                         expect(calls).toEqual(log.calls.count());
-
                     });
 
                 });

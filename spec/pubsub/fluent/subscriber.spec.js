@@ -3,7 +3,8 @@ var ps = require("dataflower/pubsub"),
     df = require("dataflower"),
     Subscriber = ps.Subscriber,
     subscriber = psf.subscriber,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    dummy = df.dummy;
 
 describe("pubsub.fluent", function () {
 
@@ -11,30 +12,26 @@ describe("pubsub.fluent", function () {
 
         it("accepts Function argument", function () {
 
-            var wrapper = subscriber(function () {
-            });
+            var wrapper = subscriber(dummy);
             expect(wrapper.component instanceof Subscriber).toBe(true);
         });
 
         it("accepts Subscriber wrappers", function () {
 
-            var wrapper = subscriber(function () {
-            });
+            var wrapper = subscriber(dummy);
             expect(subscriber(wrapper)).toBe(wrapper);
         });
 
         it("accepts Subscribers", function () {
 
-            var wrapper = subscriber(function () {
-            });
+            var wrapper = subscriber(dummy);
             expect(subscriber(wrapper.component)).toBe(wrapper);
         });
 
         it("accepts options", function () {
 
             var wrapper = subscriber({
-                callback: function () {
-                }
+                callback: dummy
             });
             expect(wrapper.component instanceof Subscriber).toBe(true);
         });
@@ -47,8 +44,7 @@ describe("pubsub.fluent", function () {
         it("does not accept multiple arguments", function () {
 
             expect(function () {
-                subscriber(function () {
-                }, {});
+                subscriber(dummy, {});
             }).toThrow(new InvalidArguments());
         });
 

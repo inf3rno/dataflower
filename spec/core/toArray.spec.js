@@ -1,6 +1,7 @@
 var df = require("dataflower"),
     toArray = df.toArray,
-    InvalidArguments = df.InvalidArguments;
+    InvalidArguments = df.InvalidArguments,
+    dummy = df.dummy;
 
 describe("core", function () {
 
@@ -20,8 +21,7 @@ describe("core", function () {
                 "string",
                 123,
                 false,
-                function () {
-                }
+                dummy
             ].forEach(function (subject) {
                     expect(function () {
                         toArray(subject);
@@ -42,8 +42,7 @@ describe("core", function () {
         it("returns an Array with the Object properties", function () {
 
             var o = {
-                a: 1, b: {}, c: function () {
-                }
+                a: 1, b: {}, c: dummy
             };
             var arr = toArray(o);
             expect(arr).toEqual([o.a, o.b, o.c]);

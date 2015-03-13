@@ -5,7 +5,8 @@ var df = require("dataflower"),
     Subscriber = ps.Subscriber,
     Component = ps.Component,
     Subscription = ps.Subscription,
-    Base = df.Base;
+    Base = df.Base,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -27,8 +28,7 @@ describe("pubsub", function () {
                         items: [
                             new Publisher(),
                             new Subscriber({
-                                callback: function () {
-                                }
+                                callback: dummy
                             }),
                             new Component()
                         ]
@@ -41,8 +41,7 @@ describe("pubsub", function () {
                     "string",
                     123,
                     false,
-                    function () {
-                    }
+                    dummy
                 ].forEach(function (items) {
                         expect(function () {
                             new Subscription({
@@ -91,8 +90,7 @@ describe("pubsub", function () {
                     "string",
                     123,
                     false,
-                    function () {
-                    },
+                    dummy,
                     new Base()
                 ].forEach(function (item) {
                         expect(function () {
@@ -123,8 +121,7 @@ describe("pubsub", function () {
                     subscription.remove(new Component());
                     subscription.remove(new Publisher());
                     subscription.remove(new Subscriber({
-                        callback: function () {
-                        }
+                        callback: dummy
                     }));
                 }).not.toThrow();
 
@@ -136,8 +133,7 @@ describe("pubsub", function () {
                     "string",
                     123,
                     false,
-                    function () {
-                    },
+                    dummy,
                     new Base()
                 ].forEach(function (item) {
                         expect(function () {
@@ -178,8 +174,7 @@ describe("pubsub", function () {
 
                 var publisher = new Publisher(),
                     subscriber = new Subscriber({
-                        callback: function () {
-                        }
+                        callback: dummy
                     });
                 subscriber.receive = jasmine.createSpy();
 
@@ -198,8 +193,7 @@ describe("pubsub", function () {
 
                 var publisher = new Publisher(),
                     subscriber = new Subscriber({
-                        callback: function () {
-                        }
+                        callback: dummy
                     });
                 subscriber.receive = jasmine.createSpy();
 

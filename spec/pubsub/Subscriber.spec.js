@@ -3,7 +3,8 @@ var df = require("dataflower"),
     InvalidArguments = df.InvalidArguments,
     Publisher = ps.Publisher,
     Subscriber = ps.Subscriber,
-    Subscription = ps.Subscription;
+    Subscription = ps.Subscription,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
@@ -19,8 +20,7 @@ describe("pubsub", function () {
 
                 expect(function () {
                     new Subscriber({
-                        callback: function () {
-                        }
+                        callback: dummy
                     });
                 }).not.toThrow();
             });
@@ -32,8 +32,7 @@ describe("pubsub", function () {
             it("requires the array of parameters", function () {
 
                 var subscriber = new Subscriber({
-                    callback: function () {
-                    }
+                    callback: dummy
                 });
                 expect(function () {
                     subscriber.receive();
@@ -62,8 +61,7 @@ describe("pubsub", function () {
             it("calls receive and returns the result", function () {
 
                 var subscriber = new Subscriber({
-                    callback: function () {
-                    },
+                    callback: dummy,
                     receive: jasmine.createSpy().and.returnValue(123)
                 });
                 expect(subscriber.handleWrapper([1, 2, 3], {x: 1})).toBe(123);
