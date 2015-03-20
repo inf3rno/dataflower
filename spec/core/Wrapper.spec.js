@@ -57,7 +57,7 @@ describe("core", function () {
 
                     expect(function () {
                         new Wrapper().merge(null);
-                    }).not.toThrow();
+                    }).toThrow(new InvalidArguments.Nested({path: [0]}));
 
                     expect(function () {
                         new Wrapper().merge({}, {});
@@ -132,18 +132,14 @@ describe("core", function () {
                         new Wrapper().merge({
                             properties: {}
                         });
-                        new Wrapper().merge({
-                            properties: undefined
-                        });
-                        new Wrapper().merge({
-                            properties: null
-                        });
                     }).not.toThrow();
 
                     [
                         "string",
                         1,
-                        false
+                        false,
+                        undefined,
+                        null
                     ].forEach(function (invalidProperties) {
                             expect(function () {
                                 new Wrapper().merge({

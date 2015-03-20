@@ -7,8 +7,8 @@ var df = require("dataflower"),
     clone = df.clone,
     watch = df.watch,
     HashSet = df.HashSet,
-    deepMerge = df.deepMerge,
-    toArray = df.toArray;
+    toArray = df.toArray,
+    deep = df.deep;
 
 var Component = Base.extend({
     subscriptions: undefined,
@@ -49,13 +49,20 @@ var Subscription = HashSet.extend({
         this.configure();
     },
     merge: function (source) {
-        return deepMerge(this, toArray(arguments), {
-            items: function (subscription, items) {
-                if (!(items instanceof Array))
-                    throw new Subscription.ItemsRequired();
-                subscription.addAll.apply(subscription, items);
-            }
-        });
+        for (var index in arguments)
+            deep(this, arguments[index], {
+                property: {
+                    items: function (subscription, items) {
+                        if (!(items instanceof Array))
+                            throw new Subscription.ItemsRequired();
+                        subscription.addAll.apply(subscription, items);
+                    }
+                },
+                defaultProperty: function (subscription, value) {
+                    return value;
+                }
+            }, [index]);
+        return this;
     },
     configure: function () {
     },
