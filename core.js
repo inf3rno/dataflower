@@ -311,19 +311,19 @@ var UserError = extend(Error, {
     name: "UserError",
     message: "",
     stackTrace: undefined,
-    init: Base.prototype.init,
-    clone: Base.prototype.clone,
-    merge: Base.prototype.merge,
-    configure: function () {
-        var nativeError = new Error();
-        var parser = new StackStringParser();
-        this.stackTrace = parser.parse(nativeError.stack);
+    init: function () {
+        this.merge.apply(this, arguments);
+        this.stackTrace = UserError.getCurrentStackTrace();
         Object.defineProperty(this, "stack", {
             configurable: false,
             enumerable: false,
             get: this.toStackString.bind(this)
         });
+        this.configure();
     },
+    clone: Base.prototype.clone,
+    merge: Base.prototype.merge,
+    configure: dummy,
     toStackString: function () {
         var string = "";
         string += this.name;
@@ -332,6 +332,11 @@ var UserError = extend(Error, {
         return string;
     }
 }, {
+    getCurrentStackTrace: function () {
+        var nativeError = new Error();
+        var parser = new StackStringParser();
+        return parser.parse(nativeError.stack);
+    },
     parser: undefined,
     extend: Base.extend,
     merge: Base.merge

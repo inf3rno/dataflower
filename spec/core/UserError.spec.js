@@ -120,4 +120,20 @@ describe("core", function () {
             expect(InvalidConfiguration.prototype instanceof UserError).toBe(true);
         });
     });
+
+    describe("Message building by UserError descendants", function () {
+
+        it("is possible by overriding the configure", function () {
+
+            var MyError = UserError.extend({
+                configure: function () {
+                    this.message = this.x + "," + this.y;
+                }
+            });
+            var err = new MyError({x: 1, y: 2});
+            expect(err.message).toBe("1,2");
+
+        });
+
+    });
 });
