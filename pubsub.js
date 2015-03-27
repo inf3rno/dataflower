@@ -10,11 +10,72 @@ var df = require("dataflower"),
     toArray = df.toArray,
     deep = df.deep;
 
+var ComponentSet = HashSet.extend({
+    hashCode: function (item) {
+        if (!(item instanceof Component))
+            throw new ComponentSet.ComponentRequired();
+        return item.id;
+    }
+}, {
+    ComponentRequired: InvalidArguments.extend({
+        message: "Component required."
+    })
+});
+
 var Component = Base.extend({
-    subscriptions: undefined,
+    flows: new ComponentSet(),
     wrapper: undefined,
-    configure: function () {
-        this.subscriptions = new HashSet();
+    build: function () {
+        return deep(this, this, {
+            property: {
+                flows: function (component, flows) {
+                    component.flows = new ComponentSet();
+                    component.addAll.apply(component, flows.toArray());
+                }
+            }
+        });
+    },
+    merge: function (source) {
+        for (var index in arguments)
+            deep(this, arguments[index], {
+                property: {
+                    flows: function (component, flows) {
+                        if (!(flows instanceof Array))
+                            throw new Component.ItemsRequired();
+                        component.addAll.apply(component, flows);
+                    }
+                },
+                defaultProperty: function (component, value) {
+                    return value;
+                }
+            }, [index]);
+        return this;
+    },
+    activate: function (parameters, context) {
+        if (!(parameters instanceof Array))
+            throw new Component.ArrayRequired();
+    },
+    addAll: ComponentSet.prototype.addAll,
+    add: function (item) {
+        this.flows.add(item);
+        item.flows.add(this);
+        return this;
+    },
+    removeAll: ComponentSet.prototype.removeAll,
+    remove: function (item) {
+        this.flows.remove(item);
+        item.flows.remove(this);
+        return this;
+    },
+    clear: function () {
+        return this.removeAll.apply(this, this.toArray());
+    },
+    containsAll: ComponentSet.prototype.containsAll,
+    contains: function (item) {
+        return this.flows.contains(item);
+    },
+    toArray: function () {
+        return this.flows.toArray();
     },
     toFunction: function () {
         if (!this.wrapper) {
@@ -33,76 +94,10 @@ var Component = Base.extend({
             }).toFunction();
         }
         return this.wrapper;
-    },
-    activate: function (parameters, context) {
-    }
-}, {
-    SubscriptionRequired: InvalidArguments.extend({
-        message: "Subscription instance required."
-    })
-});
-
-var Subscription = HashSet.extend({
-    context: undefined,
-    init: function () {
-        this.merge.apply(this, arguments);
-        this.configure();
-    },
-    merge: function (source) {
-        for (var index in arguments)
-            deep(this, arguments[index], {
-                property: {
-                    items: function (subscription, items) {
-                        if (!(items instanceof Array))
-                            throw new Subscription.ItemsRequired();
-                        subscription.addAll.apply(subscription, items);
-                    }
-                },
-                defaultProperty: function (subscription, value) {
-                    return value;
-                }
-            }, [index]);
-        return this;
-    },
-    configure: function () {
-    },
-    notify: function (parameters, context) {
-        return this.activate.apply(this, arguments);
-    },
-    activate: function (parameters, context) {
-        if (!(parameters instanceof Array))
-            throw new Subscription.ArrayRequired();
-        for (var id in this.items) {
-            var item = this.items[id];
-            if (item instanceof Subscriber)
-                item.activate(parameters, this.context || context);
-        }
-    },
-    add: function (item) {
-        HashSet.prototype.add.apply(this, arguments);
-        item.subscriptions.add(this);
-        return this;
-    },
-    remove: function (item) {
-        HashSet.prototype.remove.apply(this, arguments);
-        item.subscriptions.remove(this);
-        return this;
-    },
-    hashCode: function (item) {
-        if (!arguments.length)
-            throw new InvalidArguments.Empty();
-        if (arguments.length > 1)
-            throw new InvalidArguments();
-        if (!(item instanceof Component))
-            throw new Subscription.ComponentRequired();
-        return item.id;
     }
 }, {
     ItemsRequired: InvalidConfiguration.extend({
         message: "An Array of Components required as items."
-    }),
-    ComponentRequired: InvalidArguments.extend({
-        message: "Component required."
     }),
     ArrayRequired: InvalidArguments.extend({
         message: "Array of arguments required."
@@ -114,17 +109,13 @@ var Publisher = Component.extend({
         return this.activate(parameters, context);
     },
     activate: function (parameters, context) {
-        if (!(parameters instanceof Array))
-            throw new Publisher.ArrayRequired();
-        for (var id in this.subscriptions.items) {
-            var subscription = this.subscriptions.items[id];
-            subscription.activate(parameters, context);
+        Component.prototype.activate.apply(this, arguments);
+        for (var id in this.flows.items) {
+            var component = this.flows.items[id];
+            if (!(component instanceof Publisher))
+                component.activate(parameters, context);
         }
     }
-}, {
-    ArrayRequired: InvalidArguments.extend({
-        message: "Array of arguments required."
-    })
 });
 
 var Subscriber = Component.extend({
@@ -132,14 +123,12 @@ var Subscriber = Component.extend({
     configure: function () {
         if (!(this.callback instanceof Function))
             throw new Subscriber.CallbackRequired();
-        Component.prototype.configure.call(this);
     },
     receive: function (parameters, context) {
         return this.activate.apply(this, arguments);
     },
     activate: function (parameters, context) {
-        if (!(parameters instanceof Array))
-            throw new Subscriber.ArrayRequired();
+        Component.prototype.activate.apply(this, arguments);
         this.callback.apply(context, parameters);
     }
 }, {
@@ -151,11 +140,25 @@ var Subscriber = Component.extend({
     })
 });
 
+var Subscription = Component.extend({
+    context: undefined,
+    notify: function (parameters, context) {
+        return this.activate.apply(this, arguments);
+    },
+    activate: function (parameters, context) {
+        Component.prototype.activate.apply(this, arguments);
+        for (var id in this.flows.items) {
+            var component = this.flows.items[id];
+            if (component instanceof Subscriber)
+                component.activate(parameters, this.context || context);
+        }
+    }
+});
+
 var Listener = Publisher.extend({
     subject: undefined,
     event: undefined,
     configure: function () {
-        Publisher.prototype.configure.call(this);
         if (!(this.subject instanceof Object))
             throw new Listener.SubjectRequired();
         if (typeof(this.event) != "string")
@@ -203,15 +206,13 @@ var Getter = Publisher.extend({
     subject: undefined,
     property: undefined,
     configure: function () {
-        Publisher.prototype.configure.call(this);
         if (!(this.subject instanceof Object))
             throw new Getter.SubjectRequired();
         if (typeof(this.property) != "string")
             throw new Getter.PropertyRequired();
     },
     activate: function (parameters, context) {
-        if (!(parameters instanceof Array))
-            throw new Publisher.ArrayRequired();
+        Component.prototype.activate.apply(this, arguments);
         parameters = clone(parameters);
         parameters.unshift(this.subject[this.property]);
         Publisher.prototype.activate.call(this, parameters, this.subject);
@@ -249,7 +250,6 @@ var Setter = Subscriber.extend({
 
 var Watcher = Publisher.extend({
     configure: function () {
-        Publisher.prototype.configure.call(this);
         if (!(this.subject instanceof Object))
             throw new Watcher.SubjectRequired();
         if (typeof(this.property) != "string")
@@ -279,8 +279,7 @@ var Task = Subscriber.extend({
         this.error = new Publisher();
     },
     activate: function (parameters, context) {
-        if (!(parameters instanceof Array))
-            throw new Task.ArrayRequired();
+        Component.prototype.activate.apply(this, arguments);
         this.called.activate(parameters, context);
         parameters = clone(parameters);
         parameters.unshift(function (error, results) {
@@ -307,8 +306,7 @@ var Spy = Subscriber.extend({
         this.error = new Publisher();
     },
     activate: function (parameters, context) {
-        if (!(parameters instanceof Array))
-            throw new Spy.ArrayRequired();
+        Component.prototype.activate.apply(this, arguments);
         this.called.activate(parameters, context);
         try {
             var result = this.callback.apply(context, parameters);
@@ -323,11 +321,11 @@ var Spy = Subscriber.extend({
 });
 
 var o = {
+    ComponentSet: ComponentSet,
     Component: Component,
     Publisher: Publisher,
-    Subscription: Subscription,
-    Flow: Subscription,
     Subscriber: Subscriber,
+    Subscription: Subscription,
     Listener: Listener,
     Emitter: Emitter,
     Getter: Getter,

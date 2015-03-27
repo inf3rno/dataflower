@@ -2,8 +2,7 @@ var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     Publisher = ps.Publisher,
     Watcher = ps.Watcher,
-    Subscriber = ps.Subscriber,
-    Subscription = ps.Subscription;
+    Subscriber = ps.Subscriber;
 
 describe("pubsub", function () {
 
@@ -30,12 +29,7 @@ describe("pubsub", function () {
                     var subscriber = new Subscriber({
                         callback: log
                     });
-                    var subscription = new Subscription({
-                        items: [
-                            watcher,
-                            subscriber
-                        ]
-                    });
+                    watcher.add(subscriber);
                     expect(log).not.toHaveBeenCalled();
                     o.x = 123;
                     expect(log).toHaveBeenCalledWith(123, undefined, "x", o);

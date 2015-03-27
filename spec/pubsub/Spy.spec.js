@@ -3,7 +3,6 @@ var df = require("dataflower"),
     Subscriber = ps.Subscriber,
     Spy = ps.Spy,
     Publisher = ps.Publisher,
-    Subscription = ps.Subscription,
     dummy = df.dummy;
 
 describe("pubsub", function () {
@@ -47,14 +46,9 @@ describe("pubsub", function () {
                 var spy = new Spy({
                     callback: log
                 });
-                new Subscription({
-                    items: [
-                        spy.called,
-                        new Subscriber({
-                            callback: log
-                        })
-                    ]
-                });
+                spy.called.add(new Subscriber({
+                    callback: log
+                }));
                 var o = {
                     m: spy.toFunction()
                 };
@@ -82,14 +76,9 @@ describe("pubsub", function () {
                     }
                 });
                 var log = jasmine.createSpy();
-                new Subscription({
-                    items: [
-                        spy.done,
-                        new Subscriber({
-                            callback: log
-                        })
-                    ]
-                });
+                spy.done.add(new Subscriber({
+                    callback: log
+                }));
 
                 expect(log).not.toHaveBeenCalled();
 
@@ -109,14 +98,9 @@ describe("pubsub", function () {
                     }
                 });
                 var log = jasmine.createSpy();
-                new Subscription({
-                    items: [
-                        spy.error,
-                        new Subscriber({
-                            callback: log
-                        })
-                    ]
-                });
+                spy.error.add(new Subscriber({
+                    callback: log
+                }));
 
                 expect(log).not.toHaveBeenCalled();
 

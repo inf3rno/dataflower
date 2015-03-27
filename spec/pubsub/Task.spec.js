@@ -3,7 +3,6 @@ var df = require("dataflower"),
     Subscriber = ps.Subscriber,
     Task = ps.Task,
     Publisher = ps.Publisher,
-    Subscription = ps.Subscription,
     dummy = df.dummy;
 
 describe("pubsub", function () {
@@ -47,14 +46,9 @@ describe("pubsub", function () {
                 var task = new Task({
                     callback: dummy
                 });
-                new Subscription({
-                    items: [
-                        task.called,
-                        new Subscriber({
-                            callback: log
-                        })
-                    ]
-                });
+                task.called.add(new Subscriber({
+                    callback: log
+                }));
                 var o = {
                     m: task.toFunction()
                 };

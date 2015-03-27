@@ -2,14 +2,7 @@
 
 [![Build Status](https://travis-ci.org/inf3rno/dataflower.png?branch=master)](https://travis-ci.org/inf3rno/dataflower)
 
-The main goal I wanted to achieve is bidirectional data binding between models and views in client side javascript. Meantime I realized, this is a part of something much bigger; javascript has a poor support for async language statements. This is why the callback pyramid is still a problem by async codes.
-
-Currently only `yield` is available in ES6 generators to make async series, but nothing more. ES7 will solve the problem, but who knows when will it be supported natively by browsers and node.js, which currently barely support ES6?! That's why I decided to address this issue, maybe I can do something to make things better.
-
-I studied many different topics which share this common problem. A short list of them: pub/sub pattern, observer pattern, ZeroMQ, message queues, message bus, promises, the async
-lib, routing by computer networks, neural networks, I/O automaton, actor-based programming, agent-based programming, and the noflo lib, which is dataflow-based. At the end I came to the conclusion; what I need is dataflow-based programming, but only by the async parts of the code. I don't think that everything is a nail, and dataflow-based patterns should be used as a golden hammer. In my opinion the sync code of the components should be developed with vanilla javascript and only the communication between them should be solved with dataflow-based code islands.
-
-The projects concentrates on solving some general issues like inheritance, error handling, instantiation and after that it declares some nice classes, which can be used to build data flow graphs. The naming convention could have been easily something like graph - output - flow - input, but I think most of the developers are more familiar with network - publisher - subscription - subscriber, so after the alpha version of the project I decided to use the latter one. Please enjoy the flow based programming in javascript and if you find it useful, feel free to donate! :-)
+The main goal of DataFlower to ease async programming by ES5 and ES6. (ES7 will fully support async programming.) I combine flow-based programming with your custom a/sync code to achieve this.
 
 ## Pre-alpha Stage
 
@@ -17,7 +10,7 @@ The projects concentrates on solving some general issues like inheritance, error
 
  - [wikipedia - Software release life cycle - Pre-alpha](http://en.wikipedia.org/wiki/Software_release_life_cycle#Pre-alpha)
 
-**Most of the dataflow components are not yet implemented! I am working on the utils currently.**
+**Most of the dataflow Components are not yet implemented!**
 
 I frequently create and close issues and I write a lot of comments, so watching the repo on github is not a good idea if you don't want to get about 10 emails daily.
 
@@ -25,13 +18,13 @@ I frequently create and close issues and I write a lot of comments, so watching 
 
 No real documentation yet.
 
-*A detailed documentation will be available on GitHub Pages by 1.0 at the very latest. Until then all I can provide are low quality examples.*
+*A detailed documentation will be available on GitHub Pages by 1.0 at the very latest. Until then only a few examples are available in the current md file.*
 
 ### Installation
 
 Current version is 0.7.0.
 
-*I'll use auto-versioning after I started to use a nested git branching model. Until then the versioning will be erratic.*
+*I'll use auto-versioning after I started to use a nested git branching model. Until then the versioning will be erratic. I'll probably add only minor version numbers.*
 
 Only node.js is supported yet.
 
@@ -73,16 +66,11 @@ An ES5 capable environment is required at least with
 
 The environment tests are available under the `/spec/environment.spec.js` file.
 
-The framework is written for ES5.
-
-*There will be ES6 support in later 1.3+ versions after ES6 classes become prevalent.
-Probably there won't be ES7 support, because it defines `async` functions, which will make this framework obsolete.*
-
 ##### Module dependencies
 
 The core requires `events.EventEmitter` for watching property changes.
 
-*By ES7 capable environments with `Object.observe` the `events.EventEmitter` won't be needed.*
+*By environments supporting `Object.observe`, the `events.EventEmitter` won't be needed.*
 
 ### Examples
 
@@ -322,7 +310,7 @@ var subscriber = new df.Subscriber({
 });
 
 var subscription = new df.Subscription({
-    items: [
+    flows: [
         publisher,
         subscriber
     ]
@@ -366,7 +354,7 @@ var emitter = new df.Emitter({
 });
 
 var subscription = new df.Subscription({
-    items: [
+    flows: [
         emitter,
         listener
     ]
@@ -393,7 +381,7 @@ var setter = new df.Setter({
     property: "another"
 });
 var subscription = new df.Subscription({
-    items: [
+    flows: [
         getter,
         setter
     ]
@@ -422,7 +410,7 @@ var setter = new df.Setter({
     property: "another"
 });
 var subscription = new df.Subscription({
-    items: [
+    flows: [
         watcher,
         setter
     ]
@@ -444,7 +432,7 @@ var task = new df.Task({
     }
 });
 new df.Subscription({
-    items: [
+    flows: [
         task.called,
         new df.Subscriber({
             callback: console.warn
@@ -452,7 +440,7 @@ new df.Subscription({
     ]
 });
 new df.Subscription({
-    items: [
+    flows: [
         task.done,
         new df.Subscriber({
             callback: console.log
@@ -460,7 +448,7 @@ new df.Subscription({
     ]
 });
 new df.Subscription({
-    items: [
+    flows: [
         task.error,
         new df.Subscriber({
             callback: console.error
@@ -494,7 +482,7 @@ o.m = new df.Spy({
 }).toFunction();
 
 new df.Subscription({
-    items: [
+    flows: [
         o.m.called.component,
         new df.Subscriber({
             callback: console.warn
@@ -502,7 +490,7 @@ new df.Subscription({
     ]
 });
 new df.Subscription({
-    items: [
+    flows: [
         o.m.done.component,
         new df.Subscriber({
             callback: console.log
@@ -510,7 +498,7 @@ new df.Subscription({
     ]
 });
 new df.Subscription({
-    items: [
+    flows: [
         o.m.error.component,
         new df.Subscriber({
             callback: console.error

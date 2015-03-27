@@ -2,7 +2,7 @@ var df = require("dataflower"),
     ps = require("dataflower/pubsub"),
     InvalidArguments = df.InvalidArguments,
     Publisher = ps.Publisher,
-    Subscription = ps.Subscription;
+    Component = ps.Component;
 
 describe("pubsub", function () {
 
@@ -32,24 +32,26 @@ describe("pubsub", function () {
 
             });
 
-            it("sends messages to the added subscriptions", function () {
+            it("sends messages to the added flows (except Publisher instances)", function () {
 
-                var mockSubscription = Object.create(Subscription.prototype);
-                mockSubscription.id = 1;
-                mockSubscription.activate = jasmine.createSpy();
+                var publisher = new Publisher(),
+                    publisher2 = new Publisher({
+                        activate: jasmine.createSpy()
+                    }),
+                    component = new Component({
+                        activate: jasmine.createSpy()
+                    });
+                publisher.addAll(publisher2, component);
 
-                var publisher = new Publisher();
-                publisher.subscriptions.add(mockSubscription);
-
-                expect(mockSubscription.activate).not.toHaveBeenCalled();
+                expect(component.activate).not.toHaveBeenCalled();
 
                 publisher.activate([1, 2, 3]);
-                expect(mockSubscription.activate).toHaveBeenCalledWith([1, 2, 3], undefined);
+                expect(component.activate).toHaveBeenCalledWith([1, 2, 3], undefined);
 
                 var o = {};
                 publisher.activate([4, 5, 6], o);
-                expect(mockSubscription.activate).toHaveBeenCalledWith([4, 5, 6], o);
-
+                expect(component.activate).toHaveBeenCalledWith([4, 5, 6], o);
+                expect(publisher2.activate).not.toHaveBeenCalled();
             });
 
         });

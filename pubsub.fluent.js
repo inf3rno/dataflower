@@ -66,14 +66,14 @@ var o = {
             function (publisher, subscriber, context) {
                 if (arguments.length == 2 || arguments.length == 3)
                     return [{
-                        items: [publisher, subscriber],
+                        flows: [publisher, subscriber],
                         context: context
                     }];
             },
             function (options) {
                 if (arguments.length == 1 && (options instanceof Object) && !(options instanceof Subscription)) {
-                    options.items[0] = o.publisher(options.items[0]).component;
-                    options.items[1] = o.subscriber(options.items[1]).component;
+                    options.flows[0] = o.publisher(options.flows[0]).component;
+                    options.flows[1] = o.subscriber(options.flows[1]).component;
                     return [new Subscription(options)];
                 }
             }

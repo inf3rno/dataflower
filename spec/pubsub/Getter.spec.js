@@ -3,7 +3,6 @@ var df = require("dataflower"),
     Publisher = ps.Publisher,
     Getter = ps.Getter,
     Subscriber = ps.Subscriber,
-    Subscription = ps.Subscription,
     dummy = df.dummy;
 
 describe("pubsub", function () {
@@ -76,12 +75,7 @@ describe("pubsub", function () {
                     var subscriber = new Subscriber({
                         callback: log
                     });
-                    var subscription = new Subscription({
-                        items: [
-                            getter,
-                            subscriber
-                        ]
-                    });
+                    getter.add(subscriber);
                     expect(log).not.toHaveBeenCalled();
 
                     getter.activate([]);

@@ -230,7 +230,6 @@ describe("core", function () {
 
             describe("hashCode", function () {
 
-
                 it("accepts only objects with id property as items", function () {
 
                     expect(function () {
@@ -253,20 +252,6 @@ describe("core", function () {
                                 hashSet.hashCode(item);
                             }).toThrow(new HashSet.ItemRequired());
                         });
-                });
-
-                it("does not accept zero or multiple arguments", function () {
-
-                    var hashSet = new HashSet();
-
-                    expect(function () {
-                        hashSet.hashCode({id: 1}, {id: 2});
-                    }).toThrow(new InvalidArguments());
-
-                    expect(function () {
-                        hashSet.hashCode();
-                    }).toThrow(new InvalidArguments.Empty());
-
                 });
 
                 it("returns the id of the item", function () {

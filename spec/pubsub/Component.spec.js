@@ -1,10 +1,157 @@
-var ps = require("dataflower/pubsub"),
-    Subscription = ps.Subscription,
-    Component = ps.Component;
+var df = require("dataflower"),
+    ps = require("dataflower/pubsub"),
+    ComponentSet = ps.ComponentSet,
+    Component = ps.Component,
+    Base = df.Base,
+    dummy = df.dummy;
 
 describe("pubsub", function () {
 
     describe("Component.prototype", function () {
+
+        describe("flows", function () {
+
+            it("is a ComponentSet which stores the added items", function () {
+
+                expect(new Component().flows instanceof ComponentSet).toBe(true);
+            });
+
+        });
+
+        describe("init", function () {
+
+            it("accepts an Array of Components by merging flows", function () {
+
+                expect(function () {
+                    new Component();
+                    new Component({
+                        flows: []
+                    });
+                    new Component({
+                        flows: [new Component()]
+                    });
+                    new Component({
+                        flows: [
+                            new Component(),
+                            new Component()
+                        ]
+                    });
+                }).not.toThrow();
+
+                [
+                    new Component(),
+                    {},
+                    "string",
+                    123,
+                    false,
+                    dummy
+                ].forEach(function (flows) {
+                        expect(function () {
+                            new Component({
+                                flows: flows
+                            });
+                        }).toThrow(new Component.ItemsRequired());
+                    });
+            });
+
+            it("calls addAll if flows given", function () {
+
+                var log = jasmine.createSpy();
+                var Descendant = Component.extend({
+                    addAll: log
+                });
+                expect(log).not.toHaveBeenCalled();
+                new Descendant();
+                expect(log).toHaveBeenCalledWith();
+                new Descendant({
+                    flows: [1, 2, 3]
+                });
+                expect(log).toHaveBeenCalledWith(1, 2, 3);
+            });
+
+        });
+
+        describe("add", function () {
+
+            it("accepts Components as item", function () {
+
+                expect(function () {
+                    var component = new Component();
+                    component.add(new Component());
+                }).not.toThrow();
+
+                [
+                    null,
+                    undefined,
+                    {},
+                    [],
+                    "string",
+                    123,
+                    false,
+                    dummy,
+                    new Base()
+                ].forEach(function (item) {
+                        expect(function () {
+                            var component = new Component();
+                            component.add(item);
+                        }).toThrow(new ComponentSet.ComponentRequired());
+                    });
+            });
+
+            it("adds the item to the component and vice-versa", function () {
+
+                var item = new Component();
+                var component = new Component();
+
+                component.add(item);
+                expect(component.contains(item)).toBe(true);
+                expect(item.contains(component)).toBe(true);
+            });
+
+        });
+
+        describe("remove", function () {
+
+            it("accepts Components as item", function () {
+
+                expect(function () {
+                    var component = new Component();
+                    component.remove(new Component());
+                }).not.toThrow();
+
+                [
+                    null,
+                    undefined,
+                    {},
+                    [],
+                    "string",
+                    123,
+                    false,
+                    dummy,
+                    new Base()
+                ].forEach(function (item) {
+                        expect(function () {
+                            var component = new Component();
+                            component.remove(item);
+                        }).toThrow(new ComponentSet.ComponentRequired());
+                    });
+            });
+
+            it("removes the subscription from the components", function () {
+
+                var item = new Component();
+                var component = new Component();
+
+                component.add(item);
+                expect(component.contains(item)).toBe(true);
+                expect(item.contains(component)).toBe(true);
+
+                component.remove(item);
+                expect(component.contains(item)).toBe(false);
+                expect(item.contains(component)).toBe(false);
+            });
+
+        });
 
         describe("toFunction", function () {
 

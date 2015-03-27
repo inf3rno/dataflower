@@ -13,7 +13,7 @@ describe("example", function () {
                     callback: log
                 }),
                 subscription = new df.Subscription({
-                    items: [
+                    flows: [
                         publisher,
                         subscriber
                     ]
@@ -40,7 +40,7 @@ describe("example", function () {
                     event: "anotherEvent"
                 }),
                 subscription = new df.Subscription({
-                    items: [
+                    flows: [
                         listener,
                         emitter
                     ]
@@ -69,7 +69,7 @@ describe("example", function () {
                     property: "another"
                 }),
                 subscription = new df.Subscription({
-                    items: [
+                    flows: [
                         getter,
                         setter
                     ]
@@ -98,7 +98,7 @@ describe("example", function () {
                     property: "another"
                 }),
                 subscription = new df.Subscription({
-                    items: [
+                    flows: [
                         watcher,
                         setter
                     ]
@@ -129,7 +129,7 @@ describe("example", function () {
             var error = jasmine.createSpy();
 
             new df.Subscription({
-                items: [
+                flows: [
                     task.called,
                     new df.Subscriber({
                         callback: called
@@ -137,7 +137,7 @@ describe("example", function () {
                 ]
             });
             new df.Subscription({
-                items: [
+                flows: [
                     task.done,
                     new df.Subscriber({
                         callback: done
@@ -145,7 +145,7 @@ describe("example", function () {
                 ]
             });
             new df.Subscription({
-                items: [
+                flows: [
                     task.error,
                     new df.Subscriber({
                         callback: error
@@ -193,7 +193,7 @@ describe("example", function () {
             var error = jasmine.createSpy();
 
             new df.Subscription({
-                items: [
+                flows: [
                     spy.called,
                     new df.Subscriber({
                         callback: called
@@ -201,7 +201,7 @@ describe("example", function () {
                 ]
             });
             new df.Subscription({
-                items: [
+                flows: [
                     spy.done,
                     new df.Subscriber({
                         callback: done
@@ -209,7 +209,7 @@ describe("example", function () {
                 ]
             });
             new df.Subscription({
-                items: [
+                flows: [
                     spy.error,
                     new df.Subscriber({
                         callback: error

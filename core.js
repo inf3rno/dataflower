@@ -787,7 +787,7 @@ var HashSet = Base.extend({
         return this;
     },
     add: function (item) {
-        var id = this.hashCode.apply(this, arguments);
+        var id = this.hashCode(item);
         this.items[id] = item;
         return this;
     },
@@ -797,7 +797,7 @@ var HashSet = Base.extend({
         return this;
     },
     remove: function (item) {
-        var id = this.hashCode.apply(this, arguments);
+        var id = this.hashCode(item);
         if (this.items[id] === item)
             delete(this.items[id]);
         return this;
@@ -815,23 +815,19 @@ var HashSet = Base.extend({
         return result;
     },
     contains: function (item) {
-        var id = this.hashCode.apply(this, arguments);
+        var id = this.hashCode(item);
         return this.items[id] === item;
-    },
-    hashCode: function (item) {
-        if (!arguments.length)
-            throw new InvalidArguments.Empty();
-        if (arguments.length > 1)
-            throw new InvalidArguments();
-        if (!(item instanceof Object) || item.id === undefined)
-            throw new HashSet.ItemRequired();
-        return item.id;
     },
     toArray: function () {
         var result = [];
         for (var id in this.items)
             result.push(this.items[id]);
         return result;
+    },
+    hashCode: function (item) {
+        if (!(item instanceof Object) || item.id === undefined)
+            throw new HashSet.ItemRequired();
+        return item.id;
     }
 }, {
     ItemRequired: InvalidArguments.extend({

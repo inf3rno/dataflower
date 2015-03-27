@@ -34,7 +34,7 @@ describe("pubsub.fluent", function () {
         it("accepts Subscription instance", function () {
 
             var subscription = new Subscription({
-                items: [
+                flows: [
                     publisher().component,
                     subscriber(dummy).component
                 ],
@@ -46,7 +46,7 @@ describe("pubsub.fluent", function () {
         it("accepts options", function () {
 
             var subscription = subscribe({
-                items: [
+                flows: [
                     publisher().component,
                     subscriber(dummy).component
                 ],
@@ -58,7 +58,7 @@ describe("pubsub.fluent", function () {
         it("accepts any subscriber and publisher function arguments e.g. wrappers", function () {
 
             var subscription = subscribe({
-                items: [
+                flows: [
                     publisher(),
                     subscriber(dummy)
                 ]

@@ -3,7 +3,6 @@ var df = require("dataflower"),
     Publisher = ps.Publisher,
     Listener = ps.Listener,
     Subscriber = ps.Subscriber,
-    Subscription = ps.Subscription,
     EventEmitter = require("events").EventEmitter,
     dummy = df.dummy;
 
@@ -93,12 +92,7 @@ describe("pubsub", function () {
                     var subscriber = new Subscriber({
                         callback: log
                     });
-                    var subscription = new Subscription({
-                        items: [
-                            listener,
-                            subscriber
-                        ]
-                    });
+                    listener.add(subscriber);
 
                     expect(log).not.toHaveBeenCalled();
 
