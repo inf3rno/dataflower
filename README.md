@@ -1,6 +1,6 @@
 # DataFlower - The dataflow project
 
-[![Build Status](https://travis-ci.org/inf3rno/dataflower.png?branch=sockets)](https://travis-ci.org/inf3rno/dataflower)
+[![Build Status](https://travis-ci.org/inf3rno/dataflower.png?branch=master)](https://travis-ci.org/inf3rno/dataflower)
 
 DataFlower eases async programming in javascript. 
 
