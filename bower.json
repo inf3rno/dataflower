@@ -5,8 +5,18 @@
   "keywords": [
     "DataFlower",
     "dataflow",
+    "flow-based programming",
+    "async",
     "pub/sub",
-    "data binding"
+    "mediator",
+    "push/pull",
+    "req/rep",
+    "message bus",
+    "message queue",
+    "pipeline",
+    "stream",
+    "data binding",
+    "ES5"
   ],
   "license": "MIT",
   "authors": [
@@ -18,21 +28,29 @@
     "type": "git",
     "url": "https://github.com/inf3rno/dataflower"
   },
-  "main": "core.js",
+  "main": "index.js",
   "ignore": [
     ".idea/",
     "node_modules/",
     ".gitignore",
     ".npmignore",
     ".travis.yml",
-    "package.json"
+    "package.json",
+    "features/",
+    "karma.conf.js",
+    "yadda.js"
   ],
   "scripts": {
-    "test": "jasmine"
+    "test": "mocha --reporter spec yadda.js"
   },
   "dependencies": {
+    "ezone": "^0.20.0",
+    "o3": "^1.0.3"
   },
   "devDependencies": {
-    "jasmine": ">=2.2.0"
+    "expect.js": "^0.3.1",
+    "mocha": "^2.4.5",
+    "sinon": "^1.17.3",
+    "yadda": "^0.17.2"
   }
 }
