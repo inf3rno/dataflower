@@ -75,7 +75,7 @@ module.exports = function () {
         expect(function () {
             xyz.read();
         }).to.throwError(function (error) {
-            expect(error.toString()).to.be("NoDataAvailable: No data available on xyz.");
+            expect(error).to.be.a(XYZ.NoDataAvailable);
         });
         next();
     });
