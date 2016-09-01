@@ -1,6 +1,6 @@
 {
   "name": "dataflower",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "DataFlower - The dataflow project",
   "keywords": [
     "DataFlower",
@@ -38,13 +38,15 @@
     "package.json",
     "features/",
     "karma.conf.js",
-    "yadda.js"
+    "yadda.js",
+    "examples/"
   ],
   "scripts": {
-    "test": "mocha --reporter spec yadda.js"
+    "test": "mocha --reporter spec yadda.js",
+    "examples": "node examples"
   },
   "dependencies": {
-    "ezone": "^0.20.0",
+    "ezone": "^0.20.1",
     "o3": "^1.0.3"
   },
   "devDependencies": {
