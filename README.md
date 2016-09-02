@@ -33,11 +33,6 @@ var df = require("dataflower"),
     DataFlow = df.DataFlow;
 ```
 
-### Features
-
-**I am working on a new API, so I removed the features supported by the previous API.**
-
-
 ### DataFlow
 
 Data flows are the most important building blocks of this project. They main purpose is data delivery, but you can use them for buffering data until somebody needs it. I tried to keep the interface of these flows as simple as possible, but I wanted to support both pull and push to make it more flexible.
@@ -54,14 +49,14 @@ By default the flow has the `aDataFlow` name, which you can change if you want.
 var flow = new DataFlow({name: "our flow"});
 ```
 
-This can be important by reporting error. It is easier to find a faulty flow when it has a unique name.
+This can be important by error reporting. It is easier to find a faulty flow when it has a unique name.
 
 ####  Reading and writing data
 
-Reading data from an empty flow is not possible.
+Reading data from a dry flow is not possible.
 
 ```js
-flow.read(); // NoDataAvailable: No data available on our flow.
+flow.read(); // DryRead: Attempting to read our flow while it was dry.
 ```
 
 So to read data first you need to write data.
@@ -75,7 +70,7 @@ By reading the data, the flow releases it, so you won't be able to read it again
 
 #### Awaiting data
 
-When you don't know whether the data already arrived or not, but you want to avoid reading an empty flow, you need to use the await method.
+When you don't know whether the data already arrived or not, but you want to avoid reading a dry flow, you need to use the await method.
 
 ```js
 flow.await(function (data){
@@ -140,7 +135,99 @@ flow.pull(console.log); // 2
 flow.pull(console.log); // 3
 ```
 
-Ofc. this is not as fancy as iterating a real generator, but it is good when you want to read for example chunks one by one from a stream.
+#### Loops
+
+To sustain flows, you always need a loop, which transfers the data from a data source to a data sink.
+
+The simplest source uses a `while` or a `for` loop to generate and push the data.
+
+```js
+flow.on("pushed", function () {
+    console.log(flow.read());
+});
+
+var i = 0;
+while (i < 5)
+    flow.push(i++);
+
+for (; i < 10; i++)
+    flow.push(i);
+```
+
+If you need an async loop then you should use a recursive function or an interval.
+
+```js
+flow.on("pushed", function () {
+    console.log(flow.read());
+});
+
+var i = 0;
+var interval = setInterval(function () {
+    flow.push(i++);
+    if (i == 10)
+        clearInterval(interval);
+}, 100);
+```
+
+You can use a flow as a data source, if it can be pulled.
+
+```js
+var reader = new FileReader("source.txt"),
+    writer = new FileWriter("destination.txt");
+reader.pull(function next(line) {
+    writer.write(line);
+    if (reader.isExhausted()) {
+        reader.close();
+        writer.close();
+    }
+    else
+        reader.pull(next);
+});
+```
+
+#### Flow draining and exhaustion
+
+I already mentioned that you cannot read dry flows. Dry means that there is no data on the flow currently.
+
+```js
+flow.write(1);
+console.log(flow.isDry()); // false
+flow.read();
+console.log(flow.isDry()); // true
+flow.read(); // DryRead: Attempting to read our flow while it was dry.
+```
+
+You can always write data on a dry flow, so it can be read again.
+
+Exhausted flow means that all of the data is already written to the flow, and there won't be more. If you try to write more, you will end up with an error.
+
+```js
+flow.write(1);
+flow.write(2);
+console.log(flow.isExhausted()); // false
+flow.exhaust();
+console.log(flow.isExhausted()); // true
+console.log(flow.isDry()); // false
+flow.write(3); // ExhaustedWrite: Attempting to write our flow after it was exhausted.
+```
+
+You can still read, await or pull an exhausted flow until it gets dry.
+
+If you try to await a dry and exhausted flow, then you will get an error.
+
+```js
+flow.exhaust();
+flow.await(function (){}); // ExhaustedDryAwait: Attempting to await our flow while it was exhausted and dry.
+```
+
+The same happens when you await a flow and it gets exhausted meanwhile.
+
+```js
+flow.await(function (){});
+flow.await(function (){});
+flow.write(1);
+flow.exhaust(); // ExhaustedDryAwait: Attempting to await our flow while it was exhausted and dry.
+```
 
 ## License
 

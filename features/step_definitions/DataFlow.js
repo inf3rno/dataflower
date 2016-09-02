@@ -76,8 +76,82 @@ module.exports = function () {
         expect(function () {
             dataFlow.read();
         }).to.throwError(function (error) {
-            expect(error).to.be.a(DataFlow.NoDataAvailable);
+            expect(error).to.be.a(DataFlow.DryRead);
         });
+        next();
+    });
+
+    this.When(/^I have an exhausted flow$/, function (next) {
+        dataFlow = new DataFlow();
+        dataFlow.exhaust();
+        next();
+    });
+
+    this.Then(/^I should not be able to write on it$/, function (next) {
+        expect(function () {
+            dataFlow.write(1);
+        }).to.throwError(function (error) {
+            expect(error).to.be.a(DataFlow.ExhaustedWrite);
+        });
+        next();
+    });
+
+    this.When(/^I have a dry and exhausted flow$/, function (next) {
+        dataFlow = new DataFlow();
+        dataFlow.exhaust();
+        next();
+    });
+
+    this.Then(/^I should not be able to await it$/, function (next) {
+        expect(function () {
+            dataFlow.await(function () {
+            });
+        }).to.throwError(function (error) {
+            expect(error).to.be.a(DataFlow.ExhaustedDryAwait);
+        });
+        next();
+    });
+
+    this.When(/^I have a non-dry but exhausted flow$/, function (next) {
+        dataFlow = new DataFlow();
+        dataFlow.write(1);
+        dataFlow.write(2);
+        dataFlow.exhaust();
+        next();
+    });
+
+    this.Then(/^I should be able to await the rest of the data from it$/, function (next) {
+        expect(dataFlow.isExhausted()).to.be(true);
+        expect(dataFlow.isDry()).to.be(false);
+        expect(function () {
+            dataFlow.read();
+            dataFlow.await(function () {
+            });
+        }).to.not.throwError();
+        expect(dataFlow.isDry()).to.be(true);
+        expect(function () {
+            dataFlow.await(function () {
+            });
+        }).to.throwError(function (error) {
+            expect(error).to.be.a(DataFlow.ExhaustedDryAwait);
+        });
+        next();
+    });
+
+    this.When(/^I await data from a flow$/, function (next) {
+        dataFlow = new DataFlow();
+        dataFlow.await(function () {
+        });
+        next();
+    });
+
+    this.Then(/^I should get an error when it gets dry and exhausted meanwhile$/, function (next) {
+        expect(function () {
+            dataFlow.exhaust();
+        }).to.throwError(function (error) {
+            expect(error).to.be.a(DataFlow.ExhaustedDryAwait);
+        });
+        expect(dataFlow.isExhausted()).to.be(true);
         next();
     });
 
