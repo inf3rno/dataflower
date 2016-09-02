@@ -30,204 +30,189 @@ In this documentation I used the framework as follows:
 
 ```js
 var df = require("dataflower"),
-    DataFlow = df.DataFlow;
+    Flow = df.Flow,
+    Pump = df.Pump;
 ```
 
-### DataFlow
+### Flows
 
-Data flows are the most important building blocks of this project. They main purpose is data delivery, but you can use them for buffering data until somebody needs it. I tried to keep the interface of these flows as simple as possible, but I wanted to support both pull and push to make it more flexible.
+The main purpose of data flows is data delivery, but if you want you can use them for buffering data until somebody needs it.
 
 Creating a flow is simple.
 
 ```js
-var flow = new DataFlow();
+var flow = new Flow();
 ```
 
-By default the flow has the `aDataFlow` name, which you can change if you want.
+But you cannot extract data from an unsustained flow
 
 ```js
-var flow = new DataFlow({name: "our flow"});
+flow.extract(); // DryExtract: Attempting to extract data from a dry flow.
 ```
 
-This can be important by error reporting. It is easier to find a faulty flow when it has a unique name.
-
-####  Reading and writing data
-
-Reading data from a dry flow is not possible.
+So you need to sustain it somehow.
 
 ```js
-flow.read(); // DryRead: Attempting to read our flow while it was dry.
+flow.sustain(123);
+console.log(flow.extract()); // 123
 ```
 
-So to read data first you need to write data.
+By extracting the data, the flow releases it, so you won't be able to extract it again.
+
+You can check whether a flow is dry.
 
 ```js
-flow.write(123);
-console.log(flow.read()); // 123
+while(!flow.isDry())
+    console.log(flow.extract());
 ```
 
-By reading the data, the flow releases it, so you won't be able to read it again unless you write it back.
-
-#### Awaiting data
-
-When you don't know whether the data already arrived or not, but you want to avoid reading a dry flow, you need to use the await method.
+If you need to drain a flow, you don't have to write loops every time, you can use the drain method instead.
 
 ```js
-flow.await(function (data){
-    console.log(data);
+console.log(flow.drain());
+```
+
+It will return always a data array.
+
+If you want to stop a flow, then you can block it.
+
+```js
+flow.block();
+console.log(flow.isBlocked()); // true
+console.log(flow.isSustainable()); // false
+```
+
+After blocking the flow, you won't be able to sustain it again. All you can do is extracting the remaining data and removing the flow after that.
+
+### Pumps
+
+To use flows in an async way you need to use pumps. Creating a pump is simple as well.
+
+```js
+var pump = new Pump();
+```
+
+By default the pump creates a new flow, but you can inject an existing flow if you want.
+
+```js
+var pump = new Pump(flow);
+```
+
+You can always replace the current flow by overriding the flow property.
+
+```js
+pump.flow = newFlow;
+```
+
+```js
+pump.merge({flow: newFlow});
+```
+
+#### Refresh and transactions
+
+As I already mentioned the pump is for handling async code. That means it maintains a queue of callbacks, which you can add with await or pull.
+
+These callbacks are called when data is available, but in order to notify them we need to refresh the pump.
+
+```js
+pump.await(function (){
+    // console.log("called");
+});
+flow.sustain(1, 2, 3);
+pump.refresh(); // called
+```
+
+Ofc. calling refresh manually is something not so convenient, that's why we need to use the transaction method.
+
+```js
+pump.await(function (){
+    // console.log("called");
+});
+pump.transaction(function (theFlow){
+    theFlow.sustain(1, 2, 3);
+});
+// called
+```
+
+Every Pump method with a callback (including await) runs in such a transaction, so they refresh the pump automatically.
+
+That's why it is recommended to use these pump methods if you want the pump to work properly. If you are not able to do that, because you have multiple pumps on a single flow, then you need to call refresh manually.
+
+#### Push - pushed - await loops
+
+If you know there can be people waiting for your data, then you can sustain your flow with push. Push means, that you decide when you send the data.
+
+```js
+pump.await(function (flow){
+    console.log(flow.extract());
+});
+
+pump.push(function (flow){
+    flow.sustain(1);
 });
 ```
 
-If there is data on the flow, it will be sent to the callback, otherwise next time data is written, the callback will get it.
+You could do the same with a transaction, so how is push different?
+
+It triggers a pushed event, which you can listen to. So if you want to be notified about arriving data permanently, then you can listen to this event.
 
 ```js
-flow.write(123); // 123
-```
+pump.on("pushed", function (flow){
+    console.log(flow.drain());
+});
 
-If you have more data, you can write it on the flow, it won't do anything, since await is the async synonym of a single read.
-
-#### Pushing data
-
-To add a permanent data reader, you need to listen to the `pushed` event.
-
-```js
-flow.on("pushed", function (flow){
-    console.log(flow.read());
+pump.push(function (flow){
+    flow.sustain(1, 2, 3);
 });
 ```
 
-To trigger this event, you need to push to the flow, so a simple write is not enough.
+The drain method uses a sync loop to extract all the available data from the flow. You can do it with an async loop too if you want to.
 
 ```js
-flow.write(123);
-flow.push(456); // 123
-flow.push(789); // 456
-```
-
-As you can see the messages are processed in write order, so if you push data it is possible that the listener will get something completely different from the flow.
-
-#### Pulling data
-
-Sometimes pushing is not enough, because the reader wants to decide when it needs the data to be generated. In such situations we need to use pull.
-
-```js
-flow.pull(function (data){
-    console.log(data);
+pump.on("pushed", function (flow){
+    flow.await(function next(flow){
+        console.log(flow.extract());
+        setTimeout(function (){
+            if (!flow.isDry())
+                flow.await(next);
+        }, 10);
+    });
 });
 ```
 
-It works the same way as await, so you can give it a callback and wait for data to be arrived. Data won't come from thing air, so we need to write it manually.
+Just be sure, that nobody else is extracting data from the flow parallel, because if the flow goes blocked, then unsustainable awaits will throw errors.
+
+#### Pull - pulled loops
+
+If you waited for data almost forever and nothing happened, that may be because you need to use pull instead of await. Pull means you decide when you get the data and the pump waits for a sign to start sustaining the flow.
 
 ```js
-flow.write(123); // 123
-```
-
-To make a permanent data generator for pull requests you need to use the `pulled` event.
-
-```js
-var i = 0
-flow.on("pulled", function (flow){
-    flow.write(++i);
-});
-
-flow.pull(console.log); // 1
-flow.pull(console.log); // 2
-flow.pull(console.log); // 3
-```
-
-#### Loops
-
-To sustain flows, you always need a loop, which transfers the data from a data source to a data sink.
-
-The simplest source uses a `while` or a `for` loop to generate and push the data.
-
-```js
-flow.on("pushed", function () {
-    console.log(flow.read());
-});
-
-var i = 0;
-while (i < 5)
-    flow.push(i++);
-
-for (; i < 10; i++)
-    flow.push(i);
-```
-
-If you need an async loop then you should use a recursive function or an interval.
-
-```js
-flow.on("pushed", function () {
-    console.log(flow.read());
-});
-
-var i = 0;
-var interval = setInterval(function () {
-    flow.push(i++);
-    if (i == 10)
-        clearInterval(interval);
-}, 100);
-```
-
-You can use a flow as a data source, if it can be pulled.
-
-```js
-var reader = new FileReader("source.txt"),
-    writer = new FileWriter("destination.txt");
-reader.pull(function next(line) {
-    writer.write(line);
-    if (reader.isExhausted()) {
-        reader.close();
-        writer.close();
-    }
-    else
-        reader.pull(next);
+pump.pull(function (flow){
+    console.log(flow.extract());
 });
 ```
 
-#### Flow draining and exhaustion
-
-I already mentioned that you cannot read dry flows. Dry means that there is no data on the flow currently.
+To start the process you need a pulled event handler on the pump.
 
 ```js
-flow.write(1);
-console.log(flow.isDry()); // false
-flow.read();
-console.log(flow.isDry()); // true
-flow.read(); // DryRead: Attempting to read our flow while it was dry.
+pump.on("pulled", function (flow){
+    flow.sustain(Math.floor(Math.random() * 10));
+    if (Math.random() < 0.1)
+        flow.block();
+});
 ```
 
-You can always write data on a dry flow, so it can be read again.
-
-Exhausted flow means that all of the data is already written to the flow, and there won't be more. If you try to write more, you will end up with an error.
+You can call pull recursively to get a continuous data flow.
 
 ```js
-flow.write(1);
-flow.write(2);
-console.log(flow.isExhausted()); // false
-flow.exhaust();
-console.log(flow.isExhausted()); // true
-console.log(flow.isDry()); // false
-flow.write(3); // ExhaustedWrite: Attempting to write our flow after it was exhausted.
+pump.pull(function again(flow){
+    console.log(flow.extract());
+    if (flow.isSustainable())
+        pump.pull(again);
+});
 ```
 
-You can still read, await or pull an exhausted flow until it gets dry.
-
-If you try to await a dry and exhausted flow, then you will get an error.
-
-```js
-flow.exhaust();
-flow.await(function (){}); // ExhaustedDryAwait: Attempting to await our flow while it was exhausted and dry.
-```
-
-The same happens when you await a flow and it gets exhausted meanwhile.
-
-```js
-flow.await(function (){});
-flow.await(function (){});
-flow.write(1);
-flow.exhaust(); // ExhaustedDryAwait: Attempting to await our flow while it was exhausted and dry.
-```
+This kind of solution can be very useful by handling for example file streams.
 
 ## License
 
