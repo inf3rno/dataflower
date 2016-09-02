@@ -20,9 +20,10 @@ var ArrayReader = DataFlow.extend({
             var pointer = 0;
             this.on("pulled", function (flow) {
                 setTimeout(function () {
-                    flow.write(items[pointer]);
-                    if (++pointer == items.length)
-                        flow.exhaust();
+                    flow.write(items[pointer], function (flow) {
+                        if (++pointer == items.length)
+                            flow.exhaust();
+                    });
                 }, 1);
             });
         }

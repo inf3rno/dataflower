@@ -49,5 +49,3 @@ display.text("to read the data:456 you can apply either need or await. I call an
 flow.await(function (data) {
     display.data(data);
 });
-
-display.ending();

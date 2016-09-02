@@ -38,5 +38,3 @@ display.text("writing data:789 on the flow, you should not see it in the console
 flow.write(789);
 
 display.text("so pushing is for letting a permanent consumer to know, there is data on the flow which it can consume");
-
-display.ending();

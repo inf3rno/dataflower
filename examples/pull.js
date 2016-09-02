@@ -29,5 +29,3 @@ display.text("calling pull should read the generated data every time it is calle
 flow.pull(display.data);
 flow.pull(display.data);
 flow.pull(display.data);
-
-display.ending();
