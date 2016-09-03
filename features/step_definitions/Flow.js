@@ -59,4 +59,14 @@ module.exports = function () {
         next();
     });
 
+    this.When(/^I have a data flow with some data on it$/, function (next) {
+        aFlow = new Flow();
+        aFlow.sustain(1, 2, 3, 4);
+        next();
+    });
+
+    this.Then(/^I should be able to measure the size of this flow$/, function (next) {
+        expect(aFlow.size()).to.be(4);
+        next();
+    });
 };

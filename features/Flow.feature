@@ -15,3 +15,7 @@ Feature: data flows
   Scenario: blocking an already blocked flow leads to failure
     When I have a blocked data flow
     Then I should not be able to block it again
+
+  Scenario: getting flow size
+    When I have a data flow with some data on it
+    Then I should be able to measure the size of this flow
